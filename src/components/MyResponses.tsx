@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { apiFetch } from "../lib/api";
 import {
   Loader2,
   AlertCircle,
@@ -397,7 +398,7 @@ export default function MyResponses() {
     setError(null);
     try {
       const token = localStorage.getItem("access_token");
-      const res = await fetch("/api/offers/responses", {
+      const res = await apiFetch("/api/offers/responses", {
         headers: token ? { Authorization: `${token}` } : {},
       });
       if (!res.ok) throw new Error("Failed to load responses");
@@ -419,7 +420,7 @@ export default function MyResponses() {
       const token = localStorage.getItem("access_token");
       const action = status === "accepted" ? "accept" : "reject";
       try {
-        const res = await fetch(`/api/offers/${offerId}/${action}`, {
+        const res = await apiFetch(`/api/offers/${offerId}/${action}`, {
           method: "PATCH",
           headers: {
             ...(token ? { Authorization: `${token}` } : {}),

@@ -3,6 +3,7 @@ import {
   X, Loader2, Users, CheckCircle2, XCircle, Clock,
   MapPin, MessageSquare, AlertCircle, ChevronDown, ChevronUp,
 } from 'lucide-react';
+import { apiFetch } from '../../lib/api';
 import { Post } from '../../types';
 import { getAvatarUrl, handleAvatarError } from '../../utils';
 
@@ -46,7 +47,7 @@ export default function OffersReceivedModal({ post, onClose }: OffersReceivedMod
     setError(null);
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch(`/api/offers/post/${postId}`, {
+      const res = await apiFetch(`/api/offers/post/${postId}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error('Failed to load offers');
@@ -65,7 +66,7 @@ export default function OffersReceivedModal({ post, onClose }: OffersReceivedMod
     setActionLoading(offerId);
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch(`/api/offers/${offerId}`, {
+      const res = await apiFetch(`/api/offers/${offerId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

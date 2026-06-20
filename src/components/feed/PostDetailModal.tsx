@@ -1,6 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { MapPin, Clock, HelpCircle, Send, Loader2, X, IndianRupee, CheckCircle2, AlertCircle, Users, CalendarDays } from 'lucide-react';
 import { Post, User } from '../../types';
+import { apiFetch } from '../../lib/api';
 import { isPostExpired, getPostExpiryLabel, getAvatarUrl, handleAvatarError } from '../../utils';
 
 interface BackendOffer {
@@ -65,7 +66,7 @@ export default function PostDetailModal({
       setOffersLoading(true);
       try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch(`/api/offers/post/${postId}`, {
+        const res = await apiFetch(`/api/offers/post/${postId}`, {
           headers: token ? { Authorization: `${token}` } : {},
         });
         if (res.ok) {
@@ -96,7 +97,7 @@ export default function PostDetailModal({
     try {
       const token = localStorage.getItem('access_token');
       console.log('Submitting offer with answers:', token);
-      const res = await fetch('/api/offers', {
+      const res = await apiFetch('/api/offers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +113,7 @@ export default function PostDetailModal({
 
       onAddComment(focusedPost.id, newCommentText, true, undefined, undefined, answersPayload);
 
-      const refreshRes = await fetch(`/api/offers/post/${postId}`, {
+      const refreshRes = await apiFetch(`/api/offers/post/${postId}`, {
         headers: token ? { Authorization: `${token}` } : {},
       });
       if (refreshRes.ok) {

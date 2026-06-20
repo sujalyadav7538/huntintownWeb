@@ -26,5 +26,10 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+
+    define: {
+      // Injected at build time; empty in dev so Vite proxy handles /api/*
+      __API_BASE__: JSON.stringify(mode === 'production' ? env.VITE_API_BASE_URL : ''),
+    },
   };
 });

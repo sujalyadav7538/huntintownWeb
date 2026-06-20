@@ -5,6 +5,7 @@ import {
   Activity, Tag, HelpCircle, RefreshCw,
 } from 'lucide-react';
 import { getAvatarUrl, handleAvatarError } from '../utils';
+import { apiFetch } from '../lib/api';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,6 +19,7 @@ interface ActivityPost {
   timeline?: string;
   status: string;
   expiresAt: string;
+  createdAt?: string;
   offersCount: number;
   questions?: string[];
   author: {
@@ -142,7 +144,7 @@ function ActivityCard({ item }: { item: ActivityItem }) {
               <span className="text-zinc-700">·</span>
               <span className="inline-flex items-center gap-0.5 text-[11px] text-zinc-500">
                 <CalendarDays className="w-3 h-3 text-zinc-600" />
-                {new Date(post.createdAt || offer.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                {new Date(offer.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </span>
             </div>
           </div>
@@ -250,7 +252,7 @@ export default function MyActivity() {
     setError(null);
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch('/api/offers/my-activity', {
+      const res = await apiFetch('/api/offers/my-activity', {
         headers: token ? { Authorization: `${token}` } : {},
       });
       if (!res.ok) throw new Error('Failed to load activity');

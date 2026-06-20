@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Post } from '../../types';
+import { apiFetch } from '../../lib/api';
 import { CheckCircle2, AlertCircle, RefreshCw, Trash, Inbox, Loader2 } from 'lucide-react';
 
 interface PublishedListingItemProps {
@@ -27,7 +28,7 @@ export default function PublishedListingItem({
     const fetchCount = async () => {
       try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch(`/api/offers/post/${postId}`, {
+        const res = await apiFetch(`/api/offers/post/${postId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (res.ok) {

@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from "react";
 import { useAppSelector } from "../store/hooks";
+import { apiFetch } from "../lib/api";
 import { FUNCTIONAL_CATEGORIES } from "../data";
 import {
   X,
@@ -108,7 +109,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
 
     try {
       const token = localStorage.getItem("access_token");
-      const response = await fetch("/api/posts", {
+      const response = await apiFetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

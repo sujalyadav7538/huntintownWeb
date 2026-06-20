@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Post, Comment } from '../types';
+import { apiFetch } from '../lib/api';
 
 const initialState: Post[] = [];
 
@@ -21,7 +22,7 @@ function mapStatus(apiStatus: string): Post['status'] {
 
 // Fetch posts from the API
 export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
-  const res = await fetch('/api/posts');
+  const res = await apiFetch('/api/posts');
   if (!res.ok) throw new Error('Failed to fetch posts');
   const data: {
     success: boolean;

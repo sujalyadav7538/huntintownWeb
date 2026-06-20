@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Post, User } from '../../types';
+import { apiFetch } from '../../lib/api';
 import { Send, Loader2, CheckCircle2, XCircle, Clock, ChevronRight } from 'lucide-react';
 
 interface MyOffer {
@@ -42,7 +43,7 @@ export default function ProposalsSidebar({
       setLoading(true);
       try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/offers/my', {
+        const res = await apiFetch('/api/offers/my', {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (res.ok) {

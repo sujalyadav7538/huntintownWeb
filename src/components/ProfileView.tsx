@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { apiFetch } from "../lib/api";
 
 import { User } from "../types";
 
@@ -67,7 +68,7 @@ export default function ProfileView({ onUpdateProfile }: ProfileViewProps) {
     try {
       setIsSaving(true);
       const token = localStorage.getItem("access_token");
-      const data = await fetch("/api/profile/update", {
+      const data = await apiFetch("/api/profile/update", {
         method: "PUT",
         credentials: "include",
         headers: {

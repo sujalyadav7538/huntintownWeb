@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Search, SlidersHorizontal, X } from "lucide-react";
+import { apiFetch } from "../lib/api";
 import { User } from "../types";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { setSearchTerm } from "../store/uiSlice";
@@ -73,7 +74,7 @@ export default function HomeFeed({
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch(`/api/posts/getAvailablePosts`,{
+        const res = await apiFetch(`/api/posts/getAvailablePosts`,{
           method:"GET",
           headers:{
             "Authorization": `${localStorage.getItem("access_token")}`
