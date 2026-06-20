@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 2, "column": 0}, "map": {"version":3,"sources":["file:///D:/hit/zips/HuntInTown/src/index.css"],"sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');\n@import \"tailwindcss\";\n\n@theme {\n  --font-sans: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif;\n  --font-display: \"Space Grotesk\", sans-serif;\n  --font-mono: \"JetBrains Mono\", monospace;\n}\n\n/* Custom transitions and scrollbars */\n::-webkit-scrollbar {\n  width: 6px;\n  height: 6px;\n}\n::-webkit-scrollbar-track {\n  background: #121214;\n}\n::-webkit-scrollbar-thumb {\n  background: #27272a;\n  border-radius: 3px;\n}\n::-webkit-scrollbar-thumb:hover {\n  background: #3f3f46;\n}\n\nbody {\n  background-color: #09090b;\n  color: #f4f4f5;\n  font-family: var(--font-sans);\n}\n"],"names":[],"mappings":"AAGA;;;;AAOA;;;;;AAIA;;;;AAGA;;;;;AAIA;;;;AAIA"}}]
+}

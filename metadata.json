@@ -1,0 +1,6 @@
+{
+  "name": "HuntInTown",
+  "description": "A responsive local community network connecting freelance experts, certified companions, and neighbors in need.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
