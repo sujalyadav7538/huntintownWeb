@@ -21,7 +21,7 @@ function mapStatus(apiStatus: string): Post['status'] {
 
 // Fetch posts from the API
 export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
-  const res = await fetch('http://localhost:5000/api/posts');
+  const res = await fetch('/api/posts');
   if (!res.ok) throw new Error('Failed to fetch posts');
   const data: {
     success: boolean;

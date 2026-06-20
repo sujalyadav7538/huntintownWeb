@@ -52,8 +52,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       setLoading(true);
 
       const endpoint = isSignup
-        ? "http://localhost:5000/api/user/signup"
-        : "http://localhost:5000/api/user/signin";
+        ? `${import.meta.env.VITE_API_BASE_URL}/api/user/signup`
+        : `${import.meta.env.VITE_API_BASE_URL}/api/user/signin`;
 
       const response = await fetch(endpoint, {
         method: "POST",
