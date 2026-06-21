@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { User } from "../types";
 import { getAvatarUrl } from "../utils";
+import { apiFetch } from "../lib/api";
 
 interface LoginPageProps {
   onLogin?: (user: User, token: string) => void;
@@ -55,7 +56,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         ? `/api/user/signup`
         : `/api/user/signin`;
 
-      const response = await fetch(endpoint, {
+      const response = await apiFetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
