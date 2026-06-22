@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import {
   Loader2, AlertCircle, CheckCircle2, XCircle, Clock,
   MapPin, IndianRupee, ChevronDown, ChevronUp, CalendarDays,
-  Activity, Tag, HelpCircle, RefreshCw,
+  Activity, Tag, HelpCircle, RefreshCw, MessageCircle,
 } from 'lucide-react';
 import { getAvatarUrl, handleAvatarError } from '../utils';
 import { apiFetch } from '../lib/api';
+import { User } from '../types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,7 +105,7 @@ function SkeletonRow() {
 
 // ── Activity card ─────────────────────────────────────────────────────────────
 
-function ActivityCard({ item }: { item: ActivityItem }) {
+function ActivityCard({ item, onInitiateChat }: { item: ActivityItem; onInitiateChat: (u: User) => void }) {
   const [expanded, setExpanded] = useState(false);
   const { post, offer } = item;
   const cfg = STATUS[offer.status] ?? STATUS.pending;
@@ -204,6 +205,24 @@ function ActivityCard({ item }: { item: ActivityItem }) {
           </button>
         )}
 
+        {/* ── Chat CTA (only when accepted) ── */}
+        {offer.status === 'accepted' && (
+          <button
+            onClick={() => onInitiateChat({
+              id: post.author.id,
+              name: post.author.name,
+              avatar: post.author.avatar,
+              email: post.author.email ?? '',
+              role: '',
+              location: '',
+            })}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 border border-[#FF3F3F]/30 text-[#FF3F3F] text-[12px] font-bold transition-all duration-200 cursor-pointer"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Chat with {post.author.name.split(' ')[0]}
+          </button>
+        )}
+
         {/* ── Expanded: Q&A ── */}
         {expanded && offer.answers && offer.answers.length > 0 && (
           <div className="bg-[#111113] border border-[#1e1e22] rounded-xl p-4 space-y-3">
@@ -241,7 +260,7 @@ const FILTER_TABS: { key: FilterKey; label: string; icon: typeof Clock }[] = [
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
-export default function MyActivity() {
+export default function MyActivity({ onInitiateChat }: { onInitiateChat: (u: User) => void }) {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -382,7 +401,7 @@ export default function MyActivity() {
       ) : (
         <div className="space-y-4">
           {filtered.map((item) => (
-            <ActivityCard key={item.offer._id} item={item} />
+            <ActivityCard key={item.offer._id} item={item} onInitiateChat={onInitiateChat} />
           ))}
         </div>
       )}

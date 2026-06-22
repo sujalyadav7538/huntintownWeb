@@ -1,4 +1,4 @@
-import { MapPin, Clock, MessageCircle, Zap, Users, IndianRupee, Lock } from 'lucide-react';
+import { MapPin, Clock, Zap, Users, IndianRupee, Lock } from 'lucide-react';
 import { Post, User } from '../../types';
 import { isPostExpired, getPostExpiryLabel, getAvatarUrl, handleAvatarError } from '../../utils';
 
@@ -8,6 +8,8 @@ interface PostCardProps {
   currentUser: User;
   onSelect: () => void;
   onInitiateChat: (recipient: User) => void;
+  onViewProfile?: (author: User) => void;
+  readOnly?: boolean;
 }
 
 export default function PostCard({
@@ -15,6 +17,8 @@ export default function PostCard({
   currentUser,
   onSelect,
   onInitiateChat,
+  onViewProfile,
+  readOnly = false,
 }: PostCardProps) {
   const isAuthor = post.author.id === currentUser.id;
   const isUrgent = post.title.toLowerCase().includes('urgent') || post.description.toLowerCase().includes('urgent');
@@ -59,19 +63,28 @@ export default function PostCard({
         {/* ── Author row ── */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="relative shrink-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); onViewProfile?.(post.author); }}
+              className={`relative shrink-0 ${onViewProfile ? 'cursor-pointer group/avatar' : 'cursor-default'}`}
+              title={onViewProfile ? `View ${post.author.name}'s profile` : undefined}
+            >
               <img
                 src={getAvatarUrl(post.author.name, post.author.avatar)}
                 alt={post.author.name}
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1e1e22] group-hover:ring-[#2e2e34] transition-all"
+                className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1e1e22] group-hover:ring-[#2e2e34] group-hover/avatar:ring-[#FF3F3F]/50 transition-all"
                 onError={(e) => handleAvatarError(e, post.author.name)}
                 referrerPolicy="no-referrer"
               />
               <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#0e0e10]" />
-            </div>
+            </button>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[13px] font-semibold text-zinc-100 tracking-tight truncate">{post.author.name}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onViewProfile?.(post.author); }}
+                  className={`text-[13px] font-semibold text-zinc-100 tracking-tight truncate ${onViewProfile ? 'hover:text-[#FF3F3F] transition-colors cursor-pointer' : 'cursor-default'}`}
+                >
+                  {post.author.name}
+                </button>
                 {isUrgent && !expired && (
                   <span className="inline-flex items-center gap-0.5 text-[9px] font-black tracking-widest bg-[#FF3F3F]/15 text-[#FF3F3F] border border-[#FF3F3F]/30 px-1.5 py-0.5 rounded-full uppercase">
                     <Zap className="w-2.5 h-2.5" />Urgent
@@ -131,25 +144,16 @@ export default function PostCard({
         </div>
 
         {/* ── Action row ── */}
-        {!isAuthor && (
+        {!isAuthor && !readOnly && (
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex gap-2 items-center border-t border-[#18181c] pt-3"
           >
             <button
-              id={`chat-launcher-${post.id}`}
-              onClick={() => onInitiateChat(post.author)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#18181c] hover:bg-[#222226] border border-[#272729] rounded-xl text-[11px] font-semibold text-zinc-400 hover:text-zinc-200 transition-all duration-200 cursor-pointer"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              Message
-            </button>
-
-            <button
               id={`offer-help-btn-${post.id}`}
               onClick={onSelect}
               disabled={expired}
-              className={`ml-auto inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-200 cursor-pointer ${
+              className={`w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-200 cursor-pointer ${
                 expired
                   ? 'bg-zinc-800/50 text-zinc-600 border border-zinc-700/50 cursor-not-allowed'
                   : 'bg-[#FF3F3F] hover:bg-[#e53535] text-white shadow-md shadow-[#FF3F3F]/20 hover:shadow-[#FF3F3F]/35 hover:scale-[1.02] active:scale-[0.98]'

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Layers } from 'lucide-react';
 import { useAppSelector } from '../store/hooks';
-import { Post } from '../types';
+import { Post, User } from '../types';
 
 import DashboardHeader from './dashboard/DashboardHeader';
 import DashboardStats from './dashboard/DashboardStats';
@@ -16,9 +16,10 @@ interface DashboardProps {
   onDeleteListing: (postId: string) => void;
   onSelectPost: (postId: string) => void;
   setActiveTab: (tab: string) => void;
+  onInitiateChat: (user: User) => void;
 }
 
-export default function Dashboard({ onUpdateStatus, onDeleteListing, onSelectPost, setActiveTab }: DashboardProps) {
+export default function Dashboard({ onUpdateStatus, onDeleteListing, onSelectPost, setActiveTab, onInitiateChat }: DashboardProps) {
   const posts = useAppSelector((s) => s.posts);
   const currentUser = useAppSelector((s) => s.auth.currentUser);
 
@@ -104,6 +105,7 @@ export default function Dashboard({ onUpdateStatus, onDeleteListing, onSelectPos
         <OffersReceivedModal
           post={offersPost}
           onClose={() => setOffersPost(null)}
+          onInitiateChat={onInitiateChat}
         />
       )}
     </div>

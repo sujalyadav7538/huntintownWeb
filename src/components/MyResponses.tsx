@@ -19,8 +19,10 @@ import {
   MessageSquare,
   ThumbsUp,
   ThumbsDown,
+  MessageCircle,
 } from "lucide-react";
 import { getAvatarUrl, handleAvatarError } from "../utils";
+import { User } from "../types";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -115,9 +117,10 @@ interface OfferRowProps {
     offerId: string,
     status: "accepted" | "rejected",
   ) => Promise<void>;
+  onInitiateChat: (u: User) => void;
 }
 
-function OfferRow({ offer, onStatusChange }: OfferRowProps) {
+function OfferRow({ offer, onStatusChange, onInitiateChat }: OfferRowProps) {
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState<"accepting" | "rejecting" | null>(
     null,
@@ -208,6 +211,24 @@ function OfferRow({ offer, onStatusChange }: OfferRowProps) {
               </>
             )}
 
+            {/* Chat button — unlocked only for accepted offers */}
+            {offer.status === "accepted" && (
+              <button
+                onClick={() => onInitiateChat({
+                  id: offer.offeredBy.id,
+                  name: offer.offeredBy.name,
+                  avatar: offer.offeredBy.avatar ?? '',
+                  email: offer.offeredBy.email ?? '',
+                  role: '',
+                  location: '',
+                })}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 border border-[#FF3F3F]/30 text-[#FF3F3F] rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                Chat with {offer.offeredBy.name.split(' ')[0]}
+              </button>
+            )}
+
             {/* Expand toggle */}
             {offer.answers?.length > 0 && (
               <button
@@ -265,12 +286,14 @@ interface PostBlockProps {
     offerId: string,
     status: "accepted" | "rejected",
   ) => Promise<void>;
+  onInitiateChat: (u: User) => void;
   defaultOpen?: boolean;
 }
 
 function PostBlock({
   item,
   onStatusChange,
+  onInitiateChat,
   defaultOpen = false,
 }: PostBlockProps) {
   const { post, offers } = item;
@@ -375,8 +398,7 @@ function PostBlock({
                 <OfferRow
                   key={offer._id}
                   offer={offer}
-                  onStatusChange={onStatusChange}
-                />
+                  onStatusChange={onStatusChange}                  onInitiateChat={onInitiateChat}                />
               ))}
             </div>
           )}
@@ -388,7 +410,7 @@ function PostBlock({
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
-export default function MyResponses() {
+export default function MyResponses({ onInitiateChat }: { onInitiateChat: (u: User) => void }) {
   const [items, setItems] = useState<ResponseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -569,6 +591,7 @@ export default function MyResponses() {
                   key={item.post._id}
                   item={item}
                   onStatusChange={handleStatusChange}
+                  onInitiateChat={onInitiateChat}
                 />
               ))}
             </div>
@@ -585,6 +608,7 @@ export default function MyResponses() {
                   key={item.post._id}
                   item={item}
                   onStatusChange={handleStatusChange}
+                  onInitiateChat={onInitiateChat}
                 />
               ))}
             </div>

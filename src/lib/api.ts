@@ -1,12 +1,41 @@
 /**
- * Thin fetch wrapper that resolves the correct base URL:
- *  - Development : empty string — Vite dev-server proxy forwards /api/* to the backend
- *  - Production  : injected at build time via Vite's `define` → VITE_API_BASE_URL
+ * Single source-of-truth for all API calls.
+ *
+ * Development  → set VITE_API_URL=http://localhost:5000 in .env.local
+ *                (Vite proxy also forwards /api/* so an empty string works too)
+ * Production   → set VITE_API_URL=https://your-backend.onrender.com in your
+ *                CI / hosting environment variables.
+ *
+ * Usage:
+ *   apiFetch('/api/posts')
+ *   apiFetch('/api/profile/update', { method: 'PUT', body: formData })
  */
-declare const __API_BASE__: string;
 
-const BASE: string = typeof __API_BASE__ !== 'undefined' ? __API_BASE__ : '';
+const BASE: string =
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
 
 export function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-  return fetch(`${BASE}${path}`, init);
+  const url = path.startsWith('http') ? path : `${BASE}${path}`;
+  return fetch(url, init);
+}
+
+/** Convenience: returns parsed JSON or throws a structured error. */
+export async function apiFetchJSON<T = unknown>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  const res = await apiFetch(path, init);
+  if (!res.ok) {
+    let message = `Request failed: ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.message) message = body.message;
+    } catch {
+      // ignore parse errors
+    }
+    const err = new Error(message) as Error & { status: number };
+    err.status = res.status;
+    throw err;
+  }
+  return res.json() as Promise<T>;
 }

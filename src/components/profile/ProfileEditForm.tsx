@@ -19,8 +19,11 @@ interface ProfileEditFormProps {
 
   user: User;
 
-  setAvatar: (value: string) => void;
-  avatar: string;
+  /** Blob URL used only for local preview — never persisted. */
+  avatarPreview: string;
+  /** Called when the user picks a new file. Parent creates the blob URL. */
+  onAvatarFile: (file: File) => void;
+
   handleSave: () => void;
   handleDiscard: () => void;
 }
@@ -37,20 +40,18 @@ export default function ProfileEditForm({
   skillsString,
   setSkillsString,
   user,
-  setAvatar,
-  avatar,
+  avatarPreview,
+  onAvatarFile,
   handleSave,
   handleDiscard,
 }: ProfileEditFormProps) {
   return (
     <div className="bg-[#121214] border border-[#232327] rounded-2xl p-6 flex flex-col gap-6">
+      {/* Avatar — blob URL is preview-only; parent holds the real File */}
       <AvatarUploader
-        avatar={avatar}
-        onChange={(file) => {
-          const imageUrl = URL.createObjectURL(file);
-
-          setAvatar(imageUrl);
-        }}
+        avatar={avatarPreview}
+        name={name}
+        onChange={onAvatarFile}
       />
 
       <div className="space-y-5">

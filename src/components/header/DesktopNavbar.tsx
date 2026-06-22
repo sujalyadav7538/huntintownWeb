@@ -25,9 +25,9 @@ export default function DesktopNavbar({ activeTab, setActiveTab, unreadMessagesC
       </button>
       <button
         id="nav-feed-btn"
-        onClick={() => setActiveTab('feed')}
+        onClick={() => setActiveTab('explore')}
         className={`px-3 py-1.5 text-xs font-bold rounded-lg transition tracking-wide cursor-pointer uppercase ${
-          activeTab === 'feed' ? 'bg-zinc-800 text-[#FF3F3F] border border-zinc-700' : 'text-zinc-300 hover:text-white hover:bg-zinc-900'
+          activeTab === 'explore' || activeTab === 'feed' ? 'bg-zinc-800 text-[#FF3F3F] border border-zinc-700' : 'text-zinc-300 hover:text-white hover:bg-zinc-900'
         }`}
       >
         Explore

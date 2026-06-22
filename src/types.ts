@@ -1,3 +1,10 @@
+export interface UserSocialLinks {
+  github?: string;
+  linkedin?: string;
+  twitter?: string;
+  website?: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -9,6 +16,16 @@ export interface User {
   skills?: string[];
   joinedAt?: string;
   bio?: string;
+  // Extended profile fields
+  trustScore?: number;
+  completedRequests?: number;
+  successRate?: number;
+  responseRate?: number;
+  communityScore?: number;
+  isVerified?: boolean;
+  reviewCount?: number;
+  socialLinks?: UserSocialLinks;
+  services?: string[];
 }
 
 export interface Comment {

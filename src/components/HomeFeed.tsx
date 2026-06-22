@@ -11,6 +11,7 @@ import PostDetailModal from "./feed/PostDetailModal";
 import FeedSidebar from "./feed/FeedSidebar";
 import MobileSearchBar from "./feed/MobileSearchBar";
 import CategoryFilterRow from "./feed/CategoryFilterRow";
+import UserProfileModal from "./profile/UserProfileModal";
 
 interface HomeFeedProps {
   onAddComment: (
@@ -69,6 +70,11 @@ export default function HomeFeed({
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [focusedPostId, setFocusedPostId] = useState<string | null>(null);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
+
+  const handleViewProfile = (author: User) => {
+    setViewingUser(author);
+  };
 
   // FETCH POSTS FROM DB
   useEffect(() => {
@@ -221,6 +227,7 @@ export default function HomeFeed({
                 currentUser={currentUser}
                 onSelect={() => setFocusedPostId(post.id)}
                 onInitiateChat={onInitiateChat}
+                onViewProfile={handleViewProfile}
               />
             ))
           )}
@@ -234,6 +241,20 @@ export default function HomeFeed({
           currentUser={currentUser}
           onClose={() => setFocusedPostId(null)}
           onAddComment={onAddComment}
+          onViewProfile={handleViewProfile}
+        />
+      )}
+
+      {/* ── User profile modal ── */}
+      {viewingUser && (
+        <UserProfileModal
+          user={viewingUser}
+          currentUserId={currentUser?.id ?? ''}
+          onClose={() => setViewingUser(null)}
+          onMessage={(u) => {
+            setViewingUser(null);
+            onInitiateChat(u);
+          }}
         />
       )}
     </div>

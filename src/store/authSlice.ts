@@ -12,7 +12,7 @@ const initialState: AuthState = {
   isAuthenticated: localStorage.getItem('neighbourly_auth') === 'true',
   currentUser: (() => {
     const saved = localStorage.getItem('neighbourly_user');
-    return saved ? JSON.parse(saved) : INITIAL_USER;
+    return saved ? (JSON.parse(saved) as User) : INITIAL_USER;
   })(),
   token: localStorage.getItem('access_token'),
 };
@@ -25,13 +25,21 @@ export const authSlice = createSlice({
       state.isAuthenticated = true;
       state.currentUser = action.payload.user;
       state.token = action.payload.token;
+      localStorage.setItem('neighbourly_auth', 'true');
+      localStorage.setItem('neighbourly_user', JSON.stringify(action.payload.user));
+      localStorage.setItem('access_token', action.payload.token);
     },
     logout: (state) => {
       state.isAuthenticated = false;
+      state.currentUser = INITIAL_USER;
       state.token = null;
+      localStorage.removeItem('neighbourly_auth');
+      localStorage.removeItem('neighbourly_user');
+      localStorage.removeItem('access_token');
     },
     updateProfile: (state, action: PayloadAction<User>) => {
       state.currentUser = action.payload;
+      localStorage.setItem('neighbourly_user', JSON.stringify(action.payload));
     },
   },
 });

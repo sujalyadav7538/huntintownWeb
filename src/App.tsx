@@ -25,11 +25,10 @@ import LoginModal from './components/LoginModal';
 import LoginPage from './components/LoginPage';
 import MyActivity from './components/MyActivity';
 import MyResponses from './components/MyResponses';
+import ExplorePage from './components/ExplorePage';
 
 import {
-  MessageSquare,
   LayoutGrid,
-  User as UserIcon,
   Plus,
   Home,
   Activity,
@@ -105,7 +104,7 @@ export default function App() {
       case 'landing':
         return (
           <LandingPage
-            onExplore={() => setActiveTab('feed')}
+            onExplore={() => setActiveTab('explore')}
             onPostRequirement={() => {
               if (!isAuthenticated) { navigate('/login', { replace: true }); return; }
               dispatch(openCreatePost());
@@ -141,6 +140,10 @@ export default function App() {
             onDeleteListing={(id) => dispatch(deletePost(id))}
             onSelectPost={() => setActiveTab('feed')}
             setActiveTab={setActiveTab}
+            onInitiateChat={(recipient) => {
+              dispatch(openDirectChat(recipient) as any);
+              setActiveTab('messaging');
+            }}
           />
         );
       case 'messaging':
@@ -153,14 +156,31 @@ export default function App() {
         return (
           <ProfileView
             onUpdateProfile={(updated) => dispatch(updateProfile(updated))}
+            onLogout={handleLogout}
           />
         );
       case 'activity':
-        return <MyActivity />;
+        return (
+          <MyActivity
+            onInitiateChat={(recipient) => {
+              dispatch(openDirectChat(recipient) as any);
+              setActiveTab('messaging');
+            }}
+          />
+        );
       case 'responses':
-        return <MyResponses />;
+        return (
+          <MyResponses
+            onInitiateChat={(recipient) => {
+              dispatch(openDirectChat(recipient) as any);
+              setActiveTab('messaging');
+            }}
+          />
+        );
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
+      case 'explore':
+        return <ExplorePage />;
       default:
         return null;
     }
@@ -176,84 +196,68 @@ export default function App() {
           onLogoutSimulate={handleLogout}
         />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-8">
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8">
           {renderActiveView()}
         </main>
 
-        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-[#121214] border-t border-[#232327] flex items-center justify-around py-2.5 z-40 shadow-xl">
-          <button
-            onClick={() => setActiveTab('landing')}
-            className={`flex flex-col items-center p-1 text-center font-bold cursor-pointer transition ${
-              activeTab === 'landing' ? 'text-[#FF3F3F]' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <Home className="w-5 h-5" />
-            <span className="text-[9px] uppercase tracking-wider scale-90">Home</span>
-          </button>
+        {/* ── Mobile bottom nav ── */}
+        <div className="md:hidden fixed bottom-0 inset-x-0 bg-[#121214]/95 backdrop-blur-md border-t border-[#232327] z-40 shadow-xl">
+          <div className="flex items-center justify-around px-2 pb-safe">
 
-          <button
-            onClick={() => setActiveTab('feed')}
-            className={`flex flex-col items-center p-1 text-center font-bold cursor-pointer transition ${
-              activeTab === 'feed' ? 'text-[#FF3F3F]' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <LayoutGrid className="w-5 h-5" />
-            <span className="text-[9px] uppercase tracking-wider scale-90">Browse</span>
-          </button>
+            {/* Home */}
+            <button
+              onClick={() => setActiveTab('landing')}
+              className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
+                activeTab === 'landing' ? 'text-[#FF3F3F]' : 'text-zinc-500'
+              }`}
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-[9px] font-bold uppercase tracking-wider">Home</span>
+            </button>
 
-          <button
-            onClick={guardedOpenCreatePost}
-            className="flex items-center justify-center w-11 h-11 bg-[#FF3F3F] text-white rounded-full -mt-6 shadow-lg shadow-[#FF3F3F]/30 hover:bg-[#E53535] active:scale-95 transition cursor-pointer"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
+            {/* Explore */}
+            <button
+              onClick={() => setActiveTab('explore')}
+              className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
+                activeTab === 'explore' || activeTab === 'feed' ? 'text-[#FF3F3F]' : 'text-zinc-500'
+              }`}
+            >
+              <LayoutGrid className="w-5 h-5" />
+              <span className="text-[9px] font-bold uppercase tracking-wider">Explore</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('messaging')}
-            className={`relative flex flex-col items-center p-1 text-center font-bold cursor-pointer transition ${
-              activeTab === 'messaging' ? 'text-[#FF3F3F]' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span className="text-[9px] uppercase tracking-wider scale-90">Chats</span>
-            {unreadMessagesCount > 0 && (
-              <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-[#FF3F3F] animate-pulse" />
-            )}
-          </button>
+            {/* Post (FAB) */}
+            <button
+              onClick={guardedOpenCreatePost}
+              className="flex items-center justify-center w-12 h-12 bg-[#FF3F3F] text-white rounded-full -mt-5 shadow-lg shadow-[#FF3F3F]/40 hover:bg-[#E53535] active:scale-95 transition"
+              aria-label="Post"
+            >
+              <Plus className="w-6 h-6" />
+            </button>
 
-          <button
-            onClick={() => isAuthenticated ? setActiveTab('activity') : setActiveTab('login')}
-            className={`flex flex-col items-center p-1 text-center font-bold cursor-pointer transition ${
-              activeTab === 'activity' ? 'text-[#FF3F3F]' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <Activity className="w-5 h-5" />
-            <span className="text-[9px] uppercase tracking-wider scale-90">Activity</span>
-          </button>
+            {/* Activity */}
+            <button
+              onClick={() => isAuthenticated ? setActiveTab('activity') : setActiveTab('login')}
+              className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
+                activeTab === 'activity' ? 'text-[#FF3F3F]' : 'text-zinc-500'
+              }`}
+            >
+              <Activity className="w-5 h-5" />
+              <span className="text-[9px] font-bold uppercase tracking-wider">Activity</span>
+            </button>
 
-          <button
-            onClick={() => isAuthenticated ? setActiveTab('responses') : setActiveTab('login')}
-            className={`flex flex-col items-center p-1 text-center font-bold cursor-pointer transition ${
-              activeTab === 'responses' ? 'text-[#FF3F3F]' : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <Inbox className="w-5 h-5" />
-            <span className="text-[9px] uppercase tracking-wider scale-90">Inbox</span>
-          </button>
+            {/* Inbox */}
+            <button
+              onClick={() => isAuthenticated ? setActiveTab('responses') : setActiveTab('login')}
+              className={`relative flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
+                activeTab === 'responses' ? 'text-[#FF3F3F]' : 'text-zinc-500'
+              }`}
+            >
+              <Inbox className="w-5 h-5" />
+              <span className="text-[9px] font-bold uppercase tracking-wider">Inbox</span>
+            </button>
 
-          <button
-            onClick={() => isAuthenticated ? setActiveTab('profile') : setActiveTab('login')}
-            className={`flex flex-col items-center p-1 text-center font-bold cursor-pointer transition ${
-              activeTab === 'login' || activeTab === 'profile'
-                ? 'text-[#FF3F3F]'
-                : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <UserIcon className="w-5 h-5" />
-            <span className="text-[9px] uppercase tracking-wider scale-90">
-              {isAuthenticated ? 'Profile' : 'Sign In'}
-            </span>
-          </button>
+          </div>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
-import { MapPin, Clock, HelpCircle, Send, Loader2, X, IndianRupee, CheckCircle2, AlertCircle, Users, CalendarDays } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Clock, HelpCircle, Send, Loader2, X, IndianRupee, CheckCircle2, AlertCircle, Users, CalendarDays, LogIn } from 'lucide-react';
 import { Post, User } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { isPostExpired, getPostExpiryLabel, getAvatarUrl, handleAvatarError } from '../../utils';
@@ -31,6 +32,8 @@ interface PostDetailModalProps {
     offerDuration?: string,
     answers?: { question: string; answer: string }[]
   ) => void;
+  readOnly?: boolean;
+  onViewProfile?: (author: User) => void;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -44,7 +47,10 @@ export default function PostDetailModal({
   currentUser,
   onClose,
   onAddComment,
+  readOnly = false,
+  onViewProfile,
 }: PostDetailModalProps) {
+  const navigate = useNavigate();
   const [newCommentText, setNewCommentText] = useState('');
   const [answers, setAnswers] = useState<string[]>([]);
   const [backendOffers, setBackendOffers] = useState<BackendOffer[]>([]);
@@ -168,15 +174,26 @@ export default function PostDetailModal({
 
             {/* ── Author + meta ── */}
             <div className="flex items-start gap-3">
-              <img
-                src={getAvatarUrl(focusedPost.author.name, focusedPost.author.avatar)}
-                alt={focusedPost.author.name}
-                className="w-10 h-10 rounded-full object-cover ring-2 ring-[#1e1e22] shrink-0 mt-0.5"
-                onError={(e) => handleAvatarError(e, focusedPost.author.name)}
-                referrerPolicy="no-referrer"
-              />
+              <button
+                onClick={() => onViewProfile?.(focusedPost.author)}
+                className={`shrink-0 mt-0.5 ${onViewProfile ? 'cursor-pointer' : 'cursor-default'}`}
+                title={onViewProfile ? `View ${focusedPost.author.name}'s profile` : undefined}
+              >
+                <img
+                  src={getAvatarUrl(focusedPost.author.name, focusedPost.author.avatar)}
+                  alt={focusedPost.author.name}
+                  className={`w-10 h-10 rounded-full object-cover ring-2 ring-[#1e1e22] transition-all ${onViewProfile ? 'hover:ring-[#FF3F3F]/50' : ''}`}
+                  onError={(e) => handleAvatarError(e, focusedPost.author.name)}
+                  referrerPolicy="no-referrer"
+                />
+              </button>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-zinc-100">{focusedPost.author.name}</p>
+                <button
+                  onClick={() => onViewProfile?.(focusedPost.author)}
+                  className={`text-[13px] font-semibold text-zinc-100 text-left ${onViewProfile ? 'hover:text-[#FF3F3F] transition-colors cursor-pointer' : 'cursor-default'}`}
+                >
+                  {focusedPost.author.name}
+                </button>
                 {focusedPost.author.role && (
                   <p className="text-[11px] text-zinc-500 mt-0.5">{focusedPost.author.role}</p>
                 )}
@@ -305,8 +322,21 @@ export default function PostDetailModal({
           </div>
         </div>
 
-        {/* ── Footer: submit form or expired state ── */}
-        {expired ? (
+        {/* ── Footer: submit form, expired state, or read-only CTA ── */}
+        {readOnly ? (
+          <div className="px-5 py-4 border-t border-[#161619] flex items-center gap-3 bg-[#0a0a0c] shrink-0">
+            <div className="flex-1 flex items-center gap-3">
+              <LogIn className="w-4 h-4 text-zinc-500 shrink-0" />
+              <p className="text-[12px] text-zinc-500">Sign in to submit an offer or message the poster.</p>
+            </div>
+            <button
+              onClick={() => { onClose(); navigate('/login'); }}
+              className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-[#FF3F3F] hover:bg-[#e53535] text-white text-[12px] font-bold rounded-xl transition-all duration-200 cursor-pointer"
+            >
+              Sign In
+            </button>
+          </div>
+        ) : expired ? (
           <div className="px-5 py-4 border-t border-[#161619] flex items-center gap-3 bg-[#0a0a0c] shrink-0">
             <AlertCircle className="w-4 h-4 text-zinc-600 shrink-0" />
             <p className="text-[12px] text-zinc-600">This post has expired. No more proposals can be submitted.</p>
