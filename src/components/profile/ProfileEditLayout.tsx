@@ -14,6 +14,8 @@ import {
   LayoutGrid,
   Settings2,
   ChevronRight,
+  ChevronLeft,
+  ArrowLeft,
 } from 'lucide-react';
 import AvatarUploader from './AvatarUploader';
 import ProfileFloatingSaveBar from './ProfileFloatingSaveBar';
@@ -529,10 +531,63 @@ export default function ProfileEditLayout({
     }
   };
 
+  const activeSectionIndex = SECTIONS.findIndex((s) => s.id === activeSection);
+  const canGoPrev = activeSectionIndex > 0;
+  const canGoNext = activeSectionIndex < SECTIONS.length - 1;
+
+  const goToPrev = () => {
+    if (canGoPrev) setActiveSection(SECTIONS[activeSectionIndex - 1].id as SectionId);
+  };
+  const goToNext = () => {
+    if (canGoNext) setActiveSection(SECTIONS[activeSectionIndex + 1].id as SectionId);
+  };
+
   const activeLabel = SECTIONS.find((s) => s.id === activeSection)?.label ?? '';
 
   return (
     <>
+      {/* ── Sticky top header bar (Airbnb/Instagram style) ── */}
+      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 mb-5 bg-[#09090b]/90 backdrop-blur-md border-b border-white/5 flex items-center gap-3">
+        <button
+          onClick={onCancel}
+          className="flex items-center gap-2 text-zinc-400 hover:text-zinc-100 transition-colors group cursor-pointer"
+        >
+          <span className="w-8 h-8 rounded-full bg-white/5 border border-white/8 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+          </span>
+          <span className="hidden sm:inline text-sm font-semibold">Profile</span>
+        </button>
+
+        {/* Section breadcrumb */}
+        <div className="flex items-center gap-2 text-xs text-zinc-600 min-w-0">
+          <span className="hidden sm:inline">Edit profile</span>
+          <ChevronRight className="hidden sm:inline w-3 h-3 text-zinc-700 shrink-0" />
+          <span className="font-semibold text-zinc-300 truncate">{activeLabel}</span>
+        </div>
+
+        {/* Step indicator — right side */}
+        <div className="ml-auto flex items-center gap-2 text-[11px] text-zinc-600 shrink-0">
+          <span className="font-mono tabular-nums">
+            {activeSectionIndex + 1} / {SECTIONS.length}
+          </span>
+          {/* Mini dot progress */}
+          <div className="hidden sm:flex items-center gap-1">
+            {SECTIONS.map((_, i) => (
+              <span
+                key={i}
+                className={`block rounded-full transition-all duration-300 ${
+                  i === activeSectionIndex
+                    ? 'w-4 h-1.5 bg-[#FF3F3F]'
+                    : i < activeSectionIndex
+                    ? 'w-1.5 h-1.5 bg-zinc-600'
+                    : 'w-1.5 h-1.5 bg-zinc-800'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* ── Completion banner ── */}
       <div className="rounded-2xl bg-white/2.5 border border-white/6 p-4 sm:p-5 mb-4">
         <div className="flex items-center justify-between mb-3">
@@ -566,7 +621,7 @@ export default function ProfileEditLayout({
 
       {/* ── Main layout: sidebar + content ── */}
       <div className="flex gap-4 items-start">
-        {/* Sidebar navigation — hidden on mobile (use horizontal scrollable tabs) */}
+        {/* Sidebar navigation — hidden on mobile */}
         <nav className="hidden md:flex flex-col gap-1 w-52 shrink-0 sticky top-20">
           {SECTIONS.map((sec) => {
             const Icon = sec.icon;
@@ -623,13 +678,58 @@ export default function ProfileEditLayout({
             </div>
           </div>
 
-          {/* Cancel button at bottom */}
-          <div className="mt-4 flex justify-start">
+          {/* ── Prev / Next navigation ── */}
+          <div className="mt-4 flex items-center justify-between gap-3">
+            {/* Prev */}
             <button
-              onClick={onCancel}
-              className="text-xs font-semibold text-zinc-600 hover:text-zinc-400 transition-colors"
+              onClick={goToPrev}
+              disabled={!canGoPrev}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all
+                ${canGoPrev
+                  ? 'text-zinc-300 border-white/8 bg-white/4 hover:bg-white/8 hover:border-white/12 cursor-pointer active:scale-[0.98]'
+                  : 'text-zinc-700 border-white/4 bg-transparent cursor-not-allowed opacity-40'
+                }`}
             >
-              ← Back to profile
+              <ChevronLeft className="w-4 h-4 shrink-0" />
+              <span className="hidden xs:inline">
+                {canGoPrev ? SECTIONS[activeSectionIndex - 1].label : 'Previous'}
+              </span>
+              <span className="xs:hidden">Prev</span>
+            </button>
+
+            {/* Section dots (mobile) */}
+            <div className="flex items-center gap-1.5 md:hidden">
+              {SECTIONS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveSection(SECTIONS[i].id as SectionId)}
+                  className={`rounded-full transition-all duration-300 cursor-pointer ${
+                    i === activeSectionIndex
+                      ? 'w-5 h-2 bg-[#FF3F3F]'
+                      : i < activeSectionIndex
+                      ? 'w-2 h-2 bg-zinc-600 hover:bg-zinc-400'
+                      : 'w-2 h-2 bg-zinc-800 hover:bg-zinc-600'
+                  }`}
+                  aria-label={SECTIONS[i].label}
+                />
+              ))}
+            </div>
+
+            {/* Next */}
+            <button
+              onClick={goToNext}
+              disabled={!canGoNext}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all
+                ${canGoNext
+                  ? 'text-white border-[#FF3F3F]/40 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 hover:border-[#FF3F3F]/60 cursor-pointer active:scale-[0.98]'
+                  : 'text-zinc-700 border-white/4 bg-transparent cursor-not-allowed opacity-40'
+                }`}
+            >
+              <span className="hidden xs:inline">
+                {canGoNext ? SECTIONS[activeSectionIndex + 1].label : 'Next'}
+              </span>
+              <span className="xs:hidden">Next</span>
+              <ChevronRight className="w-4 h-4 shrink-0" />
             </button>
           </div>
         </div>
