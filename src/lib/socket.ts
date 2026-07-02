@@ -1,6 +1,8 @@
 import { io } from "socket.io-client";
 
-const BASE = import.meta.env.VITE_API_URL;
+const BASE =
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ||
+  undefined;
 
 export const socket = io(BASE, {
   autoConnect: false,
