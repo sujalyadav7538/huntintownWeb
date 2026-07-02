@@ -1,39 +1,38 @@
 import { io } from "socket.io-client";
 
-const BASE = import.meta.env.VITE_API_BASE_URL;
+const BASE = import.meta.env.VITE_API_URL;
 
 export const socket = io(BASE, {
   autoConnect: false,
-  transports: ["websocket"],
+
+  // Let socket.io fall back to polling if websocket upgrade fails
+  transports: ["polling", "websocket"],
+
   auth: {
     token: "",
   },
+
+  withCredentials: true,
+
   reconnection: true,
+  reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,
-  reconnectionAttempts: 5,
+  timeout: 20000,
 });
 
+export function setSocketAuth(token: string) {
+  socket.auth = { token };
+}
+
 socket.on("connect", () => {
-  console.log("✅ Socket Connected, ID:", socket.id);
-  console.log("   Auth token on connect:", socket.auth?.token ? "✅ Set" : "❌ Missing");
+  console.log("✅ Connected");
+  console.log("Socket ID:", socket.id);
 });
 
 socket.on("disconnect", (reason) => {
-  console.log("❌ Socket Disconnected, reason:", reason);
+  console.log("❌ Disconnected:", reason);
 });
 
-socket.on("connect_error", (err: any) => {
-  console.error("🚨 Socket Connect Error:", err.message);
-  console.error("   Error details:", err);
+socket.on("connect_error", (err) => {
+  console.error("❌ Connect Error:", err.message);
 });
-
-socket.on("error", (err: any) => {
-  console.error("🚨 Socket Error:", err);
-});
-
-// Export a helper to safely set auth
-export function setSocketAuth(token: string) {
-  console.log("[setSocketAuth] Setting token (length: " + token.length + ")");
-  socket.auth = { token };
-  console.log("[setSocketAuth] Token set on socket.auth");
-}
