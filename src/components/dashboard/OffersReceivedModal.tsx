@@ -25,7 +25,7 @@ interface BackendOffer {
 interface OffersReceivedModalProps {
   post: Post;
   onClose: () => void;
-  onInitiateChat: (user: User) => void;
+  onInitiateChat: () => void;
 }
 
 const STATUS_CONFIG = {
@@ -49,7 +49,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
     try {
       const token = localStorage.getItem('access_token');
       const res = await apiFetch(`/api/offers/post/${postId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: token ? { Authorization: `${token}` } : {},
       });
       if (!res.ok) throw new Error('Failed to load offers');
       const data = await res.json();
@@ -67,11 +67,11 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
     setActionLoading(offerId);
     try {
       const token = localStorage.getItem('access_token');
-      const res = await apiFetch(`/api/offers/${offerId}`, {
+      const res = await apiFetch(`/api/offers/${offerId}/${newStatus === 'accepted' ? 'accept' : 'reject'}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(token ? { Authorization: `${token}` } : {}),
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -265,14 +265,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                             {offer.status === 'accepted' && (
                               <button
                                 onClick={() => {
-                                  onInitiateChat({
-                                    id: offer.offeredBy.id,
-                                    name: offer.offeredBy.name,
-                                    avatar: offer.offeredBy.avatar,
-                                    email: offer.offeredBy.email,
-                                    role: '',
-                                    location: '',
-                                  });
+                                  onInitiateChat();
                                   onClose();
                                 }}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 border border-[#FF3F3F]/30 text-[#FF3F3F] text-[11px] font-bold rounded-xl transition-all cursor-pointer"

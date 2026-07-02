@@ -22,7 +22,7 @@ interface LandingPageProps {
   onExplore: () => void;
   onPostRequirement: () => void;
   onExplorePost: (postId: string) => void;
-  onInitiateChat: (recipient: User) => void;
+  onInitiateChat: () => void;
 }
 
 export default function LandingPage({ 
@@ -41,7 +41,7 @@ export default function LandingPage({
   }, [dispatch]);
 
   // Find live requirements for map linkage & carousel
-  const activePosts = posts.filter(p => p.status === 'open');
+  const activePosts = posts.filter(p => p.status === 'live');
 
   // Derive map pins from live API posts
   const mapCoordinates = activePosts.slice(0, 6).map((post, i) => ({

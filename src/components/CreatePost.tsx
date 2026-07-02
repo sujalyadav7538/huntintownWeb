@@ -3,7 +3,6 @@
 import { useState, FormEvent } from "react";
 import { useAppSelector } from "../store/hooks";
 import { apiFetch } from "../lib/api";
-import { FUNCTIONAL_CATEGORIES } from "../data";
 import {
   X,
   ChevronRight,
@@ -99,7 +98,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
       type: postType,
       budget: budget.trim() || "Negotiable",
       timeline: timeline.trim() || "Flexible",
-      status: "open",
+      status: "live",
       expiryDays,
       expiresAt: expiryDate.toISOString(),
       questions: filteredQuestions,
@@ -294,7 +293,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
               <div>
                 <label className={labelCls}>Category</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {FUNCTIONAL_CATEGORIES.filter((c) => c !== "All Categories").map((cat) => (
+                  {/* {FUNCTIONAL_CATEGORIES.filter((c) => c !== "All Categories").map((cat) => (
                     <button
                       key={cat}
                       type="button"
@@ -308,7 +307,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
                       <span className="text-xl leading-none">{CATEGORY_ICONS[cat] || "📌"}</span>
                       <span className="text-[10px] font-semibold leading-tight">{cat}</span>
                     </button>
-                  ))}
+                  ))} */}
                 </div>
               </div>
             </>

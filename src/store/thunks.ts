@@ -1,166 +1,130 @@
 import { AppDispatch, RootState } from './index';
-import { Comment, User, Message, Conversation } from '../types';
-import { addComment } from './postsSlice';
-import {
-  upsertConversation,
-  addMessageToConversation,
-  setActiveConversationId,
-} from './conversationsSlice';
+import { apiFetch } from '../lib/api';
+import { deletePost, updatePostStatus, upsertPost, normalizePost, addComment } from './postsSlice';
+import { setConversations } from './conversationsSlice';
+import { Comment } from '../types';
 
-// ─── Add comment + trigger auto-reply + auto-chat ───────────────────────────
-export const submitComment =
+// ─── Create a post via API then upsert into Redux ────────────────────────────
+export const createPostThunk =
+  (postData: Record<string, unknown>) =>
+  async (dispatch: AppDispatch): Promise<string> => {
+    const token = localStorage.getItem('access_token');
+    const res = await apiFetch('/api/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${token}`,
+      },
+      body: JSON.stringify(postData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to create post');
+    const normalized = normalizePost(data.post);
+    dispatch(upsertPost(normalized));
+    return normalized.id;
+  };
+
+// ─── Delete a post via API then remove from Redux ────────────────────────────
+export const deletePostThunk =
+  (postId: string) =>
+  async (dispatch: AppDispatch): Promise<void> => {
+    const token = localStorage.getItem('access_token');
+    const res = await apiFetch(`/api/posts/${postId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `${token}` },
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error((data as any).message || 'Failed to delete post');
+    }
+    dispatch(deletePost(postId));
+  };
+
+// ─── Update post status via API then sync Redux ───────────────────────────────
+export const updatePostStatusThunk =
   (
     postId: string,
-    content: string,
-    isOffer: boolean,
-    offerBudget?: string,
-    offerDuration?: string,
-    answers?: { question: string; answer: string }[]
+    status: 'live' | 'in_progress' | 'completed' | 'expired' | 'cancelled',
   ) =>
-  (dispatch: AppDispatch, getState: () => RootState) => {
-    const { currentUser } = getState().auth;
-    const posts = getState().posts;
+  async (dispatch: AppDispatch): Promise<void> => {
+    const token = localStorage.getItem('access_token');
+    const res = await apiFetch(`/api/posts/${postId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to update post status');
+    dispatch(updatePostStatus({ postId, status }));
+  };
 
-    const newComment: Comment = {
-      id: `comment_${Date.now()}`,
+// ─── Fetch conversations from API and store in Redux ─────────────────────────
+export const fetchConversations =
+  () =>
+  async (dispatch: AppDispatch, getState: () => RootState): Promise<void> => {
+    const token = getState().auth.token;
+    if (!token) return;
+    const res = await apiFetch('/api/chat/conversations', {
+      headers: { Authorization: `${token}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    dispatch(setConversations(data?.data ?? []));
+  };
+
+// ─── Submit an offer via API then optimistically update Redux ─────────────────
+export const submitOfferThunk =
+  (
+    postId: string,
+    message: string,
+    answers: { question: string; answer: string }[],
+  ) =>
+  async (dispatch: AppDispatch): Promise<void> => {
+    const token = localStorage.getItem('access_token');
+    const res = await apiFetch('/api/offers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `${token}`,
+      },
+      body: JSON.stringify({ postId, message, answers }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to submit offer');
+    const fakeComment: Comment = {
+      _id: data.offer?._id || `offer_${Date.now()}`,
       postId,
-      author: currentUser,
-      content,
-      createdAt: new Date().toISOString(),
-      isOffer,
-      offerBudget,
-      offerDuration,
+      author: data.offer?.offeredBy,
+      content: message,
+      createdAt: data.offer?.createdAt || new Date().toISOString(),
+      isOffer: true,
       answers,
     };
-
-    dispatch(addComment({ postId, comment: newComment, isOffer }));
-
-    const targetPost = posts.find((p) => p.id === postId);
-    if (targetPost && targetPost.author.id !== currentUser.id) {
-      setTimeout(() => {
-        const replyComment: Comment = {
-          id: `comment_reply_${Date.now()}`,
-          postId,
-          author: targetPost.author,
-          content: `Hi ${currentUser.name}! Thank you extremely much for your comment response on my HuntInTown request. I am super excited to coordinate on this right away with you. Check your direct messages!`,
-          createdAt: new Date().toISOString(),
-        };
-        dispatch(addComment({ postId, comment: replyComment, isOffer: false }));
-
-        dispatch(
-          openDirectChat(
-            targetPost.author,
-            `Hey there ${currentUser.name}! Saw your response / proposal on my post ("${targetPost.title}"). Let me know what hours work best for you!`
-          )
-        );
-      }, 2000);
-    }
+    dispatch(addComment({ postId, comment: fakeComment, isOffer: true }));
   };
 
-// ─── Open or create a direct chat channel ───────────────────────────────────
+// ─── Navigate to messaging — real conversations are created server-side ───────
 export const openDirectChat =
-  (recipient: User, initialMsg?: string) =>
-  (dispatch: AppDispatch, getState: () => RootState) => {
-    const { conversations } = getState().conversations;
-    const { currentUser } = getState().auth;
-    const existing = conversations.find((c) => c.participant.id === recipient.id);
-
-    if (existing) {
-      if (initialMsg) {
-        const newMsg: Message = {
-          id: `m_${Date.now()}`,
-          senderId: recipient.id,
-          receiverId: currentUser.id,
-          content: initialMsg,
-          createdAt: new Date().toISOString(),
-          read: false,
-        };
-        dispatch(
-          addMessageToConversation({
-            conversationId: existing.id,
-            message: newMsg,
-            incoming: true,
-          })
-        );
-      }
-      dispatch(setActiveConversationId(existing.id));
-    } else {
-      const channelId = `conv_${Date.now()}`;
-      const msgContent =
-        initialMsg || `Hi ${recipient.name}, I would love to connect about your local post profile!`;
-
-      const newMsg: Message = {
-        id: `m_${Date.now()}`,
-        senderId: recipient.id,
-        receiverId: currentUser.id,
-        content: msgContent,
-        createdAt: new Date().toISOString(),
-        read: false,
-      };
-
-      const newConv: Conversation = {
-        id: channelId,
-        participant: recipient,
-        messages: [newMsg],
-        lastMessage: msgContent,
-        lastMessageAt: new Date().toISOString(),
-        unreadCount: 1,
-      };
-
-      dispatch(upsertConversation(newConv));
-      dispatch(setActiveConversationId(channelId));
-    }
+  (_recipient: unknown) =>
+  (_dispatch: AppDispatch): void => {
+    // Conversations are created in the backend when an offer is accepted.
+    // Just navigate to /messaging; Messaging.tsx fetches all conversations on mount.
   };
 
-// ─── Send a message + trigger smart auto-reply ───────────────────────────────
+// ─── sendMessage is handled via socket.io in MessageInput.tsx ────────────────
 export const sendMessage =
-  (conversationId: string, content: string) =>
-  (dispatch: AppDispatch, getState: () => RootState) => {
-    const { currentUser } = getState().auth;
-    const { conversations, activeConversationId } = getState().conversations;
-
-    const outgoing: Message = {
-      id: `m_sent_${Date.now()}`,
-      senderId: currentUser.id,
-      receiverId: conversationId.replace('conv_', ''),
-      content,
-      createdAt: new Date().toISOString(),
-      read: true,
-    };
-
-    dispatch(addMessageToConversation({ conversationId, message: outgoing }));
-
-    const conv = conversations.find((c) => c.id === conversationId);
-    const rc = conv?.participant;
-    if (!rc) return;
-
-    setTimeout(() => {
-      let replyText = `Thanks for the details! Let's arrange a time. I'm located near Noida Sector 62.`;
-      if (rc.id === 'user_sarah') {
-        replyText = `That is very kind of you, ${currentUser.name}! The furniture guidelines are ready. Saturdays work wonderfully.`;
-      } else if (rc.id === 'user_david') {
-        replyText = `Awesome! I can share some design concepts with you anytime!`;
-      } else if (rc.id === 'user_elena') {
-        replyText = `Understood! I'll put a sample blueprint on the shelf near my office.`;
-      } else if (rc.id === 'user_marcus') {
-        replyText = `Great. Let's start the installation this weekend!`;
-      }
-
-      const reply: Message = {
-        id: `m_reply_${Date.now()}`,
-        senderId: rc.id,
-        receiverId: currentUser.id,
-        content: replyText,
-        createdAt: new Date().toISOString(),
-        read: false,
-      };
-
-      dispatch(
-        addMessageToConversation({
-          conversationId,
-          message: reply,
-          incoming: activeConversationId !== conversationId,
-        })
-      );
-    }, 1500);
+  (_conversationId: string, _content: string) =>
+  (_dispatch: AppDispatch): void => {
+    // No-op: MessageInput.tsx emits directly via socket.io.
   };
+
+// ─── (legacy) submitComment — use submitOfferThunk instead ────────────────────
+export const submitComment =
+  () =>
+  (_dispatch: AppDispatch): void => {
+    // Deprecated.
+  };
+

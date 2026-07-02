@@ -3,183 +3,203 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Post } from './types';
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { User } from "./types";
 
-import { useAppDispatch, useAppSelector } from './store/hooks';
-import { login, logout, updateProfile } from './store/authSlice';
-import { createPost, deletePost, updatePostStatus } from './store/postsSlice';
-import { setActiveConversationId } from './store/conversationsSlice';
-import { openCreatePost, closeCreatePost, closeLoginModal, setSearchTerm } from './store/uiSlice';
-import { submitComment, openDirectChat, sendMessage } from './store/thunks';
-
-import Header from './components/Header';
-import LandingPage from './components/LandingPage';
-import HomeFeed from './components/HomeFeed';
-import CreatePost from './components/CreatePost';
-import Dashboard from './components/Dashboard';
-import Messaging from './components/Messaging';
-import ProfileView from './components/ProfileView';
-import LoginModal from './components/LoginModal';
-import LoginPage from './components/LoginPage';
-import MyActivity from './components/MyActivity';
-import MyResponses from './components/MyResponses';
-import ExplorePage from './components/ExplorePage';
-
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { login, logout, updateProfile } from "./store/authSlice";
+import { socket, setSocketAuth } from "./lib/socket";
+import { fetchPosts } from "./store/postsSlice";
 import {
-  LayoutGrid,
-  Plus,
-  Home,
-  Activity,
-  Inbox,
-} from 'lucide-react';
+  openCreatePost,
+  closeCreatePost,
+  closeLoginModal,
+  setSearchTerm,
+} from "./store/uiSlice";
+import {
+  openDirectChat,
+  sendMessage,
+  deletePostThunk,
+  updatePostStatusThunk,
+} from "./store/thunks";
 
-const PROTECTED_TABS = ['feed', 'dashboard', 'messaging', 'profile', 'activity', 'responses'];
+import Header from "./components/Header";
+import LandingPage from "./components/LandingPage";
+import HomeFeed from "./components/HomeFeed";
+import CreatePost from "./components/CreatePost";
+import Dashboard from "./components/Dashboard";
+import Messaging from "./components/Messaging";
+import ProfileView from "./components/ProfileView";
+import LoginModal from "./components/LoginModal";
+import LoginPage from "./components/LoginPage";
+import MyActivity from "./components/MyActivity";
+import MyResponses from "./components/MyResponses";
+import ExplorePage from "./components/ExplorePage";
+
+import { LayoutGrid, Plus, Home, Activity, Inbox } from "lucide-react";
+
+const PROTECTED_TABS = [
+  "feed",
+  "dashboard",
+  "messaging",
+  "profile",
+  "activity",
+  "responses",
+];
 
 export default function App() {
   const dispatch = useAppDispatch();
   const { isAuthenticated, currentUser } = useAppSelector((s) => s.auth);
   const posts = useAppSelector((s) => s.posts);
-  const { conversations, activeConversationId } = useAppSelector((s) => s.conversations);
-  const { isCreatePostOpen, isLoginOpen, searchTerm } = useAppSelector((s) => s.ui);
+  const { conversations, activeConversationId } = useAppSelector(
+    (s) => s.conversations,
+  );
+  const { isCreatePostOpen, isLoginOpen, searchTerm } = useAppSelector(
+    (s) => s.ui,
+  );
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const activeTab = (() => {
-    const clean = location.pathname.replace(/^\//, '');
-    return clean || 'landing';
+    const clean = location.pathname.replace(/^\//, "");
+    return clean || "landing";
   })();
 
   const setActiveTab = (tab: string) => {
     if (PROTECTED_TABS.includes(tab) && !isAuthenticated) {
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
       return;
     }
-    navigate(tab === 'landing' ? '/' : `/${tab}`);
+    navigate(tab === "landing" ? "/" : `/${tab}`);
   };
 
   useEffect(() => {
     if (PROTECTED_TABS.includes(activeTab) && !isAuthenticated) {
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
     }
   }, [activeTab, isAuthenticated]);
 
-  const unreadMessagesCount = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+  const unreadMessagesCount = conversations.reduce(
+    (sum, c) => sum + (c.unreadCount ?? 0),
+    0,
+  );
 
-  const handleLogin = (user: typeof currentUser, token: string) => {
+  // Load posts into Redux whenever the user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchPosts() as any);
+    }
+  }, [isAuthenticated]);
+
+  // Initialize socket connection if user is authenticated
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    console.log("[App] Socket init effect:", {
+      isAuthenticated,
+      hasToken: !!token,
+      tokenLength: token?.length,
+      socketConnected: socket.connected,
+    });
+
+    if (isAuthenticated && token) {
+      if (!socket.connected) {
+        console.log("[App] Setting socket auth and connecting...");
+        setSocketAuth(token);
+        socket.connect();
+      } else {
+        console.log("[App] Socket already connected");
+      }
+    } else if (!isAuthenticated && socket.connected) {
+      console.log("[App] Disconnecting socket (not authenticated)");
+      socket.disconnect();
+    } else if (!isAuthenticated && !token) {
+      console.log("[App] No token available, socket remains disconnected");
+    }
+  }, [isAuthenticated]);
+
+  const handleLogin = (user: User, token: string) => {
+    console.log("[App.handleLogin] Logging in, setting socket auth");
+    setSocketAuth(token);
+    console.log("[App.handleLogin] Connecting socket...");
+    socket.connect();
     dispatch(login({ user, token }));
-    navigate('/feed', { replace: true });
+    navigate("/explore", { replace: true });
   };
 
   const handleLogout = () => {
+    socket.disconnect();
     dispatch(logout());
-    navigate('/login', { replace: true });
-  };
-
-  const handleCreatePost = (
-    newPostData: Omit<Post, 'id' | 'createdAt' | 'author' | 'comments' | 'offersCount'>
-  ) => {
-    const newPost: Post = {
-      ...newPostData,
-      id: `post_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      author: currentUser,
-      comments: [],
-      offersCount: 0,
-    };
-    dispatch(createPost(newPost));
-    dispatch(closeCreatePost());
-    setActiveTab('feed');
+    navigate("/login", { replace: true });
   };
 
   const guardedOpenCreatePost = () => {
-    if (!isAuthenticated) { navigate('/login', { replace: true }); return; }
+    if (!isAuthenticated) {
+      navigate("/login", { replace: true });
+      return;
+    }
     dispatch(openCreatePost());
   };
 
   const renderActiveView = () => {
     switch (activeTab) {
-      case 'landing':
+      case "landing":
         return (
           <LandingPage
-            onExplore={() => setActiveTab('explore')}
+            onExplore={() => setActiveTab("explore")}
             onPostRequirement={() => {
-              if (!isAuthenticated) { navigate('/login', { replace: true }); return; }
+              if (!isAuthenticated) {
+                navigate("/login", { replace: true });
+                return;
+              }
               dispatch(openCreatePost());
             }}
             onExplorePost={(postId) => {
               const tgt = posts.find((p) => p.id === postId);
-              dispatch(setSearchTerm(tgt ? tgt.title : ''));
-              setActiveTab('feed');
+              dispatch(setSearchTerm(tgt ? tgt.title : ""));
+              setActiveTab("explore");
             }}
-            onInitiateChat={(recipient) => {
-              dispatch(openDirectChat(recipient) as any);
-              setActiveTab('messaging');
-            }}
+            onInitiateChat={() => setActiveTab("messaging")}
           />
         );
-      case 'feed':
-        return (
-          <HomeFeed
-            onAddComment={(postId, content, isOffer, budget, duration, answers) =>
-              dispatch(submitComment(postId, content, isOffer, budget, duration, answers) as any)
-            }
-            onToggleResolve={(id) => dispatch(updatePostStatus({ postId: id, status: 'fulfilled' }))}
-            onInitiateChat={(recipient) => {
-              dispatch(openDirectChat(recipient) as any);
-              setActiveTab('messaging');
-            }}
-          />
-        );
-      case 'dashboard':
+  
+      case "dashboard":
         return (
           <Dashboard
-            onUpdateStatus={(postId, status) => dispatch(updatePostStatus({ postId, status }))}
-            onDeleteListing={(id) => dispatch(deletePost(id))}
-            onSelectPost={() => setActiveTab('feed')}
+            onUpdateStatus={(postId, status) =>
+              dispatch(updatePostStatusThunk(postId, status) as any)
+            }
+            onDeleteListing={(id) => dispatch(deletePostThunk(id) as any)}
+            onSelectPost={() => setActiveTab("explore")}
             setActiveTab={setActiveTab}
-            onInitiateChat={(recipient) => {
-              dispatch(openDirectChat(recipient) as any);
-              setActiveTab('messaging');
-            }}
+            onInitiateChat={() => setActiveTab("messaging")}
           />
         );
-      case 'messaging':
-        return (
-          <Messaging
-            onSendMessage={(convId, content) => dispatch(sendMessage(convId, content) as any)}
-          />
-        );
-      case 'profile':
+      case "messaging":
+        return <Messaging />;
+      case "profile":
         return (
           <ProfileView
             onUpdateProfile={(updated) => dispatch(updateProfile(updated))}
             onLogout={handleLogout}
           />
         );
-      case 'activity':
+      case "activity":
         return (
           <MyActivity
-            onInitiateChat={(recipient) => {
-              dispatch(openDirectChat(recipient) as any);
-              setActiveTab('messaging');
-            }}
+            onInitiateChat={() => setActiveTab("messaging")}
           />
         );
-      case 'responses':
+      case "responses":
         return (
           <MyResponses
-            onInitiateChat={(recipient) => {
-              dispatch(openDirectChat(recipient) as any);
-              setActiveTab('messaging');
-            }}
+            onInitiateChat={() => setActiveTab("messaging")}
           />
         );
-      case 'login':
+      case "login":
         return <LoginPage onLogin={handleLogin} />;
-      case 'explore':
+      case "explore":
         return <ExplorePage />;
       default:
         return null;
@@ -203,27 +223,32 @@ export default function App() {
         {/* ── Mobile bottom nav ── */}
         <div className="md:hidden fixed bottom-0 inset-x-0 bg-[#121214]/95 backdrop-blur-md border-t border-[#232327] z-40 shadow-xl">
           <div className="flex items-center justify-around px-2 pb-safe">
-
             {/* Home */}
             <button
-              onClick={() => setActiveTab('landing')}
+              onClick={() => setActiveTab("landing")}
               className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
-                activeTab === 'landing' ? 'text-[#FF3F3F]' : 'text-zinc-500'
+                activeTab === "landing" ? "text-[#FF3F3F]" : "text-zinc-500"
               }`}
             >
               <Home className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider">Home</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider">
+                Home
+              </span>
             </button>
 
             {/* Explore */}
             <button
-              onClick={() => setActiveTab('explore')}
+              onClick={() => setActiveTab("explore")}
               className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
-                activeTab === 'explore' || activeTab === 'feed' ? 'text-[#FF3F3F]' : 'text-zinc-500'
+                activeTab === "explore" || activeTab === "feed"
+                  ? "text-[#FF3F3F]"
+                  : "text-zinc-500"
               }`}
             >
               <LayoutGrid className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider">Explore</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider">
+                Explore
+              </span>
             </button>
 
             {/* Post (FAB) */}
@@ -237,26 +262,37 @@ export default function App() {
 
             {/* Activity */}
             <button
-              onClick={() => isAuthenticated ? setActiveTab('activity') : setActiveTab('login')}
+              onClick={() =>
+                isAuthenticated
+                  ? setActiveTab("activity")
+                  : setActiveTab("login")
+              }
               className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
-                activeTab === 'activity' ? 'text-[#FF3F3F]' : 'text-zinc-500'
+                activeTab === "activity" ? "text-[#FF3F3F]" : "text-zinc-500"
               }`}
             >
               <Activity className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider">Activity</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider">
+                Activity
+              </span>
             </button>
 
             {/* Inbox */}
             <button
-              onClick={() => isAuthenticated ? setActiveTab('responses') : setActiveTab('login')}
+              onClick={() =>
+                isAuthenticated
+                  ? setActiveTab("responses")
+                  : setActiveTab("login")
+              }
               className={`relative flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
-                activeTab === 'responses' ? 'text-[#FF3F3F]' : 'text-zinc-500'
+                activeTab === "responses" ? "text-[#FF3F3F]" : "text-zinc-500"
               }`}
             >
               <Inbox className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider">Inbox</span>
+              <span className="text-[9px] font-bold uppercase tracking-wider">
+                Inbox
+              </span>
             </button>
-
           </div>
         </div>
       </div>
@@ -266,7 +302,7 @@ export default function App() {
           onClose={() => dispatch(closeCreatePost())}
           onPostCreated={(postId) => {
             dispatch(closeCreatePost());
-            navigate('/feed', { state: { openPostId: postId } });
+            navigate("/explore", { state: { openPostId: postId } });
           }}
         />
       )}
@@ -275,7 +311,7 @@ export default function App() {
         isOpen={isLoginOpen}
         onClose={() => dispatch(closeLoginModal())}
         onLogin={handleLogin}
-        currentUserId={currentUser.id}
+        currentUserId={currentUser?.id}
       />
     </div>
   );

@@ -1,94 +1,78 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Post, Comment } from '../types';
-import { apiFetch } from '../lib/api';
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { Post, Comment } from "../types";
+import { apiFetch } from "../lib/api";
 
 const initialState: Post[] = [];
 
-// Map API status strings to local status type
-function mapStatus(apiStatus: string): Post['status'] {
-  switch (apiStatus?.toLowerCase()) {
-    case 'live':
-    case 'open':
-      return 'open';
-    case 'fulfilled':
-      return 'fulfilled';
-    case 'cancelled':
-    case 'canceled':
-      return 'cancelled';
-    default:
-      return 'open';
-  }
-}
-
-// Fetch posts from the API
-export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
-  const res = await apiFetch('/api/posts');
-  if (!res.ok) throw new Error('Failed to fetch posts');
-  const data: {
-    success: boolean;
-    count: number;
-    posts: Array<{
-      _id: string;
-      title: string;
-      description: string;
-      category: string;
-      location: string;
-      type: 'help_needed' | 'skill_offered';
-      budget?: string;
-      timeline?: string;
-      status: string;
-      expiryDays?: number;
-      expiresAt: string;
-      questions?: string[];
-      images?: string[];
-      comments: Comment[];
-      offersCount: number;
-      createdAt: string;
-      updatedAt: string;
-      author: { id: string; name: string; email?: string; avatar: string };
-    }>;
-  } = await res.json();
-
-  return data.posts.map((p) => ({
-    id: p._id,
-    title: p.title,
-    description: p.description,
-    category: p.category,
-    location: p.location,
-    type: p.type,
-    budget: p.budget,
+/** Normalize a raw backend post document into the frontend Post shape */
+export function normalizePost(p: any): Post {
+  return {
+    ...p,
+    _id: p._id,
+    id: p._id || p.id,
     author: {
-      id: p.author.id,
-      name: p.author.name,
-      avatar: p.author.avatar,
-      role: '',
-      location: p.location,
+      ...p.author,
+      _id: p.author?._id,
+      // id (UUID) is only returned when explicitly selected; fall back to _id
+      id: p.author?.id || p.author?._id || "",
+      avatar: p.author?.avatar || "",
+      role: p.author?.role || "",
+      rating: p.author?.rating ?? undefined,
+      reputation: p.author?.reputation ?? undefined,
+      location: p.author?.location || p.location || "",
     },
-    createdAt: p.createdAt,
-    expiresAt: p.expiresAt,
-    expiryDays: p.expiryDays,
-    questions: p.questions ?? [],
-    status: mapStatus(p.status),
+    status: p.status,          // raw backend value: live | in_progress | completed | expired | cancelled
     comments: p.comments ?? [],
     offersCount: p.offersCount ?? 0,
-  } satisfies Post));
+    questions: p.questions ?? [],
+    images: p.images ?? [],
+  } as Post;
+}
+
+// Fetch all posts from public endpoint
+export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
+  const res = await apiFetch("/api/posts");
+  if (!res.ok) throw new Error("Failed to fetch posts");
+  const data: { success: boolean; count: number; posts: any[] } = await res.json();
+  return data.posts.map(normalizePost);
 });
 
 export const postsSlice = createSlice({
-  name: 'posts',
+  name: "posts",
   initialState,
   reducers: {
+    setPosts: (_state, action: PayloadAction<Post[]>) => {
+      return action.payload;
+    },
+    upsertPost: (state, action: PayloadAction<Post>) => {
+      const idx = state.findIndex(
+        (p) => p._id === action.payload._id || p.id === action.payload.id,
+      );
+      if (idx >= 0) {
+        state[idx] = action.payload;
+      } else {
+        state.unshift(action.payload);
+      }
+    },
     createPost: (state, action: PayloadAction<Post>) => {
       state.unshift(action.payload);
     },
     deletePost: (state, action: PayloadAction<string>) => {
-      return state.filter((p) => p.id !== action.payload);
+      return state.filter(
+        (p) => p._id !== action.payload && p.id !== action.payload,
+      );
     },
     addComment: (
       state,
-      action: PayloadAction<{ postId: string; comment: Comment; isOffer: boolean }>
+      action: PayloadAction<{
+        postId: string;
+        comment: Comment;
+        isOffer: boolean;
+      }>,
     ) => {
-      const post = state.find((p) => p.id === action.payload.postId);
+      const post = state.find(
+        (p) => p._id === action.payload.postId || p.id === action.payload.postId,
+      );
       if (post) {
         post.comments.push(action.payload.comment);
         if (action.payload.isOffer) post.offersCount++;
@@ -96,9 +80,14 @@ export const postsSlice = createSlice({
     },
     updatePostStatus: (
       state,
-      action: PayloadAction<{ postId: string; status: 'open' | 'fulfilled' | 'cancelled' }>
+      action: PayloadAction<{
+        postId: string;
+        status: Post["status"];
+      }>,
     ) => {
-      const post = state.find((p) => p.id === action.payload.postId);
+      const post = state.find(
+        (p) => p._id === action.payload.postId || p.id === action.payload.postId,
+      );
       if (post) post.status = action.payload.status;
     },
   },
@@ -109,5 +98,12 @@ export const postsSlice = createSlice({
   },
 });
 
-export const { createPost, deletePost, addComment, updatePostStatus } = postsSlice.actions;
+export const {
+  setPosts,
+  upsertPost,
+  createPost,
+  deletePost,
+  addComment,
+  updatePostStatus,
+} = postsSlice.actions;
 export default postsSlice.reducer;

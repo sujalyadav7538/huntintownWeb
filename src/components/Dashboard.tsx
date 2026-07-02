@@ -12,11 +12,11 @@ import ProposalsSidebar from './dashboard/ProposalsSidebar';
 import OffersReceivedModal from './dashboard/OffersReceivedModal';
 
 interface DashboardProps {
-  onUpdateStatus: (postId: string, status: 'open' | 'fulfilled' | 'cancelled') => void;
+  onUpdateStatus: (postId: string, status: 'live' | 'in_progress' | 'completed' | 'expired' | 'cancelled') => void;
   onDeleteListing: (postId: string) => void;
   onSelectPost: (postId: string) => void;
   setActiveTab: (tab: string) => void;
-  onInitiateChat: (user: User) => void;
+  onInitiateChat: () => void;
 }
 
 export default function Dashboard({ onUpdateStatus, onDeleteListing, onSelectPost, setActiveTab, onInitiateChat }: DashboardProps) {
@@ -25,18 +25,23 @@ export default function Dashboard({ onUpdateStatus, onDeleteListing, onSelectPos
 
   const [offersPost, setOffersPost] = useState<Post | null>(null);
 
-  // Listings authored by current user
-  const myPosts = posts.filter(p => p.author.id === currentUser.id);
-
-  // Listings where current user replied or commented
-  const postsUserCommentedOn = posts.filter(p =>
-    p.author.id !== currentUser.id &&
-    p.comments.some(c => c.author.id === currentUser.id)
+  // Listings authored by current user — compare by MongoDB _id
+  const myPosts = posts.filter((p) =>
+    currentUser?._id
+      ? p.author._id === currentUser._id
+      : p.author.id === currentUser?.id,
   );
 
-  // Stats calculation
-  const openCount = myPosts.filter(p => p.status === 'open').length;
-  const fulfilledCount = myPosts.filter(p => p.status === 'fulfilled').length;
+  // Listings where current user replied or commented
+  const postsUserCommentedOn = posts.filter((p) =>
+    p.author._id !== currentUser?._id &&
+    p.author.id !== currentUser?.id &&
+    p.comments.some((c) => c.author?.id === currentUser?.id || c.author?._id === currentUser?._id),
+  );
+
+  // Stats calculation using backend status values
+  const openCount = myPosts.filter((p) => p.status === 'live').length;
+  const fulfilledCount = myPosts.filter((p) => p.status === 'completed' || p.status === 'in_progress').length;
   const helperSubmissions = postsUserCommentedOn.length;
 
   return (

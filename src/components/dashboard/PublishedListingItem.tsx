@@ -8,7 +8,7 @@ import { CheckCircle2, AlertCircle, RefreshCw, Trash, Inbox, Loader2 } from 'luc
 interface PublishedListingItemProps {
   key?: string | number;
   post: Post;
-  onUpdateStatus: (postId: string, status: 'open' | 'fulfilled' | 'cancelled') => void;
+  onUpdateStatus: (postId: string, status: 'live' | 'in_progress' | 'completed' | 'expired' | 'cancelled') => void;
   onDeleteListing: (postId: string) => void;
   onSelectPost: (postId: string) => void;
   onViewOffers: (post: Post) => void;
@@ -29,7 +29,7 @@ export default function PublishedListingItem({
       try {
         const token = localStorage.getItem('access_token');
         const res = await apiFetch(`/api/offers/post/${postId}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers: token ? { Authorization: `${token}` } : {},
         });
         if (res.ok) {
           const data = await res.json();
@@ -56,10 +56,12 @@ export default function PublishedListingItem({
               {post.budget || 'Negotiable'}
             </span>
             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${
-              post.status === 'open'
+              post.status === 'live'
                 ? 'text-emerald-400 bg-emerald-950/40 border-emerald-800/50'
-                : post.status === 'fulfilled'
+                : post.status === 'completed'
                 ? 'text-zinc-500 bg-zinc-900 border-zinc-800'
+                : post.status === 'in_progress'
+                ? 'text-blue-400 bg-blue-950/40 border-blue-800/50'
                 : 'text-amber-400 bg-amber-950/40 border-amber-800/50'
             }`}>
               {post.status.toUpperCase()}
@@ -96,30 +98,30 @@ export default function PublishedListingItem({
 
           {/* Status controls */}
           <div className="flex items-center gap-1">
-            {post.status === 'open' && (
+            {post.status === 'live' && (
               <button
                 id={`mark-fulfilled-${post.id}`}
-                onClick={() => onUpdateStatus(post.id, 'fulfilled')}
+                onClick={() => onUpdateStatus(postId, 'completed')}
                 className="p-1.5 bg-[#161619] hover:bg-emerald-950/40 border border-[#222226] hover:border-emerald-800/50 text-zinc-500 hover:text-emerald-400 rounded-lg transition-all cursor-pointer"
-                title="Mark Fulfilled"
+                title="Mark Completed"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
               </button>
             )}
-            {post.status !== 'open' && (
+            {post.status !== 'live' && post.status !== 'cancelled' && (
               <button
                 id={`reopen-${post.id}`}
-                onClick={() => onUpdateStatus(post.id, 'open')}
+                onClick={() => onUpdateStatus(postId, 'live')}
                 className="p-1.5 bg-[#161619] hover:bg-[#1e1e22] border border-[#222226] text-zinc-500 hover:text-zinc-300 rounded-lg transition-all cursor-pointer"
                 title="Reopen"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
             )}
-            {post.status === 'open' && (
+            {post.status === 'live' && (
               <button
                 id={`cancel-${post.id}`}
-                onClick={() => onUpdateStatus(post.id, 'cancelled')}
+                onClick={() => onUpdateStatus(postId, 'cancelled')}
                 className="p-1.5 bg-[#161619] hover:bg-amber-950/30 border border-[#222226] hover:border-amber-800/40 text-zinc-500 hover:text-amber-400 rounded-lg transition-all cursor-pointer"
                 title="Cancel"
               >
@@ -128,7 +130,7 @@ export default function PublishedListingItem({
             )}
             <button
               id={`delete-listing-${post.id}`}
-              onClick={() => onDeleteListing(post.id)}
+              onClick={() => onDeleteListing(postId)}
               className="p-1.5 bg-[#161619] hover:bg-red-950/30 border border-[#222226] hover:border-red-800/40 text-zinc-500 hover:text-[#FF3F3F] rounded-lg transition-all cursor-pointer"
               title="Delete"
             >

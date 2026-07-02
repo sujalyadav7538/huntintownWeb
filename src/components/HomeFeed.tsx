@@ -25,7 +25,7 @@ interface HomeFeedProps {
 
   onToggleResolve: (postId: string) => void;
 
-  onInitiateChat: (participant: User) => void;
+  onInitiateChat: () => void;
 }
 
 // ── Skeleton card ──────────────────────────────────────────────────────────
@@ -54,11 +54,10 @@ function SkeletonCard() {
 
 export default function HomeFeed({
   onAddComment,
-  onToggleResolve,
   onInitiateChat,
 }: HomeFeedProps) {
   const dispatch = useAppDispatch();
-  const currentUser = useAppSelector((s) => s.auth.currentUser);
+  const {currentUser, token} = useAppSelector((s) => s.auth);
   const searchTerm = useAppSelector((s) => s.ui.searchTerm);
 
   const handleSetSearchTerm = (val: string) => dispatch(setSearchTerm(val));
@@ -83,15 +82,18 @@ export default function HomeFeed({
         const res = await apiFetch(`/api/posts/getAvailablePosts`,{
           method:"GET",
           headers:{
-            "Authorization": `${localStorage.getItem("access_token")}`
+            "Authorization": `${token}`,
           }
         });
         const data = await res.json();
         const fetched: any[] = (data.posts || []).map((p: any) => ({
           ...p,
+          _id: p._id,
           id: p._id || p.id,
           author: {
             ...p.author,
+            _id: p.author?._id,
+            id: p.author?.id || p.author?._id || '',
             avatar: p.author?.avatar || "",
             role: p.author?.role || "",
             rating: p.author?.rating ?? null,
@@ -224,7 +226,6 @@ export default function HomeFeed({
               <PostCard
                 key={post.id}
                 post={post}
-                currentUser={currentUser}
                 onSelect={() => setFocusedPostId(post.id)}
                 onInitiateChat={onInitiateChat}
                 onViewProfile={handleViewProfile}
@@ -251,9 +252,9 @@ export default function HomeFeed({
           user={viewingUser}
           currentUserId={currentUser?.id ?? ''}
           onClose={() => setViewingUser(null)}
-          onMessage={(u) => {
+          onMessage={() => {
             setViewingUser(null);
-            onInitiateChat(u);
+            onInitiateChat();
           }}
         />
       )}

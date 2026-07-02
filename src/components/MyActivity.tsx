@@ -105,10 +105,10 @@ function SkeletonRow() {
 
 // ── Activity card ─────────────────────────────────────────────────────────────
 
-function ActivityCard({ item, onInitiateChat }: { item: ActivityItem; onInitiateChat: (u: User) => void }) {
+function ActivityCard({ item, onInitiateChat }: { item: ActivityItem; onInitiateChat: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const { post, offer } = item;
-  const cfg = STATUS[offer.status] ?? STATUS.pending;
+  const cfg = STATUS[offer?.status] ?? STATUS.pending;
   const StatusIcon = cfg.icon;
 
   return (
@@ -123,29 +123,29 @@ function ActivityCard({ item, onInitiateChat }: { item: ActivityItem; onInitiate
         {/* ── Status banner ── */}
         <div className={`flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl border text-[12px] leading-snug ${cfg.banner}`}>
           <StatusIcon className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>{cfg.bannerMsg}</span>
+          <span>{cfg?.bannerMsg}</span>
         </div>
 
         {/* ── Post author + meta ── */}
         <div className="flex items-start gap-3">
           <img
-            src={getAvatarUrl(post.author.name, post.author.avatar)}
-            alt={post.author.name}
+            src={getAvatarUrl(post?.author?.name, post?.author?.avatar)}
+            alt={post?.author?.name}
             className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1e1e22] shrink-0 mt-0.5"
-            onError={(e) => handleAvatarError(e, post.author.name)}
+            onError={(e) => handleAvatarError(e, post?.author?.name)}
             referrerPolicy="no-referrer"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-[12px] font-semibold text-zinc-200">{post.author.name}</p>
+            <p className="text-[12px] font-semibold text-zinc-200">{post?.author?.name}</p>
             <div className="flex flex-wrap items-center gap-2 mt-0.5">
               <span className="inline-flex items-center gap-0.5 text-[11px] text-zinc-500">
                 <MapPin className="w-3 h-3 text-zinc-600" />
-                {post.location}
+                {post?.location}
               </span>
               <span className="text-zinc-700">·</span>
               <span className="inline-flex items-center gap-0.5 text-[11px] text-zinc-500">
                 <CalendarDays className="w-3 h-3 text-zinc-600" />
-                {new Date(offer.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                {new Date(offer?.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </span>
             </div>
           </div>
@@ -159,23 +159,23 @@ function ActivityCard({ item, onInitiateChat }: { item: ActivityItem; onInitiate
 
         {/* ── Post title ── */}
         <div>
-          <h3 className="text-[15px] font-bold text-zinc-100 leading-snug">{post.title}</h3>
-          <p className="text-[12px] text-zinc-500 mt-1 leading-relaxed line-clamp-2">{post.description}</p>
+          <h3 className="text-[15px] font-bold text-zinc-100 leading-snug">{post?.title}</h3>
+          <p className="text-[12px] text-zinc-500 mt-1 leading-relaxed line-clamp-2">{post?.description}</p>
         </div>
 
         {/* ── Tags row ── */}
         <div className="flex flex-wrap gap-1.5">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#161619] border border-[#222226] rounded-full text-[10px] font-semibold text-zinc-400">
-            <Tag className="w-2.5 h-2.5" />{post.category}
+            <Tag className="w-2.5 h-2.5" />{post?.category}
           </span>
-          {post.budget && (
+          {post?.budget && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#161619] border border-[#222226] rounded-full text-[10px] font-semibold text-zinc-400">
-              <IndianRupee className="w-2.5 h-2.5" />{post.budget}
+              <IndianRupee className="w-2.5 h-2.5" />{post?.budget}
             </span>
           )}
-          {post.timeline && (
+          {post?.timeline && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#161619] border border-[#222226] rounded-full text-[10px] font-semibold text-zinc-400">
-              <Clock className="w-2.5 h-2.5" />{post.timeline}
+              <Clock className="w-2.5 h-2.5" />{post?.timeline}
             </span>
           )}
         </div>
@@ -184,15 +184,15 @@ function ActivityCard({ item, onInitiateChat }: { item: ActivityItem; onInitiate
         <div className="bg-[#111113] border border-[#1e1e22] rounded-xl p-3.5 space-y-1">
           <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider mb-1">My Offer</p>
           <p className={`text-[12px] text-zinc-400 leading-relaxed ${!expanded ? 'line-clamp-2' : ''}`}>
-            {offer.message}
+            {offer?.message}
           </p>
           <p className="text-[10px] text-zinc-700 font-mono mt-1">
-            Submitted {new Date(offer.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+            Submitted {new Date(offer?.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
           </p>
         </div>
 
         {/* ── Expand toggle ── */}
-        {(offer.answers?.length > 0 || post.description.length > 120) && (
+        {(offer?.answers?.length > 0 || post?.description?.length > 120) && (
           <button
             onClick={() => setExpanded((v) => !v)}
             className="w-full flex items-center justify-center gap-1.5 py-2 text-[11px] text-zinc-500 hover:text-zinc-300 border border-[#1e1e22] rounded-xl hover:bg-[#111113] transition-all duration-200 cursor-pointer"
@@ -206,20 +206,13 @@ function ActivityCard({ item, onInitiateChat }: { item: ActivityItem; onInitiate
         )}
 
         {/* ── Chat CTA (only when accepted) ── */}
-        {offer.status === 'accepted' && (
+        {offer?.status === 'accepted' && (
           <button
-            onClick={() => onInitiateChat({
-              id: post.author.id,
-              name: post.author.name,
-              avatar: post.author.avatar,
-              email: post.author.email ?? '',
-              role: '',
-              location: '',
-            })}
+            onClick={() => onInitiateChat()}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 border border-[#FF3F3F]/30 text-[#FF3F3F] text-[12px] font-bold transition-all duration-200 cursor-pointer"
           >
             <MessageCircle className="w-4 h-4" />
-            Chat with {post.author.name.split(' ')[0]}
+            Chat with {post?.author?.name?.split(' ')[0]}
           </button>
         )}
 
@@ -260,7 +253,7 @@ const FILTER_TABS: { key: FilterKey; label: string; icon: typeof Clock }[] = [
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
-export default function MyActivity({ onInitiateChat }: { onInitiateChat: (u: User) => void }) {
+export default function MyActivity({ onInitiateChat }: { onInitiateChat: () => void }) {
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -291,9 +284,9 @@ export default function MyActivity({ onInitiateChat }: { onInitiateChat: (u: Use
   // Count per status
   const counts = {
     all:      items.length,
-    pending:  items.filter((i) => i.offer.status === 'pending').length,
-    accepted: items.filter((i) => i.offer.status === 'accepted').length,
-    rejected: items.filter((i) => i.offer.status === 'rejected').length,
+    pending:  items.filter((i) => i.offer?.status === 'pending').length,
+    accepted: items.filter((i) => i.offer?.status === 'accepted').length,
+    rejected: items.filter((i) => i.offer?.status === 'rejected').length,
   };
 
   return (
@@ -401,7 +394,7 @@ export default function MyActivity({ onInitiateChat }: { onInitiateChat: (u: Use
       ) : (
         <div className="space-y-4">
           {filtered.map((item) => (
-            <ActivityCard key={item.offer._id} item={item} onInitiateChat={onInitiateChat} />
+            <ActivityCard key={item.offer?._id} item={item} onInitiateChat={onInitiateChat} />
           ))}
         </div>
       )}

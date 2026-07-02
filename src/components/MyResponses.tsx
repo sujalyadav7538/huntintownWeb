@@ -117,7 +117,7 @@ interface OfferRowProps {
     offerId: string,
     status: "accepted" | "rejected",
   ) => Promise<void>;
-  onInitiateChat: (u: User) => void;
+  onInitiateChat: () => void;
 }
 
 function OfferRow({ offer, onStatusChange, onInitiateChat }: OfferRowProps) {
@@ -214,14 +214,7 @@ function OfferRow({ offer, onStatusChange, onInitiateChat }: OfferRowProps) {
             {/* Chat button — unlocked only for accepted offers */}
             {offer.status === "accepted" && (
               <button
-                onClick={() => onInitiateChat({
-                  id: offer.offeredBy.id,
-                  name: offer.offeredBy.name,
-                  avatar: offer.offeredBy.avatar ?? '',
-                  email: offer.offeredBy.email ?? '',
-                  role: '',
-                  location: '',
-                })}
+                onClick={() => onInitiateChat()}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 border border-[#FF3F3F]/30 text-[#FF3F3F] rounded-lg text-[11px] font-semibold transition-all cursor-pointer"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
@@ -286,7 +279,7 @@ interface PostBlockProps {
     offerId: string,
     status: "accepted" | "rejected",
   ) => Promise<void>;
-  onInitiateChat: (u: User) => void;
+  onInitiateChat: () => void;
   defaultOpen?: boolean;
 }
 
@@ -410,7 +403,7 @@ function PostBlock({
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
-export default function MyResponses({ onInitiateChat }: { onInitiateChat: (u: User) => void }) {
+export default function MyResponses({ onInitiateChat }: { onInitiateChat: () => void }) {
   const [items, setItems] = useState<ResponseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

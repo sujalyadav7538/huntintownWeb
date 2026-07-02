@@ -52,9 +52,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       setLoading(true);
 
-      const endpoint = isSignup
-        ? `/api/user/signup`
-        : `/api/user/signin`;
+      const endpoint = isSignup ? `/api/user/signup` : `/api/user/signin`;
 
       const response = await apiFetch(endpoint, {
         method: "POST",
@@ -75,47 +73,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         throw new Error(data.message || "Something went wrong");
       }
 
-      // if (isSignup) {
-      //   setIsSignup(false);
-
-      //   setFormData({
-      //     name: "",
-      //     email: formData.email,
-      //     password: "",
-      //     confirmPassword: "",
-      //   });
-
-      //   alert(
-      //     "Account created successfully. Please verify your email before signing in.",
-      //   );
-
-      //   return;
-      // }
-
-      /**
-       * EXPECTED BACKEND RESPONSE
-       *
-       * {
-       *   success: true,
-       *   user: {
-       *     id: "...",
-       *     name: "...",
-       *     avatar: "...",
-       *     role: "...",
-       *     location: "..."
-       *   }
-       * }
-       */
-
-      const token: string = data.access_token ?? '';
+      const token: string = data.access_token ?? "";
 
       if (data.user) {
         onLogin?.(data.user, token);
       } else {
-        /**
-         * Temporary fallback until your profile table is ready.
-         * Remove once backend returns a full User object.
-         */
         const user: User = {
           id: data.session?.user?.id || crypto.randomUUID(),
           name: formData.name || "User",

@@ -6,17 +6,39 @@ export interface UserSocialLinks {
 }
 
 export interface User {
+  /** MongoDB ObjectId string — always present after fetch */
+  _id?: string;
+  /** Custom UUID stored as `id` in userSchema */
   id: string;
   name: string;
+  email?: string;
   avatar: string;
+  avatar_public_id?: string;
+  coverImage?: string;
   role: string;
   location: string;
-  rating?: number;
-  reputation?: number;
-  skills?: string[];
-  joinedAt?: string;
   bio?: string;
-  // Extended profile fields
+  phone?: string;
+  website?: string;
+  skills?: string[];
+  // Trust metrics
+  rating?: number;
+  totalReviews?: number;
+  completedJobs?: number;
+  reputation?: number;
+  // Verification
+  isEmailVerified?: boolean;
+  isGovernmentVerified?: boolean;
+  governmentVerificationStatus?: 'none' | 'pending' | 'verified' | 'rejected';
+  // Account
+  isActive?: boolean;
+  lastSeen?: string;
+  // Counters
+  postsCount?: number;
+  offersSubmittedCount?: number;
+  offersAcceptedCount?: number;
+  // UI-only / legacy compat
+  joinedAt?: string;
   trustScore?: number;
   completedRequests?: number;
   successRate?: number;
@@ -29,7 +51,8 @@ export interface User {
 }
 
 export interface Comment {
-  id: string;
+  _id?: string;
+  id?: string;
   postId: string;
   author: User;
   content: string;
@@ -40,38 +63,78 @@ export interface Comment {
   answers?: { question: string; answer: string }[];
 }
 
+/** Matches offerSchema in backend */
+export interface Offer {
+  _id: string;
+  postId: string;
+  offeredBy: User;
+  message: string;
+  answers: { question: string; answer: string }[];
+  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Post {
+  /** MongoDB ObjectId string */
+  _id?: string;
+  /** Mapped from _id for consistent frontend use */
   id: string;
   title: string;
   description: string;
   category: string;
   location: string;
   type: 'help_needed' | 'skill_offered';
-  budget?: string; // e.g. "Volunteer / Free" or "Paid ($50)"
+  budget?: string;
+  timeline?: string;
   author: User;
   createdAt: string;
-  expiresAt: string; // Expiry timestamp (max 10 days from creation)
-  expiryDays?: number; // Chosen expiry days during creation
-  questions?: string[]; // Optional questions asked by poster
-  status: 'open' | 'fulfilled' | 'cancelled';
+  expiresAt: string;
+  expiryDays?: number;
+  questions?: string[];
+  images?: string[];
+  contactMethods?: {
+    whatsApp?: boolean;
+    phone?: boolean;
+    chat?: boolean;
+  };
+  /** Raw backend status values */
+  status: 'live' | 'in_progress' | 'completed' | 'expired' | 'cancelled';
   comments: Comment[];
   offersCount: number;
 }
 
 export interface Message {
-  id: string;
-  senderId: string;
-  receiverId: string;
-  content: string;
+  _id: string;
+  conversationId: string;
+  sender: {
+    _id?: string;
+    id?: string;
+    name: string;
+    avatar: string;
+  };
+  text: string;
+  isRead: boolean;
+  readBy?: string[];
   createdAt: string;
-  read: boolean;
+  updatedAt?: string;
 }
 
 export interface Conversation {
-  id: string;
-  participant: User;
-  messages: Message[];
+  _id: string;
+  post?: {
+    _id: string;
+    title: string;
+    category: string;
+    budget?: string;
+    location?: string;
+    status?: string;
+  };
+  offerId?: string;
+  participants: User[];
+  status: string;
   lastMessage?: string;
   lastMessageAt?: string;
-  unreadCount: number;
+  /** Frontend-only unread counter — not returned by backend */
+  unreadCount?: number;
 }

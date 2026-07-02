@@ -1,19 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, SlidersHorizontal, X, LogIn, Compass } from 'lucide-react';
-import { apiFetch } from '../lib/api';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, SlidersHorizontal, X, LogIn, Compass } from "lucide-react";
+import { apiFetch } from "../lib/api";
 
-import PostCard from './feed/PostCard';
-import PostDetailModal from './feed/PostDetailModal';
-import CategoryFilterRow from './feed/CategoryFilterRow';
+import PostCard from "./feed/PostCard";
+import PostDetailModal from "./feed/PostDetailModal";
+import CategoryFilterRow from "./feed/CategoryFilterRow";
+import { useSelector } from "react-redux";
+import { Post } from "../types";
 
 // Stub user to satisfy PostCard / PostDetailModal typings in read-only mode
 const GUEST_USER = {
-  id: '__guest__',
-  name: 'Guest',
-  email: '',
-  avatar: '',
-  role: '',
+  id: "__guest__",
+  name: "Guest",
+  email: "",
+  avatar: "",
+  role: "",
   rating: null,
   reputation: null,
 };
@@ -43,32 +45,42 @@ function SkeletonCard() {
 
 export default function ExplorePage() {
   const navigate = useNavigate();
-
-  const [posts, setPosts] = useState<any[]>([]);
+  const { isAuthenticated, currentUser, token } = useSelector(
+    (state: any) => state.auth,
+  );
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [focusedPostId, setFocusedPostId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await apiFetch('/api/posts/getAvailablePosts', { method: 'GET' });
-        const data = await res.json();
-        const fetched: any[] = (data.posts || []).map((p: any) => ({
-          ...p,
-          id: p._id || p.id,
-          author: {
-            ...p.author,
-            avatar: p.author?.avatar || '',
-            role: p.author?.role || '',
-            rating: p.author?.rating ?? null,
-            reputation: p.author?.reputation ?? null,
+        const res = await apiFetch("/api/posts/getAvailablePosts", {
+          method: "GET",
+          headers: {
+            Authorization: `${token}`,
           },
-        }));
-        setPosts(fetched);
+        });
+        const data = await res.json();
+
+        setPosts(
+          (data.posts || []).map((p: any) => ({
+            ...p,
+            _id: p._id,
+            id: p._id || p.id,
+            author: {
+              ...p.author,
+              _id: p.author?._id,
+              id: p.author?.id || p.author?._id || '',
+              avatar: p.author?.avatar || '',
+              role: p.author?.role || '',
+            },
+          })),
+        );
       } catch (err) {
-        console.error('Failed to fetch posts', err);
+        console.error("Failed to fetch posts", err);
       } finally {
         setLoading(false);
       }
@@ -84,17 +96,17 @@ export default function ExplorePage() {
       post.category.toLowerCase().includes(searchTerm.toLowerCase());
 
     let matchesCategory = true;
-    if (selectedCategory !== 'All') {
-      if (selectedCategory === 'Urgent') {
+    if (selectedCategory !== "All") {
+      if (selectedCategory === "Urgent") {
         matchesCategory =
-          post.title.toLowerCase().includes('urgent') ||
-          post.description.toLowerCase().includes('urgent');
-      } else if (selectedCategory === 'Trending') {
+          post.title.toLowerCase().includes("urgent") ||
+          post.description.toLowerCase().includes("urgent");
+      } else if (selectedCategory === "Trending") {
         matchesCategory = post.offersCount >= 8;
-      } else if (selectedCategory === 'Nearby') {
-        matchesCategory = post.location.includes('Sector 62');
-      } else if (selectedCategory === 'Premium') {
-        matchesCategory = post.budget !== 'Negotiable';
+      } else if (selectedCategory === "Nearby") {
+        matchesCategory = post.location.includes("Sector 62");
+      } else if (selectedCategory === "Premium") {
+        matchesCategory = post.budget !== "Negotiable";
       }
     }
 
@@ -102,37 +114,41 @@ export default function ExplorePage() {
   });
 
   const focusedPost = posts.find(
-    (p) => p.id === focusedPostId || p._id === focusedPostId,
+    (p) => p.id === focusedPostId || p.id === focusedPostId,
   );
 
   return (
     <div className="space-y-5">
       {/* ── Banner ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#0e0e10] via-[#131316] to-[#0e0e10] border border-[#1e1e22] px-5 py-5 flex items-center gap-4">
-        <div className="shrink-0 w-10 h-10 rounded-xl bg-[#FF3F3F]/10 border border-[#FF3F3F]/20 flex items-center justify-center">
-          <Compass className="w-5 h-5 text-[#FF3F3F]" />
+      {!isAuthenticated && (
+        <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#0e0e10] via-[#131316] to-[#0e0e10] border border-[#1e1e22] px-5 py-5 flex items-center gap-4">
+          <div className="shrink-0 w-10 h-10 rounded-xl bg-[#FF3F3F]/10 border border-[#FF3F3F]/20 flex items-center justify-center">
+            <Compass className="w-5 h-5 text-[#FF3F3F]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-[15px] font-bold text-zinc-100 leading-tight">
+              Browse Requirements
+            </h1>
+            <p className="text-[12px] text-zinc-500 mt-0.5">
+              You're viewing as a guest.{" "}
+              <button
+                onClick={() => navigate("/login")}
+                className="text-[#FF3F3F] hover:underline font-semibold cursor-pointer"
+              >
+                Sign in
+              </button>{" "}
+              to offer help or message posters.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/login")}
+            className="shrink-0 hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-[#FF3F3F] hover:bg-[#e53535] text-white text-[12px] font-bold rounded-xl transition-all duration-200 cursor-pointer"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            Sign In
+          </button>
         </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-[15px] font-bold text-zinc-100 leading-tight">Browse Requirements</h1>
-          <p className="text-[12px] text-zinc-500 mt-0.5">
-            You're viewing as a guest.{' '}
-            <button
-              onClick={() => navigate('/login')}
-              className="text-[#FF3F3F] hover:underline font-semibold cursor-pointer"
-            >
-              Sign in
-            </button>{' '}
-            to offer help or message posters.
-          </p>
-        </div>
-        <button
-          onClick={() => navigate('/login')}
-          className="shrink-0 hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-[#FF3F3F] hover:bg-[#e53535] text-white text-[12px] font-bold rounded-xl transition-all duration-200 cursor-pointer"
-        >
-          <LogIn className="w-3.5 h-3.5" />
-          Sign In
-        </button>
-      </div>
+      )}
 
       {/* ── Search bar ── */}
       <div className="relative group max-w-xl">
@@ -148,7 +164,7 @@ export default function ExplorePage() {
         />
         {searchTerm && (
           <button
-            onClick={() => setSearchTerm('')}
+            onClick={() => setSearchTerm("")}
             className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-600 hover:text-zinc-300 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -176,7 +192,9 @@ export default function ExplorePage() {
             <div className="w-14 h-14 rounded-2xl bg-[#FF3F3F]/8 border border-[#FF3F3F]/15 flex items-center justify-center mb-4">
               <SlidersHorizontal className="w-6 h-6 text-[#FF3F3F]/60" />
             </div>
-            <p className="text-[15px] font-semibold text-zinc-300">No matching requirements</p>
+            <p className="text-[15px] font-semibold text-zinc-300">
+              No matching requirements
+            </p>
             <p className="text-[12px] text-zinc-600 mt-1.5 max-w-xs">
               Try a different filter or search term.
             </p>
@@ -186,9 +204,8 @@ export default function ExplorePage() {
             <PostCard
               key={post.id}
               post={post}
-              currentUser={GUEST_USER as any}
               onSelect={() => setFocusedPostId(post.id)}
-              onInitiateChat={() => navigate('/login')}
+              onInitiateChat={() => navigate("/login")}
               readOnly
             />
           ))

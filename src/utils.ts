@@ -32,3 +32,38 @@ export const handleAvatarError = (
   (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=FF3F3F&textColor=ffffff&radius=50&size=128`;
 };
 
+// --- Type-safe helpers ----------------------------------------------------
+/**
+ * Get a stable user identifier from a User object that may contain `_id` or `id`.
+ * Returns empty string when the user is not available.
+ */
+export const getUserId = (u?: { _id?: string; id?: string } | null): string => {
+  if (!u) return '';
+  return (u._id && String(u._id)) || (u.id && String(u.id)) || '';
+};
+
+/**
+ * Ensure an author object contains an `id` field (fall back to `_id`).
+ * Does not mutate the original object.
+ */
+export const normalizeAuthor = <T extends { _id?: string; id?: string }>(
+  author: T,
+): T & { id: string } => {
+  return { ...(author as any), id: (author.id as string) || (author._id as string) || '' };
+};
+
+/**
+ * Helper to check if the given `postAuthor` corresponds to the `currentUser`.
+ * Accepts author and currentUser shapes that may have `_id` or `id`.
+ */
+export const isAuthorOf = (
+  postAuthor?: { _id?: string; id?: string } | null,
+  currentUser?: { _id?: string; id?: string } | null,
+): boolean => {
+  if (!postAuthor || !currentUser) return false;
+  const a = postAuthor._id || postAuthor.id || '';
+  const b = currentUser._id || currentUser.id || '';
+  return a !== '' && b !== '' && a === b;
+};
+
+
