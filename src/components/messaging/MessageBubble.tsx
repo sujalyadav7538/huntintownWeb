@@ -17,10 +17,10 @@ export default function MessageBubble({
   return (
     <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-[70%] rounded-2xl p-3 text-xs shadow-md leading-relaxed ${
+        className={`max-w-[78%] rounded-2xl border px-3.5 py-3 text-xs leading-relaxed backdrop-blur-sm ${
           isMe
-            ? "bg-[#FF3F3F] text-white rounded-tr-none"
-            : "bg-[#1c1c1f] text-zinc-100 border border-[#28282d] rounded-tl-none"
+            ? "rounded-br-md border-[#ff6a6a]/25 bg-[linear-gradient(180deg,rgba(255,63,63,0.22),rgba(255,63,63,0.14))] text-white"
+            : "rounded-bl-md border-[#26262b] bg-[#121216]/92 text-zinc-100"
         }`}
       >
         <p className="whitespace-pre-wrap">{msg.text}</p>

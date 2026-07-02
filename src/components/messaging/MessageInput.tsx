@@ -84,12 +84,12 @@ export default function MessageInput({ participantName }: MessageInputProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-4 bg-[#17171a] border-t border-[#232327] flex items-center gap-2 font-sans"
+      className="border-t border-[#1e1e22] bg-[#0c0c0e] px-4 py-3 flex items-center gap-2 font-sans sm:px-5"
     >
       <button
         id="emoji-chat-btn"
         type="button"
-        className="p-2 text-zinc-500 hover:text-zinc-350 rounded-lg hover:bg-zinc-850 transition cursor-pointer"
+        className="rounded-md p-2 text-zinc-500 transition cursor-pointer hover:bg-[#141416] hover:text-zinc-300"
         title="Choose mood emojis"
       >
         <Smile className="w-5 h-5" />
@@ -101,14 +101,14 @@ export default function MessageInput({ participantName }: MessageInputProps) {
         placeholder={`Type immediate signal message to ${participantName}...`}
         value={typedText}
         onChange={(e) => setTypedText(e.target.value)}
-        className="flex-1 text-xs px-3.5 py-2.5 bg-[#0b0b0c] border border-[#25252a] text-zinc-100 rounded-xl placeholder-zinc-650 focus:outline-hidden focus:border-[#FF3F3F]"
+        className="flex-1 rounded-md border border-[#1e1e22] bg-[#141416] px-3.5 py-2.5 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[#FF3F3F]/60"
         required
       />
 
       <button
         id="chat-send-submit"
         type="submit"
-        className="p-2.5 bg-[#FF3F3F] hover:bg-[#E53535] text-white rounded-xl transition cursor-pointer flex items-center justify-center shadow-lg shrink-0"
+        className="flex shrink-0 items-center justify-center rounded-md bg-[#FF3F3F] p-2.5 text-white transition cursor-pointer hover:bg-[#e53535] active:scale-95"
       >
         <Send className="w-3.5 h-3.5 text-white" />
       </button>

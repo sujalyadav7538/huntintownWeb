@@ -14,12 +14,12 @@ const HOW_IT_WORKS = [
 
 export default function FeedSidebar() {
   return (
-    <div className="space-y-3">
+    <div className="overflow-hidden rounded-xl border border-[#1e1e22] bg-[#0e0e11]">
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 border-b border-[#1e1e22]">
         {STATS.map(({ label, value, color }) => (
-          <div key={label} className="bg-[#0e0e10] border border-[#1e1e22] rounded-xl p-3 text-center">
+          <div key={label} className="border-r border-[#1e1e22] p-3 text-center last:border-r-0">
             <span className="block text-lg font-black tracking-tight" style={{ color }}>{value}</span>
             <span className="block text-[9px] text-zinc-500 font-medium mt-0.5 leading-tight">{label}</span>
           </div>
@@ -27,7 +27,7 @@ export default function FeedSidebar() {
       </div>
 
       {/* How it works */}
-      <div className="bg-[#0e0e10] border border-[#1e1e22] rounded-xl p-4 space-y-3.5">
+      <div className="border-b border-[#1e1e22] p-4 space-y-3.5">
         <div className="flex items-center gap-2">
           <Zap className="w-3.5 h-3.5 text-[#FF3F3F]" />
           <h3 className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">How it works</h3>
@@ -46,7 +46,7 @@ export default function FeedSidebar() {
       </div>
 
       {/* Trust badges */}
-      <div className="bg-[#0e0e10] border border-[#1e1e22] rounded-xl p-4 space-y-2.5">
+      <div className="border-b border-[#1e1e22] p-4 space-y-2.5">
         <div className="flex items-center gap-2">
           <Shield className="w-3.5 h-3.5 text-emerald-400" />
           <h3 className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">Why HuntInTown</h3>
@@ -65,7 +65,7 @@ export default function FeedSidebar() {
       </div>
 
       {/* Community avatars */}
-      <div className="bg-[#0e0e10] border border-[#1e1e22] rounded-xl p-4">
+      <div className="border-b border-[#1e1e22] p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Users className="w-3.5 h-3.5 text-zinc-500" />
@@ -90,7 +90,7 @@ export default function FeedSidebar() {
       </div>
 
       {/* CTA */}
-      <button className="w-full flex items-center justify-between px-4 py-3 bg-[#FF3F3F]/8 hover:bg-[#FF3F3F]/14 border border-[#FF3F3F]/20 hover:border-[#FF3F3F]/35 rounded-xl transition-all duration-200 group cursor-pointer">
+      <button className="w-full flex items-center justify-between px-4 py-3.5 bg-[#FF3F3F]/8 hover:bg-[#FF3F3F]/12 transition-all duration-200 group cursor-pointer">
         <span className="text-[12px] font-semibold text-[#FF3F3F]">Post your requirement</span>
         <ChevronRight className="w-3.5 h-3.5 text-[#FF3F3F] group-hover:translate-x-0.5 transition-transform" />
       </button>

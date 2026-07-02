@@ -15,7 +15,8 @@ export default function ChatHeader({ activeConv, setActiveConversationId }: Chat
   const {currentUser} = useAppSelector((s) => s.auth);
   const otherParticipant = activeConv.participants.find(p => p.id !== currentUser?.id);
   return (
-    <div className="p-4 bg-[#17171a] border-b border-[#232327] flex items-center justify-between font-sans select-none">
+    <div className="border-b border-[#1e1e22] bg-[#0c0c0e] px-4 py-3.5 font-sans select-none sm:px-5">
+      <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
         <button
           id="chat-back-mobile"
@@ -44,9 +45,10 @@ export default function ChatHeader({ activeConv, setActiveConversationId }: Chat
         </div>
       </div>
 
-      <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-zinc-400 bg-zinc-850 px-2.5 py-1 rounded border border-zinc-700 font-mono uppercase tracking-wider font-bold">
+      <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#25252a] bg-[#151518] px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
         <MapPin className="w-3.5 h-3.5 text-[#FF3F3F]" />
         <span>{otherParticipant?.location}</span>
+      </div>
       </div>
     </div>
   );

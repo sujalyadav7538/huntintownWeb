@@ -53,12 +53,11 @@ export default function PostCard({
     <article
       id={`post-card-${post.id}`}
       onClick={onSelect}
-      className="group relative bg-[#0e0e10] rounded-2xl border border-[#1e1e22] hover:border-[#2e2e34] transition-all duration-300 overflow-hidden flex flex-col cursor-pointer"
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.4)" }}
+      className="group relative overflow-hidden border-l border-transparent bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0))] px-3 py-3 transition-colors duration-300 hover:bg-[#101014] sm:px-5 lg:px-6"
     >
       {/* Colored left accent bar */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-0.75 rounded-l-2xl transition-all duration-300 group-hover:w-1"
+        className="absolute left-0 top-0 bottom-0 w-0.75 rounded-l-xl"
         style={{ backgroundColor: accentColor, opacity: expired ? 0.3 : 0.7 }}
       />
 
@@ -70,7 +69,7 @@ export default function PostCard({
         }}
       />
 
-      <div className="pl-5 pr-5 pt-4 pb-4 flex flex-col gap-3.5">
+      <div className="flex flex-col gap-3.5">
         {/* ── Author row ── */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -129,7 +128,7 @@ export default function PostCard({
           </div>
 
           {/* Response count pill */}
-          <div className="shrink-0 flex items-center gap-1 bg-[#1a1a1e] border border-[#262629] rounded-full px-2.5 py-1 text-[11px] text-zinc-400 font-medium">
+          <div className="shrink-0 flex items-center gap-1 rounded-full border border-[#262629] bg-[#161619] px-2.5 py-1 text-[11px] font-medium text-zinc-400">
             <Users className="w-3 h-3 text-zinc-500" />
             <span>{post.offersCount || 0}</span>
           </div>
@@ -176,10 +175,7 @@ export default function PostCard({
 
         {/* ── Action row ── */}
         {!isAuthor && !readOnly && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="flex gap-2 items-center border-t border-[#18181c] pt-3"
-          >
+          <div onClick={(e) => e.stopPropagation()} className="flex gap-2 items-center border-t border-[#18181c] pt-3">
             <button
               id={`offer-help-btn-${post.id}`}
               onClick={onSelect}
@@ -187,7 +183,7 @@ export default function PostCard({
               className={`w-full inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-200 cursor-pointer ${
                 expired
                   ? "bg-zinc-800/50 text-zinc-600 border border-zinc-700/50 cursor-not-allowed"
-                  : "bg-[#FF3F3F] hover:bg-[#e53535] text-white shadow-md shadow-[#FF3F3F]/20 hover:shadow-[#FF3F3F]/35 hover:scale-[1.02] active:scale-[0.98]"
+                  : "bg-[#FF3F3F] hover:bg-[#e53535] text-white shadow-sm shadow-[#FF3F3F]/20 hover:scale-[1.01] active:scale-[0.99]"
               }`}
             >
               {expired ? (

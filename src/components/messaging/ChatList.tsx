@@ -65,12 +65,12 @@ export default function ChatList({
   console.log(filteredConvs, "filteredConvs");
   return (
     <div
-      className={`w-full md:w-80 border-r border-[#232327] flex flex-col font-sans ${
+      className={`w-full shrink-0 border-r border-[#1e1e22] bg-[#0c0c0e] flex flex-col font-sans md:w-72 lg:w-80 ${
         activeConversationId ? "hidden md:flex" : "flex"
       }`}
     >
       {/* Header */}
-      <div className="p-4 border-b border-[#232327] space-y-3 bg-[#17171a] select-none">
+      <div className="border-b border-[#1e1e22] bg-[#0c0c0e] px-4 pt-5 pb-4 space-y-3 select-none">
         <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider font-display">
           Immediate Chats
         </h3>
@@ -85,13 +85,13 @@ export default function ChatList({
             placeholder="Filter by name..."
             value={channelsSearch}
             onChange={(e) => setChannelsSearch(e.target.value)}
-            className="w-full text-xs pl-8 pr-3 py-1.5 bg-[#0b0b0c] border border-[#29292e] text-zinc-100 rounded-lg placeholder-zinc-650 focus:outline-none focus:border-[#FF3F3F]"
+            className="w-full rounded-md border border-[#1e1e22] bg-[#141416] py-2 pl-8 pr-3 text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-[#FF3F3F]/50"
           />
         </div>
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-[#1e1e21] bg-[#121214]">
+      <div className="flex-1 overflow-y-auto divide-y divide-[#141416] bg-[#0c0c0e]">
         {filteredConvs.length === 0 ? (
           <div className="p-8 text-center text-zinc-500 text-xs select-none">
             No conversations located.
@@ -108,12 +108,13 @@ export default function ChatList({
               <div
                 key={conv._id}
                 onClick={() => handleActiveChatClick(conv._id)}
-                className={`p-4 flex gap-3 items-center cursor-pointer transition select-none ${
+                className={`relative flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-colors select-none ${
                   isSelected
-                    ? "bg-zinc-850/60 border-l-4 border-[#FF3F3F]"
-                    : "hover:bg-zinc-850"
+                    ? "bg-[#131316]"
+                    : "hover:bg-[#0f0f12]"
                 }`}
               >
+                <span className={`absolute inset-y-0 left-0 w-0.75 ${isSelected ? "bg-[#FF3F3F]" : "bg-transparent"}`} />
                 {/* Avatar */}
                 <div className="relative shrink-0">
                   <img
@@ -124,7 +125,7 @@ export default function ChatList({
                     referrerPolicy="no-referrer"
                   />
 
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-zinc-950 animate-pulse" />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0d0d0f] animate-pulse" />
                 </div>
 
                 {/* Info (you can re-enable later) */}

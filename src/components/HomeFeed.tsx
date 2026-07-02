@@ -156,7 +156,7 @@ export default function HomeFeed({
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* ── Desktop search bar ── */}
       <div className="hidden md:block">
         <div className="relative group max-w-xl">
@@ -182,35 +182,39 @@ export default function HomeFeed({
       </div>
 
       {/* ── Mobile search ── */}
-      <MobileSearchBar
-        searchTerm={searchTerm}
-        setSearchTerm={handleSetSearchTerm}
-      />
+      <div className="md:hidden">
+        <MobileSearchBar
+          searchTerm={searchTerm}
+          setSearchTerm={handleSetSearchTerm}
+        />
+      </div>
 
       {/* ── Filters ── */}
-      <CategoryFilterRow
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        resultCount={filteredPosts.length}
-      />
+      <div>
+        <CategoryFilterRow
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          resultCount={filteredPosts.length}
+        />
+      </div>
 
       {/* ── Main grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Sidebar */}
-        <aside className="lg:col-span-3 space-y-3 order-last lg:order-first">
+        <aside className="order-last lg:order-first lg:col-span-3">
           <FeedSidebar />
         </aside>
 
         {/* Feed column */}
-        <div className="lg:col-span-9 space-y-3 order-first lg:order-last">
+        <div className="order-first lg:col-span-9 lg:order-last">
           {loading ? (
-            <>
+            <div className="space-y-3">
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
-            </>
+            </div>
           ) : filteredPosts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="flex flex-col items-center justify-center px-5 py-20 text-center">
               <div className="w-14 h-14 rounded-2xl bg-[#FF3F3F]/8 border border-[#FF3F3F]/15 flex items-center justify-center mb-4">
                 <SlidersHorizontal className="w-6 h-6 text-[#FF3F3F]/60" />
               </div>
@@ -222,7 +226,8 @@ export default function HomeFeed({
               </p>
             </div>
           ) : (
-            filteredPosts.map((post) => (
+            <div className="space-y-3">
+            {filteredPosts.map((post) => (
               <PostCard
                 key={post.id}
                 post={post}
@@ -230,7 +235,8 @@ export default function HomeFeed({
                 onInitiateChat={onInitiateChat}
                 onViewProfile={handleViewProfile}
               />
-            ))
+            ))}
+            </div>
           )}
         </div>
       </div>
@@ -258,6 +264,7 @@ export default function HomeFeed({
           }}
         />
       )}
+      </div>
     </div>
   );
 }

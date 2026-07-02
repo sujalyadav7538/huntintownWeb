@@ -68,19 +68,20 @@ export default function Messaging() {
   const activeMessages = conversationMessages[activeConversationId] ?? [];
 
   return (
-    <div className="bg-[#121214] rounded-2xl border border-[#232327] shadow-lg h-[75vh] flex overflow-hidden text-zinc-100 font-sans">
-      {/* LEFT CHATS FEED sidebar list (Modular) */}
+    <>
+      <div className="flex flex-1 overflow-hidden text-zinc-100 font-sans border-t border-[#1e1e22]">
+      {/* LEFT: conversation list */}
       <ChatList
         activeConversationId={activeConversationId}
         setActiveConversationId={handleSetActiveConv}
       />
 
-      {/* RIGHT CONVERSATION THREAD */}
+      {/* RIGHT: message thread */}
       <div
-        className={`flex-1 flex flex-col ${
+        className={`flex-1 flex flex-col bg-[#09090b] ${
           !activeConversationId
-            ? "hidden md:flex items-center justify-center bg-[#0d0d0f]"
-            : "flex bg-[#0f0f11]"
+            ? "hidden md:flex items-center justify-center"
+            : "flex"
         }`}
       >
         {activeConversation ? (
@@ -92,20 +93,22 @@ export default function Messaging() {
             />
 
             {/* Messages body scrolling */}
-            <div className="flex-1 p-5 overflow-y-auto space-y-4">
-              <div className="text-center py-2 select-none">
-                <span className="text-[9px] font-mono font-bold text-zinc-550 uppercase tracking-widest bg-[#18181c] py-1 px-3.5 rounded border border-[#222226]">
-                  Encrypted Response Dialogue Channel
+            <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+              <div className="flex justify-center pb-5 select-none">
+                <span className="inline-flex items-center rounded-full border border-[#1e1e22] bg-[#0d0d10] px-3 py-1 text-[10px] text-zinc-600 tracking-wide">
+                  — start of conversation —
                 </span>
               </div>
 
-              {activeMessages.map((msg) => (
-                <MessageBubble
-                  key={msg._id}
-                  msg={msg}
-                  currentUserId={currentUser.id}
-                />
-              ))}
+              <div className="space-y-3">
+                {activeMessages.map((msg) => (
+                  <MessageBubble
+                    key={msg._id}
+                    msg={msg}
+                    currentUserId={currentUser.id}
+                  />
+                ))}
+              </div>
 
               <div ref={chatEndRef} />
             </div>
@@ -133,5 +136,8 @@ export default function Messaging() {
         )}
       </div>
     </div>
+    {/* Reserve space for fixed mobile bottom nav so chat input isn't hidden behind it */}
+    <div className="shrink-0 h-14 md:hidden" />
+  </>
   );
 }
