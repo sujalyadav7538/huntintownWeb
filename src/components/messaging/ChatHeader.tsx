@@ -23,7 +23,7 @@ export default function ChatHeader({ activeConv, setActiveConversationId }: Chat
           onClick={() => setActiveConversationId(null)}
           className="md:hidden text-xs text-zinc-400 font-bold p-1 hover:bg-zinc-800 rounded mr-1 cursor-pointer uppercase tracking-wider font-mono"
         >
-          ← Back
+          ← 
         </button>
 
         <img
