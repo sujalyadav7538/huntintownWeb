@@ -50,7 +50,7 @@ export default function UserProfileIndicator({
             {currentUser.name}
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" title="Online" />
           </p>
-          <p className="text-[10px] text-zinc-400 capitalize">{currentUser.location}</p>
+          <p className="text-[10px] text-zinc-400 capitalize">{currentUser.address || ''}</p>
         </div>
       </button>
 

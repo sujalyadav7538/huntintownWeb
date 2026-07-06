@@ -38,7 +38,7 @@ function buildDraft(user: User): DraftState {
   return {
     name: user.name,
     role: user.role,
-    location: user.location,
+    location: (user as any).address || '',
     bio: user.bio ?? '',
     skillsRaw: user.skills?.join(', ') ?? '',
     servicesRaw: user.services?.join(', ') ?? '',
@@ -481,7 +481,7 @@ export default function ProfileEditLayout({
       ...user,
       name: draft.name,
       role: draft.role,
-      location: draft.location,
+      address: draft.location,
       bio: draft.bio,
       // Keep existing avatar URL until backend responds with Cloudinary URL
       avatar: pendingAvatarFile ? draft.avatar : user.avatar,

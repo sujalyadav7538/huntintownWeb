@@ -46,7 +46,7 @@ export default function ProfileView({ onUpdateProfile, onLogout }: ProfileViewPr
       }
       formData.append('name', updated.name ?? '');
       formData.append('role', updated.role ?? '');
-      formData.append('location', updated.location ?? '');
+      formData.append('address', updated.address ?? '');
       formData.append('bio', updated.bio ?? '');
       formData.append('skills', JSON.stringify(updated.skills ?? []));
 
@@ -155,7 +155,7 @@ export default function ProfileView({ onUpdateProfile, onLogout }: ProfileViewPr
               <button
                 onClick={handleLogout}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/8
-                  bg-white/[0.04] hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400
+                  bg-white/4 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400
                   text-zinc-400 text-sm font-semibold transition-all active:scale-95 whitespace-nowrap"
               >
                 <LogOut className="w-4 h-4" />

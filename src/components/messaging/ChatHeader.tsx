@@ -47,7 +47,7 @@ export default function ChatHeader({ activeConv, setActiveConversationId }: Chat
 
       <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#25252a] bg-[#151518] px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
         <MapPin className="w-3.5 h-3.5 text-[#FF3F3F]" />
-        <span>{otherParticipant?.location}</span>
+        <span>{(otherParticipant as any)?.address || ''}</span>
       </div>
       </div>
     </div>

@@ -121,10 +121,10 @@ export default function UserProfileModal({
 
           {/* ── Meta row ── */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] text-zinc-500">
-            {user.location && (
+            {user.address && (
               <span className="flex items-center gap-1">
                 <MapPin className="w-3 h-3 text-zinc-600" />
-                {user.location}
+                {user.address}
               </span>
             )}
             {joinedLabel && (

@@ -13,6 +13,8 @@ import {
   Users,
   CalendarDays,
   LogIn,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Post, User } from "../../types";
 import { apiFetch } from "../../lib/api";
@@ -77,12 +79,15 @@ export default function PostDetailModal({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [activeImg, setActiveImg] = useState(0);
 
   const postId = (focusedPost as any)._id || focusedPost.id;
   const expired = isPostExpired(focusedPost.expiresAt);
+  const images: string[] = (focusedPost as any).images ?? [];
 
   useEffect(() => {
     setAnswers(new Array((focusedPost.questions || []).length).fill(""));
+    setActiveImg(0);
   }, [focusedPost?.id, focusedPost?.questions]);
 
   // useEffect(() => {
@@ -201,7 +206,106 @@ export default function PostDetailModal({
           </button>
         </div>
 
-        {/* ── Footer: submit form, expired state, or read-only CTA ── */}
+        {/* ── Scrollable body ── */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+
+          {/* Image carousel */}
+          {images.length > 0 && (
+            <div className="relative bg-[#0a0a0c] overflow-hidden" style={{ aspectRatio: "16/9" }}>
+              <img
+                src={images[activeImg]}
+                alt={`Image ${activeImg + 1} of ${images.length}`}
+                className="w-full h-full object-cover"
+              />
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setActiveImg((i) => (i - 1 + images.length) % images.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-white" />
+                  </button>
+                  <button
+                    onClick={() => setActiveImg((i) => (i + 1) % images.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4 text-white" />
+                  </button>
+                  <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {images.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveImg(i)}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                          i === activeImg ? "w-4 bg-white" : "w-1.5 bg-white/40"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="absolute top-2 right-2 text-[10px] text-white bg-black/50 px-2 py-0.5 rounded-full font-mono">
+                    {activeImg + 1} / {images.length}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Post details */}
+          <div className="p-5 space-y-4">
+            {/* Author row */}
+            <div className="flex items-center gap-3">
+              <img
+                src={focusedPost.author.avatar || getAvatarUrl(focusedPost.author.name, "")}
+                alt={focusedPost.author.name}
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-[#1e1e22] shrink-0"
+                onError={(e) => handleAvatarError(e, focusedPost.author.name)}
+                referrerPolicy="no-referrer"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-semibold text-zinc-100 truncate">{focusedPost.author.name}</p>
+                {focusedPost.author.role && (
+                  <p className="text-[11px] text-zinc-500 truncate">{focusedPost.author.role}</p>
+                )}
+              </div>
+              <span className="text-[11px] text-zinc-600 flex items-center gap-1 shrink-0">
+                <CalendarDays className="w-3 h-3" />
+                {new Date(focusedPost.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+              </span>
+            </div>
+
+            {/* Description */}
+            <p className="text-[13px] text-zinc-300 leading-relaxed">{focusedPost.description}</p>
+
+            {/* Meta chips */}
+            <div className="flex flex-wrap gap-1.5">
+              <span className="inline-flex items-center px-2.5 py-1 bg-[#111113] border border-[#1e1e22] rounded-full text-[11px] text-zinc-400">
+                {focusedPost.category}
+              </span>
+              {focusedPost.budget && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#111113] border border-[#1e1e22] rounded-full text-[11px] text-zinc-400">
+                  <IndianRupee className="w-3 h-3" />{focusedPost.budget}
+                </span>
+              )}
+              {focusedPost.address && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#111113] border border-[#1e1e22] rounded-full text-[11px] text-zinc-400">
+                  <MapPin className="w-3 h-3 text-[#FF3F3F]" />{focusedPost.address}
+                </span>
+              )}
+              {focusedPost.timeline && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#111113] border border-[#1e1e22] rounded-full text-[11px] text-zinc-400">
+                  <Clock className="w-3 h-3" />{focusedPost.timeline}
+                </span>
+              )}
+              {!expired && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-950/40 border border-emerald-900/40 rounded-full text-[11px] text-emerald-400">
+                  <Clock className="w-3 h-3" />{getPostExpiryLabel(focusedPost.expiresAt)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Footer: submit form, expired state, or read-only CTA ── */}}
         {expired ? (
           <div className="px-5 py-4 border-t border-[#161619] flex items-center gap-3 bg-[#0a0a0c] shrink-0">
             <AlertCircle className="w-4 h-4 text-zinc-600 shrink-0" />

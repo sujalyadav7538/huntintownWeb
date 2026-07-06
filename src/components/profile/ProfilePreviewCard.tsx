@@ -75,7 +75,7 @@ export default function ProfilePreviewCard({ user }) {
                 <p className="text-zinc-400 text-sm font-medium">{user.role}</p>
                 <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-2 text-xs text-zinc-500">
                   <MapPin className="w-3.5 h-3.5 text-[#FF3F3F]" />
-                  <span>{user.location || "Location not set"}</span>
+                  <span>{user.address || "Location not set"}</span>
                 </div>
               </div>
             </div>

@@ -60,7 +60,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
 
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Home & Living");
-  const [address, setAddress] = useState(currentUser?.location || "");
+  const [address, setAddress] = useState(currentUser?.address || "");
   const [budget, setBudget] = useState("");
   const [timeline, setTimeline] = useState("");
   const [expiryDays, setExpiryDays] = useState(7);
@@ -92,7 +92,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
 
   const addImages = (files: FileList | null) => {
     if (!files) return;
-    const newFiles = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, 4 - imageFiles.length);
+    const newFiles = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, 3 - imageFiles.length);
     const newPreviews = newFiles.map((f) => URL.createObjectURL(f));
     setImageFiles((p) => [...p, ...newFiles]);
     setImagePreviews((p) => [...p, ...newPreviews]);
@@ -116,28 +116,29 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + expiryDays);
     const locationCoords: [number, number] = coords ?? [77.3649, 28.6273];
-    const payload = {
-      title: previewTitle,
-      description,
-      category,
-      address: address.trim(),
-      location: { type: "Point", coordinates: locationCoords },
-      type: "help_needed",
-      budget: budget.trim() || "Negotiable",
-      timeline: timeline.trim() || "Flexible",
-      status: "live",
-      expiryDays,
-      expiresAt: expiryDate.toISOString(),
-      questions: [],
-      contactMethods,
-      images: [],
-    };
+
+    const formData = new FormData();
+    formData.append("title", previewTitle);
+    formData.append("description", description);
+    formData.append("category", category);
+    formData.append("address", address.trim());
+    formData.append("location", JSON.stringify({ type: "Point", coordinates: locationCoords }));
+    formData.append("type", "help_needed");
+    formData.append("budget", budget.trim() || "Negotiable");
+    formData.append("timeline", timeline.trim() || "Flexible");
+    formData.append("status", "live");
+    formData.append("expiryDays", String(expiryDays));
+    formData.append("expiresAt", expiryDate.toISOString());
+    formData.append("questions", JSON.stringify([]));
+    formData.append("contactMethods", JSON.stringify(contactMethods));
+    imageFiles.forEach((file) => formData.append("images", file));
+
     try {
       const token = localStorage.getItem("access_token");
       const response = await apiFetch("/api/posts", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `${token}` },
-        body: JSON.stringify(payload),
+        headers: { Authorization: `${token}` }, // No Content-Type — browser sets multipart boundary
+        body: formData,
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Failed to create post");
@@ -240,8 +241,8 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
           </div>
 
           <div>
-            <label className={lbl}><span className="inline-flex items-center gap-1"><ImagePlus className="w-3 h-3" /> Photos <span className="text-zinc-600 font-normal">(up to 4)</span></span></label>
-            {imageFiles.length < 4 && (
+            <label className={lbl}><span className="inline-flex items-center gap-1"><ImagePlus className="w-3 h-3" /> Photos <span className="text-zinc-600 font-normal">(max 3)</span></span></label>
+            {imageFiles.length < 3 && (
               <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
                 onDrop={(e) => { e.preventDefault(); setDragOver(false); addImages(e.dataTransfer.files); }}
                 onClick={() => fileInputRef.current?.click()}

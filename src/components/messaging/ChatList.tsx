@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Search } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
 import { getAvatarUrl, handleAvatarError } from "../../utils";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { apiFetch } from "@/src/lib/api";
@@ -10,9 +10,15 @@ import { socket } from "@/src/lib/socket";
 
 export default function ChatList({
   setActiveConversationId,
+  onBackToPosts,
+  postTitle,
+  loading = false,
 }: {
   activeConversationId: string | null;
   setActiveConversationId: (id: string | null) => void;
+  onBackToPosts?: () => void;
+  postTitle?: string;
+  loading?: boolean;
 }) {
   const [channelsSearch, setChannelsSearch] = useState("");
   const dispatch = useAppDispatch();
@@ -70,10 +76,20 @@ export default function ChatList({
       }`}
     >
       {/* Header */}
-      <div className="border-b border-[#1e1e22] bg-[#0c0c0e] px-4 pt-5 pb-4 space-y-3 select-none">
-        <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider font-display">
-          Immediate Chats
-        </h3>
+      <div className="border-b border-[#1e1e22] bg-[#0c0c0e] px-4 pt-4 pb-4 space-y-2.5 select-none">
+        {/* Back to post picker */}
+        {onBackToPosts && (
+          <button
+            onClick={onBackToPosts}
+            className="flex items-center gap-1.5 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            All Posts
+          </button>
+        )}
+        <p className="text-xs font-bold text-zinc-200 uppercase tracking-wider font-display truncate">
+          {postTitle ?? "Conversations"}
+        </p>
 
         <div className="relative">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-550">
@@ -92,7 +108,11 @@ export default function ChatList({
 
       {/* List */}
       <div className="flex-1 overflow-y-auto divide-y divide-[#141416] bg-[#0c0c0e]">
-        {filteredConvs.length === 0 ? (
+        {loading ? (
+          <div className="p-8 flex justify-center">
+            <div className="w-5 h-5 border-2 border-zinc-700 border-t-[#FF3F3F] rounded-full animate-spin" />
+          </div>
+        ) : filteredConvs.length === 0 ? (
           <div className="p-8 text-center text-zinc-500 text-xs select-none">
             No conversations located.
           </div>

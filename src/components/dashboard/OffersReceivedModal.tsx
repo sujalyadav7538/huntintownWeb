@@ -25,7 +25,7 @@ interface BackendOffer {
 interface OffersReceivedModalProps {
   post: Post;
   onClose: () => void;
-  onInitiateChat: () => void;
+  onInitiateChat: (postId: string) => void;
 }
 
 const STATUS_CONFIG = {
@@ -265,7 +265,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                             {offer.status === 'accepted' && (
                               <button
                                 onClick={() => {
-                                  onInitiateChat();
+                                  onInitiateChat(postId);
                                   onClose();
                                 }}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 border border-[#FF3F3F]/30 text-[#FF3F3F] text-[11px] font-bold rounded-xl transition-all cursor-pointer"

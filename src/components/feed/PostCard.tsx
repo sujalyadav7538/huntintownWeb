@@ -144,6 +144,26 @@ export default function PostCard({
           </p>
         </div>
 
+        {/* ── Images strip ── */}
+        {post.images && post.images.length > 0 && (
+          <div
+            className={`grid gap-1 rounded-xl overflow-hidden ${
+              post.images.length === 1 ? "grid-cols-1" :
+              post.images.length === 2 ? "grid-cols-2" : "grid-cols-3"
+            }`}
+          >
+            {post.images.slice(0, 3).map((src, i) => (
+              <div
+                key={i}
+                className="relative overflow-hidden bg-[#161619]"
+                style={{ aspectRatio: post.images!.length === 1 ? "16/9" : "1/1" }}
+              >
+                <img src={src} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── Meta chips ── */}
         <div className="flex flex-wrap gap-1.5">
           <span

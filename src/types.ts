@@ -16,12 +16,10 @@ export interface User {
   avatar_public_id?: string;
   coverImage?: string;
   role: string;
-  location: {
-    coordinates: {
-      latitude: number;
-      longitude: number;
-    };
-  };
+  /** Human-readable address (maps to `address` in backend userSchema) */
+  address?: string;
+  /** GeoJSON coordinates — not for direct display */
+  location?: { type?: string; coordinates?: number[]; };
   bio?: string;
   phone?: string;
   website?: string;
@@ -148,4 +146,16 @@ export interface Conversation {
   lastMessageAt?: string;
   /** Frontend-only unread counter — not returned by backend */
   unreadCount?: number;
+}
+
+/** Aggregated post entry returned by GET /api/chat/posts — used in the messaging post picker */
+export interface ChatPost {
+  _id: string;
+  title: string;
+  category: string;
+  budget?: string;
+  location?: string;
+  status: string;
+  conversationCount: number;
+  lastMessageAt?: string;
 }

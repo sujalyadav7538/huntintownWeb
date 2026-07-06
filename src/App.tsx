@@ -173,7 +173,7 @@ export default function App() {
             onDeleteListing={(id) => dispatch(deletePostThunk(id) as any)}
             onSelectPost={() => setActiveTab("explore")}
             setActiveTab={setActiveTab}
-            onInitiateChat={() => setActiveTab("messaging")}
+            onInitiateChat={(postId) => navigate(`/messaging?postId=${postId}`)}
           />
         );
       case "messaging":

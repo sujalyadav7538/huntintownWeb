@@ -107,10 +107,10 @@ export default function ProfileHero({
               <p className="text-zinc-400 text-sm font-medium">{user.role}</p>
 
               <div className="flex items-center justify-center sm:justify-start gap-4 flex-wrap">
-                {user.location && (
+                {user.address && (
                   <span className="flex items-center gap-1.5 text-xs text-zinc-500">
                     <MapPin className="w-3.5 h-3.5 text-[#FF3F3F]" />
-                    {user.location}
+                    {user.address}
                   </span>
                 )}
                 {rating > 0 && (

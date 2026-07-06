@@ -1,15 +1,17 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Conversation, Message } from "../types";
+import { Conversation, Message, ChatPost } from "../types";
 
 interface ConversationsState {
   conversations: Conversation[];
   activeConversationId: string | null;
-  conversationMessages: Record<string, Message[]>; // Store messages for each conversation
+  chatPosts: ChatPost[];
+  conversationMessages: Record<string, Message[]>;
 }
 
 const initialState: ConversationsState = {
   conversations: [] as Conversation[],
   activeConversationId: null,
+  chatPosts: [] as ChatPost[],
   conversationMessages: {},
 };
 
@@ -67,6 +69,10 @@ export const conversationsSlice = createSlice({
       state.conversations = action.payload ? action.payload : [];
     },
 
+    setChatPosts: (state, action: PayloadAction<ChatPost[]>) => {
+      state.chatPosts = action.payload;
+    },
+
     setConversationMessages: (
       state,
       action: PayloadAction<{ conversationId: string; messages: Message[] }>,
@@ -106,6 +112,7 @@ export const {
   markConversationRead,
   clearUnreadForUser,
   setConversations,
+  setChatPosts,
   setConversationMessages,
   updateConversationLastMessage,
 } = conversationsSlice.actions;
