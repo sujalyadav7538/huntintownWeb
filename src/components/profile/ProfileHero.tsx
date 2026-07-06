@@ -42,10 +42,7 @@ export default function ProfileHero({
   };
 
   return (
-    <div className="relative rounded-3xl overflow-hidden border border-white/6 bg-[#0C0C0E] shadow-[0_0_80px_rgba(0,0,0,0.7)]">
-      {/* ── Ambient glows ── */}
-      <div className="absolute -top-20 left-1/4 w-125 h-75 bg-[#FF3F3F]/7 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute -top-10 right-1/4 w-100 h-50 bg-violet-500/5 rounded-full blur-[80px] pointer-events-none" />
+    <div className="relative overflow-hidden rounded-xl border border-[#1e1e22] bg-[#0c0c0e]">
 
       {/* ── Cover Banner ── */}
       <div className="h-44 sm:h-56 lg:h-64 relative overflow-hidden">

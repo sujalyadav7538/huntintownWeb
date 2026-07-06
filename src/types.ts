@@ -16,7 +16,12 @@ export interface User {
   avatar_public_id?: string;
   coverImage?: string;
   role: string;
-  location: string;
+  location: {
+    coordinates: {
+      latitude: number;
+      longitude: number;
+    };
+  };
   bio?: string;
   phone?: string;
   website?: string;
@@ -29,7 +34,7 @@ export interface User {
   // Verification
   isEmailVerified?: boolean;
   isGovernmentVerified?: boolean;
-  governmentVerificationStatus?: 'none' | 'pending' | 'verified' | 'rejected';
+  governmentVerificationStatus?: "none" | "pending" | "verified" | "rejected";
   // Account
   isActive?: boolean;
   lastSeen?: string;
@@ -70,7 +75,7 @@ export interface Offer {
   offeredBy: User;
   message: string;
   answers: { question: string; answer: string }[];
-  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled';
+  status: "pending" | "accepted" | "rejected" | "completed" | "cancelled";
   createdAt: string;
   updatedAt: string;
 }
@@ -83,8 +88,14 @@ export interface Post {
   title: string;
   description: string;
   category: string;
-  location: string;
-  type: 'help_needed' | 'skill_offered';
+  /** Human-readable address */
+  address: string;
+  /** GeoJSON location object */
+  location: {
+    type: "Point";
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  type: "help_needed";
   budget?: string;
   timeline?: string;
   author: User;
@@ -99,7 +110,7 @@ export interface Post {
     chat?: boolean;
   };
   /** Raw backend status values */
-  status: 'live' | 'in_progress' | 'completed' | 'expired' | 'cancelled';
+  status: "live" | "in_progress" | "completed" | "expired" | "cancelled";
   comments: Comment[];
   offersCount: number;
 }

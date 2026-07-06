@@ -163,7 +163,7 @@ export default function App() {
             onInitiateChat={() => setActiveTab("messaging")}
           />
         );
-  
+
       case "dashboard":
         return (
           <Dashboard
@@ -186,17 +186,9 @@ export default function App() {
           />
         );
       case "activity":
-        return (
-          <MyActivity
-            onInitiateChat={() => setActiveTab("messaging")}
-          />
-        );
+        return <MyActivity onInitiateChat={() => setActiveTab("messaging")} />;
       case "responses":
-        return (
-          <MyResponses
-            onInitiateChat={() => setActiveTab("messaging")}
-          />
-        );
+        return <MyResponses onInitiateChat={() => setActiveTab("messaging")} />;
       case "login":
         return <LoginPage onLogin={handleLogin} />;
       case "explore":
@@ -216,11 +208,13 @@ export default function App() {
           onLogoutSimulate={handleLogout}
         />
 
-        <main className={`flex-1 w-full mx-auto ${
-            activeTab === 'messaging'
-              ? 'flex flex-col overflow-hidden'
-              : 'max-w-7xl px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8'
-          }`}>
+        <main
+          className={`flex-1 w-full mx-auto ${
+            activeTab === "messaging"
+              ? "flex flex-col overflow-hidden"
+              : "max-w-7xl px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8"
+          }`}
+        >
           {renderActiveView()}
         </main>
 

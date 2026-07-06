@@ -93,12 +93,7 @@ export default function ProfileView({ onUpdateProfile, onLogout }: ProfileViewPr
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0C0C0E]">
-      {/* Ambient background glows */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-32 left-1/3 w-[600px] h-[400px] bg-[#FF3F3F]/[0.04] rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-violet-500/[0.03] rounded-full blur-[100px]" />
-      </div>
+    <div className="relative min-h-screen bg-[#09090b]">
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-28">
         {mode === 'edit' ? (
@@ -150,7 +145,7 @@ export default function ProfileView({ onUpdateProfile, onLogout }: ProfileViewPr
             </div>
 
             {/* ── Logout section ── */}
-            <div className="mt-2 rounded-2xl border border-white/6 bg-white/[0.015] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="mt-2 rounded-xl border border-[#1e1e22] bg-[#0e0e11] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-zinc-300">Sign out of HuntInTown</p>
                 <p className="text-xs text-zinc-600 mt-0.5">

@@ -27,15 +27,12 @@ export default function ProfileSectionCard({
   return (
     <div
       id={id}
-      className={`relative rounded-2xl bg-white/2.5 border border-white/6
-        hover:border-white/10 transition-colors duration-300 ${className}`}
+      className={`relative rounded-xl border border-[#1e1e22] bg-[#0e0e11] transition-colors duration-200 ${className}`}
     >
-      {/* top accent line — uses rounded-t-2xl to match card, no overflow-hidden needed */}
+      {/* left accent bar */}
       <div
-        className="absolute top-0 left-0 w-full h-px opacity-50 pointer-events-none rounded-t-2xl"
-        style={{
-          background: `linear-gradient(to right, transparent, ${accentColor}60, transparent)`,
-        }}
+        className="absolute top-4 left-0 w-0.75 h-8 rounded-r-full opacity-60 pointer-events-none"
+        style={{ background: accentColor }}
       />
 
       <div className={noPadding ? "" : "p-5 sm:p-6"}>

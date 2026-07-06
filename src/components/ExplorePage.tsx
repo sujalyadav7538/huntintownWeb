@@ -6,8 +6,10 @@ import { apiFetch } from "../lib/api";
 import PostCard from "./feed/PostCard";
 import PostDetailModal from "./feed/PostDetailModal";
 import CategoryFilterRow from "./feed/CategoryFilterRow";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Post } from "../types";
+import { fetchPosts } from "../store/postsSlice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 
 // Stub user to satisfy PostCard / PostDetailModal typings in read-only mode
 const GUEST_USER = {
@@ -48,44 +50,16 @@ export default function ExplorePage() {
   const { isAuthenticated, currentUser, token } = useSelector(
     (state: any) => state.auth,
   );
-  const [posts, setPosts] = useState<Post[]>([]);
+  const posts = useAppSelector((s) => s.posts);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [focusedPostId, setFocusedPostId] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await apiFetch("/api/posts/getAvailablePosts", {
-          method: "GET",
-          headers: {
-            Authorization: `${token}`,
-          },
-        });
-        const data = await res.json();
-
-        setPosts(
-          (data.posts || []).map((p: any) => ({
-            ...p,
-            _id: p._id,
-            id: p._id || p.id,
-            author: {
-              ...p.author,
-              _id: p.author?._id,
-              id: p.author?.id || p.author?._id || '',
-              avatar: p.author?.avatar || '',
-              role: p.author?.role || '',
-            },
-          })),
-        );
-      } catch (err) {
-        console.error("Failed to fetch posts", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
+    setLoading(true);
+    dispatch(fetchPosts()).finally(() => setLoading(false));
   }, []);
 
   const filteredPosts = posts.filter((post) => {
@@ -104,7 +78,7 @@ export default function ExplorePage() {
       } else if (selectedCategory === "Trending") {
         matchesCategory = post.offersCount >= 8;
       } else if (selectedCategory === "Nearby") {
-        matchesCategory = post.location.includes("Sector 62");
+        matchesCategory = post.address.includes("Sector 62");
       } else if (selectedCategory === "Premium") {
         matchesCategory = post.budget !== "Negotiable";
       }
@@ -116,7 +90,7 @@ export default function ExplorePage() {
   const focusedPost = posts.find(
     (p) => p.id === focusedPostId || p.id === focusedPostId,
   );
-
+  console.log("Posts in ExplorePage:", filteredPosts);
   return (
     <div className="space-y-5">
       {/* ── Banner ── */}

@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { Post, Comment } from "../types";
 import { apiFetch } from "../lib/api";
+import type { RootState } from "./index";
 
 const initialState: Post[] = [];
 
@@ -21,7 +22,7 @@ export function normalizePost(p: any): Post {
       reputation: p.author?.reputation ?? undefined,
       location: p.author?.location || p.location || "",
     },
-    status: p.status,          // raw backend value: live | in_progress | completed | expired | cancelled
+    status: p.status, // raw backend value: live | in_progress | completed | expired | cancelled
     comments: p.comments ?? [],
     offersCount: p.offersCount ?? 0,
     questions: p.questions ?? [],
@@ -30,12 +31,33 @@ export function normalizePost(p: any): Post {
 }
 
 // Fetch all posts from public endpoint
-export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
-  const res = await apiFetch("/api/posts");
-  if (!res.ok) throw new Error("Failed to fetch posts");
-  const data: { success: boolean; count: number; posts: any[] } = await res.json();
-  return data.posts.map(normalizePost);
-});
+export const fetchPosts = createAsyncThunk(
+  "posts/fetchPosts",
+  async (_arg, thunkAPI) => {
+    const state = thunkAPI.getState() as RootState;
+    const isAuthenticated = Boolean(state.auth?.isAuthenticated);
+
+    if (isAuthenticated) {
+      const token = state.auth?.token || "";
+      const res = await apiFetch("/api/posts/getAvailablePosts", {
+        method: "GET",
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      if (!res.ok) throw new Error("Failed to fetch posts");
+      const data: { success: boolean; count: number; posts: any[] } =
+        await res.json();
+      return data.posts.map(normalizePost);
+    }
+
+    const res = await apiFetch("/api/posts");
+    if (!res.ok) throw new Error("Failed to fetch posts");
+    const data: { success: boolean; count: number; posts: any[] } =
+      await res.json();
+    return data.posts.map(normalizePost);
+  },
+);
 
 export const postsSlice = createSlice({
   name: "posts",
@@ -71,7 +93,8 @@ export const postsSlice = createSlice({
       }>,
     ) => {
       const post = state.find(
-        (p) => p._id === action.payload.postId || p.id === action.payload.postId,
+        (p) =>
+          p._id === action.payload.postId || p.id === action.payload.postId,
       );
       if (post) {
         post.comments.push(action.payload.comment);
@@ -86,7 +109,8 @@ export const postsSlice = createSlice({
       }>,
     ) => {
       const post = state.find(
-        (p) => p._id === action.payload.postId || p.id === action.payload.postId,
+        (p) =>
+          p._id === action.payload.postId || p.id === action.payload.postId,
       );
       if (post) post.status = action.payload.status;
     },

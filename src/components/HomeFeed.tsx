@@ -142,7 +142,7 @@ export default function HomeFeed({
       } else if (selectedCategory === "Trending") {
         matchesCategory = post.offersCount >= 8;
       } else if (selectedCategory === "Nearby") {
-        matchesCategory = post.location.includes("Sector 62");
+        matchesCategory = post.address.includes("Sector 62");
       } else if (selectedCategory === "Premium") {
         matchesCategory = post.budget !== "Negotiable";
       }

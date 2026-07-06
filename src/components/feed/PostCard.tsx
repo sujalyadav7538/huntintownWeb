@@ -113,7 +113,7 @@ export default function PostCard({
               <div className="flex items-center gap-2 mt-0.5 text-[11px] text-zinc-500">
                 <span className="flex items-center gap-0.5">
                   <MapPin className="w-3 h-3 text-zinc-600" />
-                  {post.location}
+                  {post.address}
                 </span>
                 <span className="text-zinc-700">·</span>
                 <span className="flex items-center gap-0.5">

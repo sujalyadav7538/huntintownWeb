@@ -333,7 +333,7 @@ function PostBlock({
           </span>
           <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#161619] border border-[#222226] rounded-full text-[10px] font-semibold text-zinc-400">
             <MapPin className="w-2.5 h-2.5" />
-            {post.location}
+            {post.address}
           </span>
           {post.budget && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#161619] border border-[#222226] rounded-full text-[10px] font-semibold text-zinc-400">

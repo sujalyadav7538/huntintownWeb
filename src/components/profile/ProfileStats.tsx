@@ -33,8 +33,7 @@ function StatCard({
 }: StatCardProps) {
   return (
     <div
-      className={`relative rounded-2xl bg-white/2.5 border border-white/6 p-4 sm:p-5
-        hover:border-white/10 transition-colors duration-300 overflow-hidden ${large ? 'col-span-2 sm:col-span-1' : ''}`}
+      className={`relative rounded-xl border border-[#1e1e22] bg-[#0e0e11] p-4 sm:p-5 overflow-hidden ${large ? 'col-span-2 sm:col-span-1' : ''}`}
     >
       {accent && (
         <div
@@ -75,8 +74,7 @@ export default function ProfileStats({ user }: ProfileStatsProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* Rating spotlight */}
-      <div className="relative rounded-2xl overflow-hidden border border-[#FF3F3F]/20 bg-linear-to-b from-[#FF3F3F]/8 to-[#FF3F3F]/2 p-5 sm:p-6">
-        <div className="absolute -top-8 -right-8 w-28 h-28 bg-[#FF3F3F]/12 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative rounded-xl overflow-hidden border border-[#FF3F3F]/20 bg-[#FF3F3F]/6 p-5 sm:p-6">
         <p className="text-[10px] font-bold text-[#FF3F3F] uppercase tracking-widest mb-2">
           Global Rating
         </p>
@@ -146,7 +144,7 @@ export default function ProfileStats({ user }: ProfileStatsProps) {
       </div>
 
       {/* Meta info */}
-      <div className="rounded-2xl bg-white/2.5 border border-white/6 p-5 space-y-3.5 hover:border-white/10 transition-colors duration-300">
+      <div className="rounded-xl border border-[#1e1e22] bg-[#0e0e11] p-5 space-y-3.5">
         {user.joinedAt && (
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-2 text-zinc-500">

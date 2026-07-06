@@ -1,503 +1,382 @@
-"use client";
+﻿"use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppSelector } from "../store/hooks";
 import { apiFetch } from "../lib/api";
 import {
-  X,
-  ChevronRight,
-  ChevronLeft,
+  ArrowLeft,
   Sparkles,
   MapPin,
   Wallet,
   Clock,
-  CalendarRange,
-  HelpCircle,
   MessageSquare,
   Phone,
   Check,
   CheckCircle2,
   Loader2,
-  FileText,
-  Settings2,
+  Navigation,
+  ImagePlus,
+  X,
+  IndianRupee,
+  Users,
+  Zap,
 } from "lucide-react";
-import CustomQuestionsInput from "./create-post/CustomQuestionsInput";
-import ContactMethodsToggle from "./create-post/ContactMethodsToggle";
+import { getAvatarUrl, handleAvatarError } from "../utils";
 
 interface CreatePostProps {
   onClose: () => void;
   onPostCreated?: (postId: string) => void;
 }
 
-const STEPS = [
-  { id: 1, label: "Basics", icon: FileText },
-  { id: 2, label: "Details", icon: MapPin },
-  { id: 3, label: "Settings", icon: Settings2 },
+const CATEGORIES = [
+  "Home & Living", "Tech & Electronics", "Education & Tutoring",
+  "Health & Wellness", "Events & Celebrations", "Business & Finance",
+  "Creative & Design", "Transport & Moving", "Legal & Consulting",
+  "Pets & Animals", "Fitness & Sports", "Food & Catering",
 ];
 
 const CATEGORY_ICONS: Record<string, string> = {
-  "Home & Living": "🏠",
-  "Tech & Electronics": "💻",
-  "Education & Tutoring": "📚",
-  "Health & Wellness": "💪",
-  "Events & Celebrations": "🎉",
-  "Business & Finance": "💼",
-  "Creative & Design": "🎨",
-  "Transport & Moving": "🚚",
-  "Legal & Consulting": "⚖️",
-  "Pets & Animals": "🐾",
-  "Fitness & Sports": "🏃",
-  "Food & Catering": "🍽️",
+  "Home & Living": "🏠", "Tech & Electronics": "💻", "Education & Tutoring": "📚",
+  "Health & Wellness": "💪", "Events & Celebrations": "🎉", "Business & Finance": "💼",
+  "Creative & Design": "🎨", "Transport & Moving": "🚚", "Legal & Consulting": "⚖️",
+  "Pets & Animals": "🐾", "Fitness & Sports": "🏃", "Food & Catering": "🍽️",
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  "Home & Living": "#f97316", "Tech & Electronics": "#6366f1",
+  "Education & Tutoring": "#3b82f6", "Health & Wellness": "#22c55e",
+  "Events & Celebrations": "#ec4899", "Business & Finance": "#14b8a6",
+  "Creative & Design": "#a855f7", "Transport & Moving": "#f59e0b",
+  "Legal & Consulting": "#8b5cf6", "Pets & Animals": "#84cc16",
+  "Fitness & Sports": "#06b6d4", "Food & Catering": "#ef4444",
 };
 
 export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) {
   const currentUser = useAppSelector((s) => s.auth.currentUser);
 
-  // Step state
-  const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
-  // Step 1 fields
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Home & Living");
-  const [postType, setPostType] = useState<"help_needed" | "skill_offered">("help_needed");
-
-  // Step 2 fields
+  const [address, setAddress] = useState(currentUser?.location || "");
   const [budget, setBudget] = useState("");
   const [timeline, setTimeline] = useState("");
-  const [location, setLocation] = useState(currentUser?.location || "");
   const [expiryDays, setExpiryDays] = useState(7);
+  const [contactMethods, setContactMethods] = useState({ whatsApp: true, phone: false, chat: true });
 
-  // Step 3 fields
-  const [questions, setQuestions] = useState<string[]>([""]);
-  const [contactMethods, setContactMethods] = useState({
-    whatsApp: true,
-    phone: false,
-    chat: true,
-  });
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const canAdvanceStep1 = description.trim().length >= 10;
-  const canAdvanceStep2 = location.trim().length > 0;
+  const [coords, setCoords] = useState<[number, number] | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  useEffect(() => {
+    return () => { imagePreviews.forEach(URL.revokeObjectURL); };
+  }, [imagePreviews]);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setCoords([pos.coords.longitude, pos.coords.latitude]); setLocating(false); },
+      () => setLocating(false),
+      { timeout: 8000 }
+    );
+  };
+
+  useEffect(() => { detectLocation(); }, []);
+
+  const addImages = (files: FileList | null) => {
+    if (!files) return;
+    const newFiles = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, 4 - imageFiles.length);
+    const newPreviews = newFiles.map((f) => URL.createObjectURL(f));
+    setImageFiles((p) => [...p, ...newFiles]);
+    setImagePreviews((p) => [...p, ...newPreviews]);
+  };
+
+  const removeImage = (idx: number) => {
+    URL.revokeObjectURL(imagePreviews[idx]);
+    setImageFiles((p) => p.filter((_, i) => i !== idx));
+    setImagePreviews((p) => p.filter((_, i) => i !== idx));
+  };
+
+  const canSubmit = description.trim().length >= 10 && address.trim().length > 0;
+  const previewTitle = description.length > 60 ? description.substring(0, 60) + "…" : description;
+  const previewBudget = budget.trim() || "Negotiable";
+  const accentColor = CATEGORY_COLORS[category] || "#FF3F3F";
 
   const handleSubmit = async () => {
+    if (!canSubmit) return;
     setSubmitting(true);
     setError("");
-
-    const title = description.length > 60 ? description.substring(0, 60) + "..." : description;
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + expiryDays);
-    const filteredQuestions = questions.map((q) => q.trim()).filter((q) => q.length > 0);
-
+    const locationCoords: [number, number] = coords ?? [77.3649, 28.6273];
     const payload = {
-      title,
+      title: previewTitle,
       description,
       category,
-      location,
-      type: postType,
+      address: address.trim(),
+      location: { type: "Point", coordinates: locationCoords },
+      type: "help_needed",
       budget: budget.trim() || "Negotiable",
       timeline: timeline.trim() || "Flexible",
       status: "live",
       expiryDays,
       expiresAt: expiryDate.toISOString(),
-      questions: filteredQuestions,
+      questions: [],
       contactMethods,
       images: [],
     };
-
     try {
       const token = localStorage.getItem("access_token");
       const response = await apiFetch("/api/posts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `${token}` },
         body: JSON.stringify(payload),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Failed to create post");
-
       setSubmitted(true);
       const postId = data.post?._id || data.post?.id || data.id;
-      setTimeout(() => {
-        onClose();
-        if (postId && onPostCreated) onPostCreated(postId);
-      }, 1600);
+      setTimeout(() => { onClose(); if (postId && onPostCreated) onPostCreated(postId); }, 1800);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setSubmitting(false);
     }
   };
 
-  const inputCls =
-    "w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] text-sm text-zinc-100 rounded-xl placeholder-zinc-600 focus:outline-none focus:border-[#FF3F3F]/60 focus:bg-white/[0.05] transition-all duration-200";
-  const labelCls = "block text-[11px] font-bold uppercase tracking-widest text-zinc-500 mb-2";
+  const inp = "w-full px-3.5 py-2.5 bg-[#111113] border border-[#252529] text-sm text-zinc-100 rounded-xl placeholder-zinc-600 focus:outline-none focus:border-[#FF3F3F]/60 transition-all duration-200";
+  const lbl = "block text-xs font-semibold text-zinc-400 mb-1.5";
 
-  // ── Success screen ──
   if (submitted) {
     return (
-      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-        <div className="bg-[#0E0E10] border border-white/[0.07] rounded-3xl p-12 flex flex-col items-center gap-5 text-center max-w-sm w-full shadow-2xl">
+      <div className="fixed inset-0 z-50 bg-[#09090b] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-5 text-center max-w-sm">
           <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-emerald-400" />
           </div>
-          <div>
-            <h2 className="text-xl font-extrabold text-white mb-1">Post is Live!</h2>
-            <p className="text-zinc-400 text-sm leading-relaxed">
-              Your requirement has been published. Helpers nearby will see it now.
-            </p>
-          </div>
-          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 rounded-full animate-[progress_1.5s_ease-in-out]" style={{ width: "100%", transition: "width 1.5s ease-in-out" }} />
-          </div>
-          <p className="text-xs text-zinc-600">Taking you there…</p>
+          <h2 className="text-2xl font-extrabold text-white">Post is Live!</h2>
+          <p className="text-zinc-400 text-sm">Your requirement has been published. Helpers nearby will see it now.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-[#0E0E10] border border-white/[0.07] rounded-3xl max-w-lg w-full shadow-[0_0_60px_rgba(0,0,0,0.7)] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#09090b] flex flex-col overflow-hidden animate-in fade-in duration-200">
 
-        {/* ── Header ── */}
-        <div className="px-6 pt-6 pb-4">
-          <div className="flex items-start justify-between mb-5">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="w-4 h-4 text-[#FF3F3F]" />
-                <span className="text-[11px] font-bold uppercase tracking-widest text-[#FF3F3F]">
-                  New Posting
-                </span>
-              </div>
-              <h2 className="text-lg font-extrabold text-white leading-tight">
-                {step === 1 && "What do you need?"}
-                {step === 2 && "Describe the details"}
-                {step === 3 && "Final settings"}
-              </h2>
-            </div>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-500 hover:text-white transition cursor-pointer shrink-0 mt-0.5"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Progress Steps */}
-          <div className="flex items-center gap-2">
-            {STEPS.map((s, i) => (
-              <div key={s.id} className="flex items-center gap-2 flex-1">
-                <button
-                  type="button"
-                  onClick={() => step > s.id && setStep(s.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                    step === s.id
-                      ? "bg-[#FF3F3F]/15 border border-[#FF3F3F]/40 text-[#FF3F3F]"
-                      : step > s.id
-                      ? "bg-white/5 border border-white/10 text-zinc-400 cursor-pointer hover:border-white/20"
-                      : "bg-transparent border border-white/4 text-zinc-700 cursor-default"
-                  }`}
-                >
-                  {step > s.id ? (
-                    <Check className="w-3 h-3 text-emerald-400" />
-                  ) : (
-                    <s.icon className="w-3 h-3" />
-                  )}
-                  {s.label}
-                </button>
-                {i < STEPS.length - 1 && (
-                  <div className={`flex-1 h-px ${step > s.id ? "bg-[#FF3F3F]/30" : "bg-white/5"}`} />
-                )}
-              </div>
-            ))}
-          </div>
+      {/* Top bar */}
+      <header className="shrink-0 flex items-center justify-between px-6 py-3.5 border-b border-[#1a1a1e] bg-[#0e0e10]">
+        <button onClick={onClose} className="flex items-center gap-2 text-zinc-400 hover:text-white transition text-sm font-medium cursor-pointer">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[#FF3F3F]" />
+          <span className="text-sm font-bold text-white">Post a Requirement</span>
         </div>
+        <button type="button" disabled={!canSubmit || submitting} onClick={handleSubmit} id="submit-create-post-btn"
+          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#FF3F3F] hover:bg-[#e53535] text-white text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+          {submitting ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Publishing…</> : <><Sparkles className="w-3.5 h-3.5" /> Publish</>}
+        </button>
+      </header>
 
-        {/* ── Divider ── */}
-        <div className="h-px bg-white/5 mx-6" />
+      {/* Two-column body */}
+      <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-2">
 
-        {/* ── Form Content ── */}
-        <div className="px-6 py-5 overflow-y-auto max-h-[55vh] space-y-5">
+        {/* LEFT: Form */}
+        <div className="overflow-y-auto px-6 py-6 space-y-6 border-r border-[#1a1a1e]">
 
-          {/* STEP 1 */}
-          {step === 1 && (
-            <>
-              {/* Post type toggle */}
-              <div>
-                <label className={labelCls}>I want to</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {([
-                    { value: "help_needed", label: "Get Help", sub: "Find someone to help me", emoji: "🙋" },
-                    { value: "skill_offered", label: "Offer Skills", sub: "Share what I can do", emoji: "⚡" },
-                  ] as const).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setPostType(opt.value)}
-                      className={`flex flex-col items-start gap-1 p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                        postType === opt.value
-                          ? "bg-[#FF3F3F]/10 border-[#FF3F3F]/50 shadow-[0_0_12px_rgba(255,63,63,0.15)]"
-                          : "bg-white/2 border-white/6 hover:border-white/12"
-                      }`}
-                    >
-                      <span className="text-2xl">{opt.emoji}</span>
-                      <span className={`text-sm font-bold ${postType === opt.value ? "text-white" : "text-zinc-300"}`}>
-                        {opt.label}
-                      </span>
-                      <span className="text-[11px] text-zinc-500 leading-tight">{opt.sub}</span>
+          <div>
+            <label className={lbl}>What do you need? <span className="text-[#FF3F3F]">*</span></label>
+            <textarea placeholder="e.g. I need a plumber to fix a leaking pipe in my kitchen…" rows={4}
+              value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300}
+              className={`${inp} resize-none`} />
+            <div className="flex justify-between mt-1.5">
+              {description.trim().length > 0 && description.trim().length < 10 && <span className="text-[11px] text-amber-500">Min. 10 characters required</span>}
+              <span className="text-[11px] text-zinc-600 ml-auto font-mono">{description.length}/300</span>
+            </div>
+          </div>
+
+          <div>
+            <label className={lbl}>Category</label>
+            <div className="grid grid-cols-4 gap-2">
+              {CATEGORIES.map((cat) => (
+                <button key={cat} type="button" onClick={() => setCategory(cat)}
+                  className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border text-center transition-all cursor-pointer ${category === cat ? "text-white" : "bg-[#111113] border-[#252529] text-zinc-500 hover:border-[#333337] hover:text-zinc-300"}`}
+                  style={category === cat ? { backgroundColor: `${accentColor}15`, borderColor: `${accentColor}50` } : {}}>
+                  <span className="text-lg leading-none">{CATEGORY_ICONS[cat]}</span>
+                  <span className="text-[9px] font-semibold leading-tight">{cat.split(" & ")[0]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className={lbl}><span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" /> Address <span className="text-[#FF3F3F]">*</span></span></label>
+            <div className="flex gap-2">
+              <input type="text" placeholder="e.g. Noida, Sector 62" value={address} onChange={(e) => setAddress(e.target.value)} className={`${inp} flex-1`} />
+              <button type="button" onClick={detectLocation} title="Detect my location"
+                className="px-3 rounded-xl border border-[#252529] bg-[#111113] text-zinc-500 hover:text-[#FF3F3F] hover:border-[#FF3F3F]/40 transition cursor-pointer">
+                {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
+              </button>
+            </div>
+            {coords && <p className="text-[11px] text-emerald-500 mt-1.5 flex items-center gap-1"><Check className="w-3 h-3" /> GPS location captured</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={lbl}><span className="inline-flex items-center gap-1"><Wallet className="w-3 h-3" /> Budget</span></label>
+              <input type="text" placeholder="₹5,000 or Negotiable" value={budget} onChange={(e) => setBudget(e.target.value)} className={inp} />
+            </div>
+            <div>
+              <label className={lbl}><span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> Timeline</span></label>
+              <input type="text" placeholder="e.g. 3 Days" value={timeline} onChange={(e) => setTimeline(e.target.value)} className={inp} />
+            </div>
+          </div>
+
+          <div>
+            <label className={lbl}><span className="inline-flex items-center gap-1"><ImagePlus className="w-3 h-3" /> Photos <span className="text-zinc-600 font-normal">(up to 4)</span></span></label>
+            {imageFiles.length < 4 && (
+              <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => { e.preventDefault(); setDragOver(false); addImages(e.dataTransfer.files); }}
+                onClick={() => fileInputRef.current?.click()}
+                className={`flex flex-col items-center justify-center gap-2 h-24 rounded-xl border-2 border-dashed cursor-pointer transition-all ${dragOver ? "border-[#FF3F3F]/60 bg-[#FF3F3F]/5" : "border-[#252529] hover:border-[#FF3F3F]/40 hover:bg-[#111113]"}`}>
+                <ImagePlus className="w-5 h-5 text-zinc-600" />
+                <p className="text-xs text-zinc-600">Drop images here or <span className="text-[#FF3F3F]">browse</span></p>
+                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => addImages(e.target.files)} />
+              </div>
+            )}
+            {imagePreviews.length > 0 && (
+              <div className="flex gap-2 mt-3 flex-wrap">
+                {imagePreviews.map((src, i) => (
+                  <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-[#252529] group">
+                    <img src={src} alt="" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => removeImage(i)}
+                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer">
+                      <X className="w-4 h-4 text-white" />
                     </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className={labelCls}>Describe your requirement</label>
-                <textarea
-                  id="create-post-desc-textarea"
-                  placeholder={
-                    postType === "help_needed"
-                      ? "e.g. I need a plumber to fix a leaking pipe in my kitchen…"
-                      : "e.g. I offer professional web design services for small businesses…"
-                  }
-                  rows={4}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  maxLength={300}
-                  className={`${inputCls} resize-none`}
-                />
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-[11px] text-zinc-600">
-                    {description.trim().length < 10 && description.length > 0 && (
-                      <span className="text-amber-500">At least 10 characters required</span>
-                    )}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          description.length > 200 ? "bg-[#FF3F3F]" : description.length > 100 ? "bg-amber-400" : "bg-emerald-500"
-                        }`}
-                        style={{ width: `${(description.length / 300) * 100}%` }}
-                      />
-                    </div>
-                    <span className="text-[11px] text-zinc-600 font-mono">{description.length}/300</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className={labelCls}>Category</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {/* {FUNCTIONAL_CATEGORIES.filter((c) => c !== "All Categories").map((cat) => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setCategory(cat)}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all cursor-pointer ${
-                        category === cat
-                          ? "bg-[#FF3F3F]/10 border-[#FF3F3F]/50 text-white"
-                          : "bg-white/2 border-white/6 text-zinc-400 hover:border-white/12 hover:text-zinc-200"
-                      }`}
-                    >
-                      <span className="text-xl leading-none">{CATEGORY_ICONS[cat] || "📌"}</span>
-                      <span className="text-[10px] font-semibold leading-tight">{cat}</span>
-                    </button>
-                  ))} */}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* STEP 2 */}
-          {step === 2 && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelCls}>
-                    <span className="inline-flex items-center gap-1.5"><Wallet className="w-3 h-3" /> Budget</span>
-                  </label>
-                  <input
-                    id="create-post-budget"
-                    type="text"
-                    placeholder="e.g. ₹5,000"
-                    value={budget}
-                    onChange={(e) => setBudget(e.target.value)}
-                    className={inputCls}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>
-                    <span className="inline-flex items-center gap-1.5"><Clock className="w-3 h-3" /> Timeline</span>
-                  </label>
-                  <input
-                    id="create-post-timeline"
-                    type="text"
-                    placeholder="e.g. 3 Days"
-                    value={timeline}
-                    onChange={(e) => setTimeline(e.target.value)}
-                    className={inputCls}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className={labelCls}>
-                  <span className="inline-flex items-center gap-1.5"><MapPin className="w-3 h-3" /> Location <span className="text-[#FF3F3F]">*</span></span>
-                </label>
-                <input
-                  id="create-post-location-input"
-                  type="text"
-                  placeholder="e.g. Noida, Sector 62"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className={inputCls}
-                />
-              </div>
-
-              <div>
-                <label className={labelCls}>
-                  <span className="inline-flex items-center gap-1.5"><CalendarRange className="w-3 h-3" /> Auto-expire after</span>
-                </label>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {[1, 2, 3, 5, 7, 10].map((days) => (
-                    <button
-                      key={days}
-                      type="button"
-                      onClick={() => setExpiryDays(days)}
-                      className={`py-2.5 rounded-xl border text-sm font-bold transition-all cursor-pointer ${
-                        expiryDays === days
-                          ? "bg-[#FF3F3F]/15 border-[#FF3F3F]/50 text-white"
-                          : "bg-white/2 border-white/6 text-zinc-500 hover:border-white/12 hover:text-zinc-300"
-                      }`}
-                    >
-                      {days}d
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[11px] text-zinc-600 mt-2">
-                  Post auto-expires in <span className="text-zinc-400 font-semibold">{expiryDays} day{expiryDays > 1 ? "s" : ""}</span>
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* STEP 3 */}
-          {step === 3 && (
-            <>
-              <CustomQuestionsInput questions={questions} setQuestions={setQuestions} />
-
-              <div>
-                <label className={labelCls}>Preferred contact</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {([
-                    { key: "whatsApp", label: "WhatsApp", icon: MessageSquare, activeClass: "bg-emerald-500/10 border-emerald-500/40 text-emerald-300" },
-                    { key: "phone", label: "Phone Call", icon: Phone, activeClass: "bg-blue-500/10 border-blue-500/40 text-blue-300" },
-                    { key: "chat", label: "In-App Chat", icon: MessageSquare, activeClass: "bg-[#FF3F3F]/10 border-[#FF3F3F]/40 text-[#FF3F3F]" },
-                  ] as const).map((m) => {
-                    const active = contactMethods[m.key];
-                    return (
-                      <button
-                        key={m.key}
-                        type="button"
-                        onClick={() => setContactMethods((prev) => ({ ...prev, [m.key]: !prev[m.key] }))}
-                        className={`flex flex-col items-center gap-2 py-3 px-2 rounded-xl border text-center transition-all cursor-pointer ${
-                          active ? m.activeClass : "bg-white/2 border-white/6 text-zinc-600 hover:border-white/12"
-                        }`}
-                      >
-                        <m.icon className="w-4 h-4" />
-                        <span className="text-[11px] font-semibold leading-tight">{m.label}</span>
-                        {active && <Check className="w-3 h-3" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Quick summary */}
-              <div className="rounded-2xl bg-white/2 border border-white/6 p-4 space-y-2.5">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Summary</p>
-                {[
-                  { icon: "📋", label: description.length > 50 ? description.slice(0, 50) + "…" : description },
-                  { icon: CATEGORY_ICONS[category] || "📌", label: category },
-                  { icon: "📍", label: location || "—" },
-                  { icon: "💰", label: budget || "Negotiable" },
-                  { icon: "⏱", label: `Expires in ${expiryDays}d` },
-                ].map((row, i) => (
-                  <div key={i} className="flex items-center gap-2.5 text-sm">
-                    <span className="text-base leading-none w-5 text-center">{row.icon}</span>
-                    <span className="text-zinc-400 truncate">{row.label}</span>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
 
-              {error && (
-                <div className="rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
-                  {error}
-                </div>
-              )}
-            </>
-          )}
+          <div>
+            <label className={lbl}>Post expires in</label>
+            <div className="flex gap-2">
+              {[1, 3, 5, 7, 10].map((d) => (
+                <button key={d} type="button" onClick={() => setExpiryDays(d)}
+                  className={`flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${expiryDays === d ? "bg-[#FF3F3F]/15 border-[#FF3F3F]/50 text-white" : "bg-[#111113] border-[#252529] text-zinc-500 hover:border-[#333337] hover:text-zinc-300"}`}>
+                  {d}d
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className={lbl}>Contact via</label>
+            <div className="flex gap-2">
+              {([
+                { key: "whatsApp", label: "WhatsApp", icon: MessageSquare, on: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10" },
+                { key: "phone", label: "Phone", icon: Phone, on: "text-blue-400 border-blue-500/40 bg-blue-500/10" },
+                { key: "chat", label: "In-App", icon: MessageSquare, on: "text-[#FF3F3F] border-[#FF3F3F]/40 bg-[#FF3F3F]/10" },
+              ] as const).map((m) => {
+                const active = contactMethods[m.key];
+                return (
+                  <button key={m.key} type="button" onClick={() => setContactMethods((p) => ({ ...p, [m.key]: !p[m.key] }))}
+                    className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 rounded-xl border transition-all cursor-pointer text-xs font-semibold ${active ? m.on : "bg-[#111113] border-[#252529] text-zinc-600 hover:border-[#333337]"}`}>
+                    <m.icon className="w-3.5 h-3.5" />
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {error && <div className="rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">{error}</div>}
+
+          <div className="lg:hidden pt-2 pb-8">
+            <button type="button" disabled={!canSubmit || submitting} onClick={handleSubmit}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#FF3F3F] hover:bg-[#e53535] text-white text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+              {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Publishing…</> : <><Sparkles className="w-4 h-4" /> Publish Post</>}
+            </button>
+          </div>
         </div>
 
-        {/* ── Footer Actions ── */}
-        <div className="px-6 py-5 border-t border-white/5 flex items-center gap-3">
-          {step > 1 ? (
-            <button
-              type="button"
-              onClick={() => setStep((s) => s - 1)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/8 border border-white/8 text-zinc-400 hover:text-white text-sm font-semibold transition-all cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Back
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-zinc-500 hover:text-zinc-300 text-sm font-semibold transition cursor-pointer"
-            >
-              Cancel
-            </button>
-          )}
+        {/* RIGHT: Live preview */}
+        <div className="hidden lg:flex flex-col overflow-y-auto bg-[#0a0a0c] px-8 py-8">
+          <div className="flex items-center gap-2 mb-6">
+            <span className="w-2 h-2 rounded-full bg-[#FF3F3F] animate-pulse" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Live Preview</span>
+          </div>
 
-          <div className="flex-1" />
+          <div className="relative overflow-hidden rounded-2xl border border-[#1e1e22] bg-[#0e0e10]" style={{ borderLeft: `3px solid ${accentColor}` }}>
+            <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accentColor}55, transparent)` }} />
+            <div className="p-5 space-y-4">
 
-          {step < 3 ? (
-            <button
-              type="button"
-              disabled={step === 1 ? !canAdvanceStep1 : !canAdvanceStep2}
-              onClick={() => setStep((s) => s + 1)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-linear-to-r from-[#FF3F3F] to-rose-500 hover:from-rose-500 hover:to-[#FF3F3F] text-white text-sm font-bold transition-all duration-300 shadow-[0_4px_16px_rgba(255,63,63,0.3)] hover:shadow-[0_4px_24px_rgba(255,63,63,0.5)] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none active:scale-95 cursor-pointer"
-            >
-              Continue
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={handleSubmit}
-              id="submit-create-post-btn"
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-linear-to-r from-[#FF3F3F] to-rose-500 hover:from-rose-500 hover:to-[#FF3F3F] text-white text-sm font-bold transition-all duration-300 shadow-[0_4px_16px_rgba(255,63,63,0.3)] hover:shadow-[0_4px_24px_rgba(255,63,63,0.5)] disabled:opacity-60 disabled:cursor-not-allowed active:scale-95 cursor-pointer"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Publishing…
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  Publish Post
-                </>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative shrink-0">
+                    <img src={getAvatarUrl(currentUser?.name || "You", currentUser?.avatar)} alt={currentUser?.name || "You"}
+                      className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1e1e22]"
+                      onError={(e) => handleAvatarError(e, currentUser?.name || "You")} referrerPolicy="no-referrer" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#0e0e10]" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-zinc-100">{currentUser?.name || "You"}</p>
+                    <div className="flex items-center gap-1 text-[11px] text-zinc-500 mt-0.5">
+                      <MapPin className="w-3 h-3" /><span>{address || "Location"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 rounded-full border border-[#262629] bg-[#161619] px-2.5 py-1 text-[11px] text-zinc-400">
+                  <Users className="w-3 h-3 text-zinc-500" /><span>0</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-[15px] font-bold text-zinc-100 leading-snug">
+                  {previewTitle || <span className="text-zinc-600 italic font-normal text-sm">Your title will appear here…</span>}
+                </h3>
+                <p className="text-[12px] text-zinc-500 leading-relaxed line-clamp-3">
+                  {description || <span className="italic text-zinc-700">Description will appear here…</span>}
+                </p>
+              </div>
+
+              {imagePreviews.length > 0 && (
+                <div className={`grid gap-1.5 ${imagePreviews.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+                  {imagePreviews.map((src, i) => (
+                    <img key={i} src={src} alt="" className={`w-full object-cover rounded-xl border border-[#1e1e22] ${imagePreviews.length === 1 ? "max-h-48" : "h-28"}`} />
+                  ))}
+                </div>
               )}
-            </button>
-          )}
+
+              <div className="flex flex-wrap gap-1.5">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide"
+                  style={{ color: accentColor, borderColor: `${accentColor}30`, backgroundColor: `${accentColor}12` }}>
+                  {category}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#161619] border border-[#232328] rounded-full text-[10px] font-semibold text-zinc-400">
+                  <IndianRupee className="w-2.5 h-2.5" />{previewBudget}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-950/40 border border-emerald-900/40 rounded-full text-[10px] font-bold text-emerald-400 uppercase tracking-wide">
+                  <Clock className="w-2.5 h-2.5" />Expires in {expiryDays}d
+                </span>
+                {description.toLowerCase().includes("urgent") && (
+                  <span className="inline-flex items-center gap-0.5 text-[9px] font-black tracking-widest bg-[#FF3F3F]/15 text-[#FF3F3F] border border-[#FF3F3F]/30 px-1.5 py-0.5 rounded-full uppercase">
+                    <Zap className="w-2.5 h-2.5" /> Urgent
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-zinc-700 mt-4 text-center">This is exactly how your post will appear in the feed.</p>
         </div>
       </div>
     </div>
