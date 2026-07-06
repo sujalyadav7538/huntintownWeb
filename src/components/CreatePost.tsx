@@ -174,7 +174,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
       {/* Top bar */}
       <header className="shrink-0 flex items-center justify-between px-6 py-3.5 border-b border-[#1a1a1e] bg-[#0e0e10]">
         <button onClick={onClose} className="flex items-center gap-2 text-zinc-400 hover:text-white transition text-sm font-medium cursor-pointer">
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" /> 
         </button>
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#FF3F3F]" />
