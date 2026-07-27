@@ -1,46 +1,96 @@
-import { User } from '../../types';
-import { Zap } from 'lucide-react';
-import ProfileSectionCard from './ProfileSectionCard';
+import { User } from "../../types";
+import { Zap, BriefcaseBusiness, Wrench } from "lucide-react";
+import ProfileSectionCard from "./ProfileSectionCard";
 
 interface ProfileSkillsProps {
   user: User;
 }
 
-const SKILL_COLORS = [
-  'text-violet-300 bg-violet-400/10 border-violet-400/20 hover:bg-violet-400/20',
-  'text-sky-300 bg-sky-400/10 border-sky-400/20 hover:bg-sky-400/20',
-  'text-emerald-300 bg-emerald-400/10 border-emerald-400/20 hover:bg-emerald-400/20',
-  'text-amber-300 bg-amber-400/10 border-amber-400/20 hover:bg-amber-400/20',
-  'text-rose-300 bg-rose-400/10 border-rose-400/20 hover:bg-rose-400/20',
-  'text-cyan-300 bg-cyan-400/10 border-cyan-400/20 hover:bg-cyan-400/20',
-];
+function SkillGroup({
+  title,
+  icon: Icon,
+  items,
+}: {
+  title: string;
+  icon: any;
+  items: string[];
+}) {
+  if (!items.length) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Icon className="w-4 h-4 text-zinc-400" />
+        <h4 className="text-sm font-semibold text-white">{title}</h4>
+        <span className="text-xs text-zinc-500">• {items.length}</span>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <span
+            key={item}
+            className="
+              px-3 py-1.5
+              rounded-full
+              border border-[#2A2A2F]
+              bg-[#171719]
+              text-sm
+              text-zinc-300
+              hover:border-[#FF3F3F]/30
+              hover:text-white
+              transition-colors
+            "
+          >
+            {item}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function ProfileSkills({ user }: ProfileSkillsProps) {
   const skills = user.skills ?? [];
   const services = user.services ?? [];
-  const all = [...skills, ...services];
+  const total = skills.length + services.length;
 
   return (
     <ProfileSectionCard
-      title="Expertise & Skills"
+      title="Skills & Services"
       icon={Zap}
-      iconColor="text-violet-400"
-      accentColor="#a78bfa"
+      iconColor="text-[#FF3F3F]"
     >
-      {all.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {all.map((skill, i) => (
-            <span
-              key={skill}
-              className={`inline-flex items-center px-3 py-1.5 rounded-lg border text-xs font-medium
-                transition-all duration-200 cursor-default ${SKILL_COLORS[i % SKILL_COLORS.length]}`}
-            >
-              {skill}
-            </span>
-          ))}
+      {total > 0 ? (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-[#232327] pb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white">
+                {total} Skills Listed
+              </h3>
+              <p className="text-sm text-zinc-500 mt-1">
+                Skills and services available through your profile.
+              </p>
+            </div>
+          </div>
+
+          <SkillGroup
+            title="Professional Skills"
+            icon={BriefcaseBusiness}
+            items={skills}
+          />
+
+          <SkillGroup title="Services" icon={Wrench} items={services} />
         </div>
       ) : (
-        <p className="text-zinc-600 text-sm italic">No skills added yet.</p>
+        <div className="py-10 text-center">
+          <Zap className="w-7 h-7 mx-auto text-zinc-700" />
+
+          <p className="mt-3 text-white font-medium">No skills added yet</p>
+
+          <p className="mt-1 text-sm text-zinc-500">
+            Add your skills and services to showcase your expertise.
+          </p>
+        </div>
       )}
     </ProfileSectionCard>
   );

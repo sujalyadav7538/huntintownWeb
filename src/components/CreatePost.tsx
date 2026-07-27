@@ -156,7 +156,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
 
   if (submitted) {
     return (
-      <div className="fixed inset-0 z-50 bg-[#09090b] flex items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-[#171717] flex items-center justify-center">
         <div className="flex flex-col items-center gap-5 text-center max-w-sm">
           <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-emerald-400" />
@@ -169,7 +169,7 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#09090b] flex flex-col overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 bg-[#171717] flex flex-col overflow-hidden animate-in fade-in duration-200">
 
       {/* Top bar */}
       <header className="shrink-0 flex items-center justify-between px-6 py-3.5 border-b border-[#1a1a1e] bg-[#0e0e10]">

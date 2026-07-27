@@ -68,18 +68,34 @@ export default function Messaging() {
     load();
   }, [activePostId]);
 
-  // Auto-scroll
+  const activeMessages = conversationMessages[activeConversationId ?? ""] ?? [];
+
+  // Auto-scroll to bottom whenever a new message is added or the conversation changes
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeConversationId]);
+  }, [activeConversationId, activeMessages.length]);
 
-  // Join conversation room on socket
+  // Join conversation room — single place responsible for this.
+  // Fires when the active conversation changes, and also when the socket
+  // connects/reconnects so we re-join if the connection dropped mid-session.
   useEffect(() => {
-    if (activeConversationId && socket.connected) {
+    if (!activeConversationId) return;
+
+    const join = () => {
       socket.emit("join-conversation", activeConversationId, (response: any) => {
-        if (!response.success) console.error("❌ Join failed:", response.message);
+        if (!response?.success) console.error("❌ Join failed:", response?.message);
       });
+    };
+
+    if (socket.connected) {
+      join();
+    } else {
+      socket.once("connect", join);
     }
+
+    return () => {
+      socket.off("connect", join);
+    };
   }, [activeConversationId]);
 
   const handleSelectPost = (postId: string) =>
@@ -88,7 +104,6 @@ export default function Messaging() {
   const handleBackToPosts = () => navigate("/messaging", { replace: true });
 
   const activeConversation = conversations.find((c) => c._id === activeConversationId);
-  const activeMessages = conversationMessages[activeConversationId ?? ""] ?? [];
   const activePostTitle = chatPosts.find((p) => p._id === activePostId)?.title;
 
   return (
@@ -114,7 +129,7 @@ export default function Messaging() {
 
         {/* RIGHT PANEL — Chat thread */}
         <div
-          className={`flex-1 flex flex-col bg-[#09090b] ${
+          className={`flex-1 flex flex-col bg-[#171717] ${
             !activeConversationId
               ? "hidden md:flex items-center justify-center"
               : "flex"

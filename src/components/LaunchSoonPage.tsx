@@ -260,7 +260,7 @@ export default function LaunchSoonPage({ posts, onEnterSandbox }: LaunchSoonPage
 
           <div className="space-y-2.5">
             <span className="text-[10px] font-mono text-zinc-500 uppercase font-black tracking-widest block">Invite Your Neighbor</span>
-            <div className="flex items-center gap-2 bg-[#09090b] p-2.5 rounded-xl border border-zinc-850">
+            <div className="flex items-center gap-2 bg-[#171717] p-2.5 rounded-xl border border-zinc-850">
               <span className="text-[10px] font-mono text-zinc-400 select-all truncate flex-1 pl-1">
                 https://HuntInTown.com/launch?ref=VIP_Noida62
               </span>

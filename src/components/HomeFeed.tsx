@@ -96,8 +96,6 @@ export default function HomeFeed({
             id: p.author?.id || p.author?._id || '',
             avatar: p.author?.avatar || "",
             role: p.author?.role || "",
-            rating: p.author?.rating ?? null,
-            reputation: p.author?.reputation ?? null,
           },
         }));
         setPosts(fetched);

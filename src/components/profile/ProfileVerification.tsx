@@ -58,7 +58,8 @@ interface ProfileVerificationProps {
 }
 
 export default function ProfileVerification({ user }: ProfileVerificationProps) {
-  const isVerified = user.isVerified !== false;
+  const isEmailVerified = user.isEmailVerified === true;
+  const isGovVerified = user.isGovernmentVerified === true;
 
   return (
     <ProfileSectionCard
@@ -67,7 +68,7 @@ export default function ProfileVerification({ user }: ProfileVerificationProps) 
       iconColor="text-emerald-400"
       accentColor="#34d399"
       action={
-        isVerified ? (
+        isGovVerified ? (
           <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-full">
             <CheckCircle2 className="w-3 h-3" />
             ID Verified
@@ -76,9 +77,9 @@ export default function ProfileVerification({ user }: ProfileVerificationProps) 
       }
     >
       <div className="divide-y divide-white/4">
-        <VerificationItem label="Email address" icon={Mail} status="verified" />
-        <VerificationItem label="Phone number" icon={Phone} status={isVerified ? 'verified' : 'pending'} />
-        <VerificationItem label="Government ID" icon={IdCard} status={isVerified ? 'verified' : 'unverified'} />
+        <VerificationItem label="Email address" icon={Mail} status={isEmailVerified ? 'verified' : 'pending'} />
+        <VerificationItem label="Phone number" icon={Phone} status="pending" />
+        <VerificationItem label="Government ID" icon={IdCard} status={isGovVerified ? 'verified' : 'unverified'} />
         <VerificationItem label="Location" icon={MapPin} status={user.location ? 'verified' : 'unverified'} />
       </div>
     </ProfileSectionCard>

@@ -1,10 +1,9 @@
-import { User } from '../../types';
-import { Activity, CheckCircle, MessageSquare, Star, UserPlus, Zap } from 'lucide-react';
+﻿import { Activity, CheckCircle, MessageSquare, Star, UserPlus, Zap } from 'lucide-react';
 import ProfileSectionCard from './ProfileSectionCard';
+import { User, UserMetric } from '../../types';
 
 interface ActivityItem {
   id: string;
-  type: 'completed' | 'review' | 'joined' | 'response' | 'skill';
   title: string;
   sub: string;
   icon: React.ComponentType<{ className?: string }>;
@@ -13,13 +12,12 @@ interface ActivityItem {
   time: string;
 }
 
-function buildActivity(user: User): ActivityItem[] {
+function buildActivity(user: User, metric: UserMetric | null): ActivityItem[] {
   const items: ActivityItem[] = [];
 
   if (user.joinedAt) {
     items.push({
       id: 'joined',
-      type: 'joined',
       title: 'Joined HuntInTown',
       sub: `Profile created · ${user.joinedAt}`,
       icon: UserPlus,
@@ -32,7 +30,6 @@ function buildActivity(user: User): ActivityItem[] {
   if (user.skills && user.skills.length > 0) {
     items.push({
       id: 'skills',
-      type: 'skill',
       title: 'Added expertise',
       sub: user.skills.slice(0, 2).join(', ') + (user.skills.length > 2 ? ` +${user.skills.length - 2} more` : ''),
       icon: Zap,
@@ -42,12 +39,12 @@ function buildActivity(user: User): ActivityItem[] {
     });
   }
 
-  if ((user.completedRequests ?? 0) > 0) {
+  const completed = metric?.helperMetrics.completedOffers ?? 0;
+  if (completed > 0) {
     items.push({
       id: 'completed',
-      type: 'completed',
-      title: `${user.completedRequests} requests completed`,
-      sub: 'Consistently delivering quality work',
+      title: `${completed} offer${completed !== 1 ? 's' : ''} completed`,
+      sub: 'Consistently delivering quality help',
       icon: CheckCircle,
       iconColor: 'text-emerald-400',
       iconBg: 'bg-emerald-400/10',
@@ -55,12 +52,13 @@ function buildActivity(user: User): ActivityItem[] {
     });
   }
 
-  if ((user.rating ?? 0) >= 4.5) {
+  const avgRating = metric?.reviewMetrics.averageRating ?? 0;
+  const totalReviews = metric?.reviewMetrics.totalReviews ?? 0;
+  if (avgRating >= 4.5 && totalReviews > 0) {
     items.push({
       id: 'rating',
-      type: 'review',
-      title: `Rated ${user.rating?.toFixed(1)} stars`,
-      sub: `Highly rated by ${user.reviewCount ?? 'the'} community`,
+      title: `Rated ${avgRating.toFixed(1)} stars`,
+      sub: `Top-rated by ${totalReviews} community member${totalReviews !== 1 ? 's' : ''}`,
       icon: Star,
       iconColor: 'text-amber-400',
       iconBg: 'bg-amber-400/10',
@@ -68,12 +66,12 @@ function buildActivity(user: User): ActivityItem[] {
     });
   }
 
-  if ((user.reputation ?? 0) > 0) {
+  const trustScore = metric?.trustScore ?? 0;
+  if (trustScore > 0) {
     items.push({
-      id: 'response',
-      type: 'response',
-      title: 'Active responder',
-      sub: `${user.reputation} reputation points earned`,
+      id: 'trust',
+      title: 'Trust score earned',
+      sub: `${trustScore.toFixed(0)} / 100 trust score`,
       icon: MessageSquare,
       iconColor: 'text-sky-400',
       iconBg: 'bg-sky-400/10',
@@ -86,39 +84,30 @@ function buildActivity(user: User): ActivityItem[] {
 
 interface ProfileActivityProps {
   user: User;
+  metric?: UserMetric | null;
 }
 
-export default function ProfileActivity({ user }: ProfileActivityProps) {
-  const items = buildActivity(user);
-
+export default function ProfileActivity({ user, metric }: ProfileActivityProps) {
+  const items = buildActivity(user, metric ?? null);
   if (items.length === 0) return null;
 
   return (
-    <ProfileSectionCard
-      title="Recent Activity"
-      icon={Activity}
-      iconColor="text-sky-400"
-      accentColor="#38bdf8"
-    >
+    <ProfileSectionCard title="Recent Activity" icon={Activity} iconColor="text-sky-400" accentColor="#38bdf8">
       <div className="relative">
-        {/* Vertical timeline line */}
         <div className="absolute left-3.75 top-0 bottom-0 w-px bg-white/5" />
         <div className="flex flex-col gap-0">
           {items.map((item, idx) => {
             const Icon = item.icon;
             return (
               <div key={item.id} className={`flex items-start gap-4 ${idx < items.length - 1 ? 'pb-5' : ''}`}>
-                {/* Icon bubble on timeline */}
-                <div
-                  className={`relative z-10 w-8 h-8 rounded-xl ${item.iconBg} flex items-center justify-center shrink-0`}
-                >
+                <div className={`relative z-10 w-8 h-8 rounded-xl ${item.iconBg} flex items-center justify-center shrink-0`}>
                   <Icon className={`w-3.5 h-3.5 ${item.iconColor}`} />
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
                   <p className="text-sm font-semibold text-zinc-200 leading-snug">{item.title}</p>
                   <p className="text-xs text-zinc-500 mt-0.5">{item.sub}</p>
                 </div>
-                <span className="text-[11px] text-zinc-600 shrink-0 pt-1">{item.time}</span>
+                <span className="text-[10px] text-zinc-700 shrink-0 pt-1.5 font-mono">{item.time}</span>
               </div>
             );
           })}

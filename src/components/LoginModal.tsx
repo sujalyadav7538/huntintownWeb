@@ -46,8 +46,6 @@ export default function LoginModal({
       location: customLocation.trim(),
       skills: ["Interior Design", "Home Decor", "Custom Carpentry"],
       bio: "Verified resident inside the HuntInTown network.",
-      rating: 4.8,
-      reputation: 20,
     };
 
     onLogin(newUser, "");

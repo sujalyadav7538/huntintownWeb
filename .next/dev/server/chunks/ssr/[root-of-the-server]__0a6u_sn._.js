@@ -1010,7 +1010,7 @@ function Header({ currentUser, activeTab, setActiveTab, openCreatePost, unreadMe
         className: "sticky top-0 z-40 w-full bg-[#121214]/90 backdrop-blur-md border-b border-[#242428] shadow-md select-none font-sans",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "bg-[#09090b] text-zinc-400 text-xs py-1.5 px-4 flex justify-between items-center select-none font-mono border-b border-[#1c1c1e]",
+                className: "bg-[#171717] text-zinc-400 text-xs py-1.5 px-4 flex justify-between items-center select-none font-mono border-b border-[#1c1c1e]",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         className: "flex items-center gap-1.5",
@@ -2709,7 +2709,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 function RootLayoutContent({ children }) {
     const { currentUser, activeTab, setActiveTab, isCreatePostOpen, setIsCreatePostOpen, isLoginOpen, setIsLoginOpen, isMobileSimulated, setIsMobileSimulated, unreadMessagesCount, handleLoginSimulate, handleLogoutSimulate, handleCreatePost, searchTerm, setSearchTerm } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$context$2f$AppContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAppContext"])();
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "absolute inset-0 bg-[#09090b] flex flex-col antialiased select-text text-zinc-100 overflow-x-hidden font-sans",
+        className: "absolute inset-0 bg-[#171717] flex flex-col antialiased select-text text-zinc-100 overflow-x-hidden font-sans",
         children: [
             !isMobileSimulated ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "flex-1 flex flex-col min-h-screen",
@@ -3001,7 +3001,7 @@ function RootLayoutContent({ children }) {
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "flex-1 overflow-y-auto bg-[#09090b] p-3 pb-20",
+                                className: "flex-1 overflow-y-auto bg-[#171717] p-3 pb-20",
                                 children: children
                             }, void 0, false, {
                                 fileName: "[project]/src/app/layout.tsx",

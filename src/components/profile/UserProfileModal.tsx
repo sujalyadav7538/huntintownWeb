@@ -12,12 +12,21 @@ import {
 } from 'lucide-react';
 import { User } from '../../types';
 import { getAvatarUrl, handleAvatarError } from '../../utils';
+import { getTrustLevel } from '../../hooks/useReputation';
 
 interface UserProfileModalProps {
   user: User;
   currentUserId: string;
   onClose: () => void;
   onMessage: (user: User) => void;
+  /** Optional pre-fetched trust score (0-100) — shown when provided */
+  trustScore?: number;
+  /** Optional average rating */
+  rating?: number;
+  /** Optional total reviews */
+  totalReviews?: number;
+  /** Optional completed offers count */
+  completedOffers?: number;
 }
 
 export default function UserProfileModal({
@@ -25,18 +34,13 @@ export default function UserProfileModal({
   currentUserId,
   onClose,
   onMessage,
+  trustScore = 0,
+  rating = 0,
+  totalReviews = 0,
+  completedOffers = 0,
 }: UserProfileModalProps) {
   const isOwnProfile = user.id === currentUserId;
-
-  const rating = user.rating ?? 0;
-  const reputation = user.reputation ?? user.trustScore ?? 0;
-
-  const trustLevel =
-    reputation >= 400
-      ? { label: 'Elite', color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' }
-      : reputation >= 200
-      ? { label: 'Trusted', color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' }
-      : { label: 'Rising', color: 'text-violet-400', bg: 'bg-violet-400/10', border: 'border-violet-400/20' };
+  const trustLevel = getTrustLevel(trustScore);
 
   const skills = (user.skills ?? []).slice(0, 8);
   const joinedLabel = user.joinedAt
@@ -104,7 +108,7 @@ export default function UserProfileModal({
           <div className="mt-3 text-center">
             <div className="flex items-center gap-1.5 justify-center flex-wrap">
               <h2 className="text-base font-bold text-zinc-100">{user.name}</h2>
-              {user.isVerified && (
+              {user.isEmailVerified && (
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#FF3F3F] shrink-0" />
               )}
             </div>
@@ -153,21 +157,21 @@ export default function UserProfileModal({
               <div className="flex items-center gap-0.5">
                 <Briefcase className="w-3 h-3 text-violet-400" />
                 <span className="text-[13px] font-bold text-zinc-100">
-                  {user.completedRequests ?? '—'}
+                  {completedOffers > 0 ? completedOffers : '—'}
                 </span>
               </div>
               <span className="text-[9px] text-zinc-600 font-semibold uppercase tracking-wide">Done</span>
             </div>
 
-            {/* Response rate */}
+            {/* Trust */}
             <div className="flex flex-col items-center py-3 px-2 gap-0.5">
               <div className="flex items-center gap-0.5">
                 <TrendingUp className="w-3 h-3 text-emerald-400" />
                 <span className="text-[13px] font-bold text-zinc-100">
-                  {user.responseRate != null ? `${user.responseRate}%` : '—'}
+                  {trustScore > 0 ? `${trustScore.toFixed(0)}` : '—'}
                 </span>
               </div>
-              <span className="text-[9px] text-zinc-600 font-semibold uppercase tracking-wide">Response</span>
+              <span className="text-[9px] text-zinc-600 font-semibold uppercase tracking-wide">Trust</span>
             </div>
           </div>
 

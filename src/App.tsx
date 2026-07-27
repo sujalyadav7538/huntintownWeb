@@ -1,9 +1,4 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { User } from "./types";
 
@@ -17,12 +12,7 @@ import {
   closeLoginModal,
   setSearchTerm,
 } from "./store/uiSlice";
-import {
-  openDirectChat,
-  sendMessage,
-  deletePostThunk,
-  updatePostStatusThunk,
-} from "./store/thunks";
+import { deletePostThunk, updatePostStatusThunk } from "./store/thunks";
 
 import Header from "./components/Header";
 import LandingPage from "./components/LandingPage";
@@ -38,6 +28,7 @@ import MyResponses from "./components/MyResponses";
 import ExplorePage from "./components/ExplorePage";
 
 import { LayoutGrid, Plus, Home, Activity, Inbox } from "lucide-react";
+import SidePanel from "./components/sidepan/SidePan";
 
 const PROTECTED_TABS = [
   "feed",
@@ -58,7 +49,7 @@ export default function App() {
   const { isCreatePostOpen, isLoginOpen, searchTerm } = useAppSelector(
     (s) => s.ui,
   );
-
+  const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -89,6 +80,7 @@ export default function App() {
   // Load posts into Redux whenever the user is authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      setSidePanelOpen(false);
       dispatch(fetchPosts() as any);
     }
   }, [isAuthenticated]);
@@ -125,12 +117,14 @@ export default function App() {
     console.log("[App.handleLogin] Connecting socket...");
     socket.connect();
     dispatch(login({ user, token }));
+    setSidePanelOpen(false);
     navigate("/explore", { replace: true });
   };
 
   const handleLogout = () => {
     socket.disconnect();
     dispatch(logout());
+    setSidePanelOpen(false);
     navigate("/login", { replace: true });
   };
 
@@ -143,6 +137,12 @@ export default function App() {
   };
 
   const renderActiveView = () => {
+    // Synchronous guard: never render a protected view for unauthenticated users.
+    // The useEffect above handles the redirect; this prevents any render flash.
+    if (PROTECTED_TABS.includes(activeTab) && !isAuthenticated) {
+      return null;
+    }
+
     switch (activeTab) {
       case "landing":
         return (
@@ -199,13 +199,14 @@ export default function App() {
   };
 
   return (
-    <div className="absolute inset-0 bg-[#09090b] flex flex-col antialiased select-text text-zinc-100 overflow-x-hidden">
+    <div className="absolute inset-0 bg-[#171717]  flex flex-col antialiased select-text text-zinc-100 overflow-x-hidden">
       <div className="flex-1 flex flex-col min-h-screen">
         <Header
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           openCreatePost={guardedOpenCreatePost}
           onLogoutSimulate={handleLogout}
+          handleSidePanelOpen={() => setSidePanelOpen(true)}
         />
 
         <main
@@ -295,6 +296,14 @@ export default function App() {
         </div>
       </div>
 
+      {isAuthenticated && (
+        <SidePanel
+          open={sidePanelOpen}
+          onClose={() => setSidePanelOpen(false)}
+          onLogout={handleLogout}
+        />
+      )}
+
       {isCreatePostOpen && (
         <CreatePost
           onClose={() => dispatch(closeCreatePost())}
@@ -304,13 +313,6 @@ export default function App() {
           }}
         />
       )}
-
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => dispatch(closeLoginModal())}
-        onLogin={handleLogin}
-        currentUserId={currentUser?.id}
-      />
     </div>
   );
 }

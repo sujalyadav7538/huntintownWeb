@@ -1,8 +1,6 @@
-"use client";
-
 import React from 'react';
 import { Conversation } from '../../types';
-import { Star, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { getAvatarUrl, handleAvatarError } from '../../utils';
 import { useAppSelector } from '@/src/store/hooks';
 
@@ -36,10 +34,6 @@ export default function ChatHeader({ activeConv, setActiveConversationId }: Chat
         <div className="text-left">
           <div className="flex items-center gap-1.5 leading-none">
             <h4 className="font-bold text-xs text-zinc-100 font-display">{otherParticipant?.name}</h4>
-            <span className="flex items-center gap-0.5 text-[10px] bg-red-950/45 border border-red-900 text-[#FF3F3F] font-bold px-1.5 rounded font-mono">
-              <Star className="w-2.5 h-2.5 fill-[#FF3F3F] text-[#FF3F3F]" />
-              <span>{otherParticipant?.rating || '4.8'}</span>
-            </span>
           </div>
           <p className="text-[10px] text-zinc-400 truncate max-w-xs mt-0.5 leading-none">{otherParticipant?.role}</p>
         </div>

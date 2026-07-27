@@ -96,7 +96,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+    <main className="min-h-screen bg-[#171717] flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border border-gray-800 bg-[#111111]">
         {/* Left Panel */}
         <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-[#111111] to-[#1a1a1a] border-r border-gray-800">

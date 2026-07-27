@@ -14,8 +14,7 @@ import {
 import { getAvatarUrl, handleAvatarError } from "../../utils";
 
 export default function ProfilePreviewCard({ user }) {
-  const rating = user.rating ?? 0;
-  const ratingStars = Math.round(rating);
+  // Trust/rating stats are now fetched via the Metric API — this card shows basic profile info only
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 relative">
@@ -188,23 +187,14 @@ export default function ProfilePreviewCard({ user }) {
             {/* Right: Stats */}
             <div className="flex flex-col gap-5">
 
-              {/* Rating spotlight */}
+              {/* Rating placeholder (actual data comes from /api/profile/metrics) */}
               <div className="relative rounded-2xl overflow-hidden border border-[#FF3F3F]/20 bg-linear-to-b from-[#FF3F3F]/8 to-transparent p-6">
-                <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#FF3F3F]/10 rounded-full blur-2xl" />
                 <p className="text-[10px] font-bold text-[#FF3F3F] uppercase tracking-widest mb-2">Global Rating</p>
                 <div className="flex items-end gap-3 mb-3">
-                  <span className="text-5xl font-black text-white leading-none">{rating.toFixed(1)}</span>
+                  <span className="text-5xl font-black text-white leading-none">—</span>
                   <span className="text-zinc-500 text-sm mb-1">/ 5.0</span>
                 </div>
-                <div className="flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 transition-colors ${i < ratingStars ? "text-[#FF3F3F]" : "text-zinc-700"}`}
-                      fill="currentColor"
-                    />
-                  ))}
-                </div>
+                <p className="text-xs text-zinc-600">View your full profile to see rating stats</p>
               </div>
 
               {/* Stat tiles */}
@@ -219,7 +209,7 @@ export default function ProfilePreviewCard({ user }) {
                   },
                   {
                     label: "Reviews",
-                    value: user.reputation ?? 0,
+                    value: 0,
                     icon: MessageSquare,
                     color: "text-violet-400",
                     bg: "bg-violet-400/10",

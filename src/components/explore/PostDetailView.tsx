@@ -183,12 +183,6 @@ export default function PostDetailView({
                     {post.author.isGovernmentVerified && (
                       <BadgeCheck className="w-4 h-4 text-blue-400" />
                     )}
-                    {post.author.rating !== undefined && post.author.rating !== null && (
-                      <span className="flex items-center gap-0.5 text-[11px] text-amber-400">
-                        <Star className="w-3 h-3 fill-amber-400" />
-                        {post.author.rating.toFixed(1)}
-                      </span>
-                    )}
                   </div>
                   <span className="text-[11px] text-zinc-500">{post.author.role}</span>
                 </div>

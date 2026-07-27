@@ -6,7 +6,6 @@ import { getAvatarUrl, handleAvatarError } from "../../utils";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { apiFetch } from "@/src/lib/api";
 import { setConversationMessages } from "@/src/store/conversationsSlice";
-import { socket } from "@/src/lib/socket";
 
 export default function ChatList({
   setActiveConversationId,
@@ -52,23 +51,8 @@ export default function ChatList({
         messages: mesagesData?.data,
       }),
     );
-    console.log("Fetched messages for conversation:", mesagesData);
     setActiveConversationId(convId);
-
-    // For Testing: Join the conversation room on the server
-    socket.auth = {
-      token: token,
-    };
-    socket.connect();
-    socket.emit("join-conversation", convId, (response) => {
-      if (response.success) {
-        console.log("Joined");
-      } else {
-        console.log(response.message);
-      }
-    });
   };
-  console.log(filteredConvs, "filteredConvs");
   return (
     <div
       className={`w-full shrink-0 border-r border-[#1e1e22] bg-[#0c0c0e] flex flex-col font-sans md:w-72 lg:w-80 ${

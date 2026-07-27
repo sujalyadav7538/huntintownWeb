@@ -12,11 +12,31 @@
  */
 
 const BASE: string =
-  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+  (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ??
+  "";
 
-export function apiFetch(path: string, init?: RequestInit): Promise<Response> {
-  const url = path.startsWith('http') ? path : `${BASE}${path}`;
-  return fetch(url, init);
+export async function apiFetch(
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  const url = path.startsWith("http") ? path : `${BASE}${path}`;
+
+  const response = await fetch(url, init);
+
+  if (response.status === 401) {
+    try {
+      const body = await response.clone().json();
+
+      if (body?.message === "Invalid token") {
+        localStorage.clear();
+        window.location.href = "/login";
+      }
+    } catch {
+      // Ignore if response is not JSON
+    }
+  }
+
+  return response;
 }
 
 /** Convenience: returns parsed JSON or throws a structured error. */

@@ -9,7 +9,9 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  isAuthenticated: localStorage.getItem("neighbourly_auth") === "true",
+  isAuthenticated:
+    !!localStorage.getItem("access_token") &&
+    localStorage.getItem("neighbourly_auth") === "true",
   currentUser: (() => {
     const saved = localStorage.getItem("neighbourly_user");
     return saved ? (JSON.parse(saved) as User) : null;

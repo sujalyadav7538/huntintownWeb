@@ -19,16 +19,11 @@ export interface User {
   /** Human-readable address (maps to `address` in backend userSchema) */
   address?: string;
   /** GeoJSON coordinates — not for direct display */
-  location?: { type?: string; coordinates?: number[]; };
+  location?: { type?: string; coordinates?: number[] };
   bio?: string;
   phone?: string;
   website?: string;
   skills?: string[];
-  // Trust metrics
-  rating?: number;
-  totalReviews?: number;
-  completedJobs?: number;
-  reputation?: number;
   // Verification
   isEmailVerified?: boolean;
   isGovernmentVerified?: boolean;
@@ -36,21 +31,65 @@ export interface User {
   // Account
   isActive?: boolean;
   lastSeen?: string;
-  // Counters
-  postsCount?: number;
-  offersSubmittedCount?: number;
-  offersAcceptedCount?: number;
-  // UI-only / legacy compat
+  // UI-only
   joinedAt?: string;
-  trustScore?: number;
-  completedRequests?: number;
-  successRate?: number;
-  responseRate?: number;
-  communityScore?: number;
-  isVerified?: boolean;
-  reviewCount?: number;
   socialLinks?: UserSocialLinks;
   services?: string[];
+}
+
+// ── Reputation System ─────────────────────────────────────────────────────────
+
+export interface UserMetric {
+  reviewMetrics: {
+    averageRating: number;
+    totalReviews: number;
+    totalStars: number;
+    score: number;
+  };
+  profileMetrics: {
+    completion: number;
+    score: number;
+  };
+  helperMetrics: {
+    offersSubmitted: number;
+    offersAccepted: number;
+    acceptanceScore: number;
+    completedOffers: number;
+    cancelledOffers: number;
+    completionScore: number;
+  };
+  hunterMetrics: {
+    postsCreated: number;
+    postsCompleted: number;
+    postsCancelled: number;
+    completionScore: number;
+    offersReceived: number;
+    offersAccepted: number;
+    acceptanceScore: number;
+  };
+  responseMetrics: {
+    totalResponseRequests: number;
+    totalResponses: number;
+    averageResponseTime: number;
+    responseRate: number;
+    responseScore: number;
+  };
+  activityMetrics: {
+    activeDays: number;
+    score: number;
+  };
+  trustScore: number;
+}
+
+export interface UserBadgeItem {
+  badgeId: string;
+  level: "bronze" | "silver" | "gold" | string;
+  earnedAt: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  rarity: "common" | "rare" | "epic" | "legendary" | string;
 }
 
 export interface Comment {

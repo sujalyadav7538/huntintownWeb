@@ -1,7 +1,7 @@
 import { AppDispatch, RootState } from './index';
 import { apiFetch } from '../lib/api';
 import { deletePost, updatePostStatus, upsertPost, normalizePost, addComment } from './postsSlice';
-import { setConversations } from './conversationsSlice';
+// setConversations removed — was only used in fetchConversations (now dead code)
 import { Comment } from '../types';
 
 // ─── Create a post via API then upsert into Redux ────────────────────────────
@@ -61,19 +61,34 @@ export const updatePostStatusThunk =
     dispatch(updatePostStatus({ postId, status }));
   };
 
-// ─── Fetch conversations from API and store in Redux ─────────────────────────
-export const fetchConversations =
-  () =>
-  async (dispatch: AppDispatch, getState: () => RootState): Promise<void> => {
-    const token = getState().auth.token;
-    if (!token) return;
-    const res = await apiFetch('/api/chat/conversations', {
+// ─── Mark a post as completed via API then sync Redux ───────────────────────
+export const markPostCompletedThunk =
+  (postId: string) =>
+  async (dispatch: AppDispatch): Promise<void> => {
+    const token = localStorage.getItem('access_token');
+    const res = await apiFetch(`/api/posts/${postId}/complete`, {
+      method: 'PATCH',
       headers: { Authorization: `${token}` },
     });
-    if (!res.ok) return;
     const data = await res.json();
-    dispatch(setConversations(data?.data ?? []));
+    if (!res.ok) throw new Error(data.message || 'Failed to mark post as completed');
+    dispatch(updatePostStatus({ postId, status: 'completed' }));
   };
+
+// DEAD: fetchConversations — calls GET /api/chat/conversations (getMyConversations) but is never
+// imported or dispatched anywhere in the app. Messaging uses /api/chat/posts + /api/chat/posts/:id/conversations.
+// export const fetchConversations =
+//   () =>
+//   async (dispatch: AppDispatch, getState: () => RootState): Promise<void> => {
+//     const token = getState().auth.token;
+//     if (!token) return;
+//     const res = await apiFetch('/api/chat/conversations', {
+//       headers: { Authorization: `${token}` },
+//     });
+//     if (!res.ok) return;
+//     const data = await res.json();
+//     dispatch(setConversations(data?.data ?? []));
+//   };
 
 // ─── Submit an offer via API then optimistically update Redux ─────────────────
 export const submitOfferThunk =

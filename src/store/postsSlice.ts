@@ -18,8 +18,6 @@ export function normalizePost(p: any): Post {
       id: p.author?.id || p.author?._id || "",
       avatar: p.author?.avatar || "",
       role: p.author?.role || "",
-      rating: p.author?.rating ?? undefined,
-      reputation: p.author?.reputation ?? undefined,
       location: p.author?.location || p.location || "",
     },
     status: p.status, // raw backend value: live | in_progress | completed | expired | cancelled

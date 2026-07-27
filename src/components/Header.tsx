@@ -5,12 +5,16 @@ import { getAvatarUrl, handleAvatarError } from "../utils";
 
 import DesktopNavbar from "./header/DesktopNavbar";
 import UserProfileIndicator from "./header/UserProfileIndicator";
+import { useState } from "react";
+import { logout } from "../store/authSlice";
+import SidePanel from "./sidepan/SidePan";
 
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   openCreatePost: () => void;
   onLogoutSimulate: () => void;
+  handleSidePanelOpen: () => void;
 }
 
 export default function Header({
@@ -18,6 +22,7 @@ export default function Header({
   setActiveTab,
   openCreatePost,
   onLogoutSimulate,
+  handleSidePanelOpen
 }: HeaderProps) {
   const dispatch = useAppDispatch();
   const { isAuthenticated, currentUser } = useAppSelector((s) => s.auth);
@@ -25,15 +30,14 @@ export default function Header({
   const unreadMessagesCount = useAppSelector((s) =>
     s.conversations.conversations.reduce((sum, c) => sum + c.unreadCount, 0),
   );
-
+ 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#121214]/90 backdrop-blur-md border-b border-[#242428] shadow-md select-none font-sans">
-
       {/* ── Mobile header (Instagram-style) — hidden on md+ ── */}
       <div className="md:hidden flex items-center justify-between px-4 h-14">
         {/* Left: avatar → profile */}
         <button
-          onClick={() => setActiveTab(isAuthenticated ? 'profile' : 'login')}
+          onClick={handleSidePanelOpen}
           className="relative flex-shrink-0"
           aria-label="Profile"
         >
@@ -43,9 +47,11 @@ export default function Header({
                 src={getAvatarUrl(currentUser.name, currentUser.avatar)}
                 alt={currentUser.name}
                 className={`w-8 h-8 rounded-full object-cover bg-zinc-800 transition
-                  ${activeTab === 'profile'
-                    ? 'ring-2 ring-[#FF3F3F] ring-offset-1 ring-offset-[#121214]'
-                    : 'ring-1 ring-white/10'}`}
+                  ${
+                    activeTab === "profile"
+                      ? "ring-2 ring-[#FF3F3F] ring-offset-1 ring-offset-[#121214]"
+                      : "ring-1 ring-white/10"
+                  }`}
                 onError={(e) => handleAvatarError(e, currentUser.name)}
                 referrerPolicy="no-referrer"
               />
@@ -58,22 +64,28 @@ export default function Header({
             </div>
           )}
         </button>
+       
 
         {/* Center: logo */}
-        <button onClick={() => setActiveTab('landing')} className="absolute left-1/2 -translate-x-1/2">
+        <button
+          onClick={() => setActiveTab("landing")}
+          className="absolute left-1/2 -translate-x-1/2"
+        >
           <img src="/name.png" alt="HuntInTown" className="h-6 w-auto" />
         </button>
 
         {/* Right: chat icon with unread badge */}
         <button
-          onClick={() => setActiveTab(isAuthenticated ? 'messaging' : 'login')}
+          onClick={() => setActiveTab(isAuthenticated ? "messaging" : "login")}
           className="relative flex-shrink-0 p-1.5 text-zinc-400 hover:text-white transition"
           aria-label="Messages"
         >
-          <MessageSquare className={`w-6 h-6 ${activeTab === 'messaging' ? 'text-[#FF3F3F]' : ''}`} />
+          <MessageSquare
+            className={`w-6 h-6 ${activeTab === "messaging" ? "text-[#FF3F3F]" : ""}`}
+          />
           {unreadMessagesCount > 0 && (
             <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#FF3F3F] text-[9px] font-black text-white flex items-center justify-center leading-none">
-              {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
+              {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
             </span>
           )}
         </button>
@@ -135,7 +147,6 @@ export default function Header({
           </div>
         </div>
       </div>
-
     </header>
   );
 }
