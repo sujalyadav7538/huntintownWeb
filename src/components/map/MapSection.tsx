@@ -1,3 +1,4 @@
+import { MapPinned, Navigation, Activity } from "lucide-react";
 import { Post } from "@/src/types";
 import HuntMap from "./HuntMap";
 
@@ -7,48 +8,42 @@ interface MapSectionProps {
 
 export default function MapSection({ posts }: MapSectionProps) {
   return (
-    <section className="space-y-8">
-      {/* Header */}
-
-      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
-        <div className="space-y-3">
-          <span className="inline-flex items-center rounded-full border border-[#FF3F3F]/30 bg-[#FF3F3F]/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-[#FF3F3F]">
-            Live Community Map
-          </span>
-
-          <h2 className="text-3xl font-black text-white">
-            Discover Opportunities Around You
-          </h2>
-
-          <p className="max-w-2xl text-sm leading-7 text-zinc-400">
-            Browse nearby requirements, discover trusted helpers, and
-            collaborate with people in your community through the live
-            interactive map.
-          </p>
-        </div>
-
-        <div className="flex gap-4">
-          <QuickStat title="Live Posts" value={posts.length.toString()} />
-
-          <QuickStat title="Radius" value="Nearby" />
-        </div>
-      </div>
-
+    <section className="">
       {/* Map */}
+      <div className="overflow-hidden rounded-2xl">
+        <div className="flex flex-row sm:flex-row sm:items-center justify-between gap-4 border-b border-[#232327] px-2 py-5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF3F3F]/10 border border-[#FF3F3F]/20">
+                <Activity className="w-5 h-5 text-[#FF3F3F]" />
+              </div>
 
-      <HuntMap posts={posts} />
-    </section>
-  );
-}
+              <div>
+                <h3 className="text-md font-semibold text-white">
+                  Live Community Map
+                </h3>
 
-function QuickStat({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-zinc-800 bg-[#111113] px-5 py-3">
-      <div className="text-2xl font-black text-white">{value}</div>
+                <p className="text-sm text-zinc-500">
+                  Discover nearby peoples.
+                </p>
+              </div>
+            </div>
+          </div>
 
-      <div className="text-xs uppercase tracking-wider text-zinc-500">
-        {title}
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-semibold text-emerald-400">
+                Live 
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-[520px]">
+          <HuntMap posts={posts} />
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

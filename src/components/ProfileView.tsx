@@ -4,7 +4,7 @@ import { User } from "../types";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
 import { updateProfile, logout } from "../store/authSlice";
 import { LogOut, Shield, Activity, Star, User as UserIcon } from "lucide-react";
-import {  useReputation } from "../hooks/useReputation";
+import { useReputation } from "../hooks/useReputation";
 
 import ProfileHero from "./profile/ProfileHero";
 import ProfileAbout from "./profile/ProfileAbout";
@@ -138,46 +138,70 @@ export default function ProfileView({
   if (!currentUser) return null;
 
   return (
-    <div className="relative min-h-screen bg-[#171717] border rounded-2xl border-[#232327]">
+    <div className="relative min-h-screen bg-[#171717] border rounded-2xl border-[#232327] ">
       <ProfileHero
         user={currentUser}
         metric={metric}
         isOwner
         onEdit={() => setMode("edit")}
       />
-      <div className="relative max-w-7xl mx-auto  lg:px-8 p-3 space-y-8">
-        {/* HERO */}
+      
+      {/* HERO */}
 
-        {/* BODY */}
+      {/* BODY */}
 
-        <div className="grid grid-cols-12 gap-8 items-start">
-          {/* RIGHT COLUMN */}
-          <div className="col-span-12 lg:col-span-8 flex flex-col gap-8">
-            <ProfileAbout user={currentUser} />
+      <div className="grid grid-cols-12 gap-8 items-start">
+        {/* RIGHT COLUMN */}
+        <div className="col-span-12 lg:col-span-8 flex flex-col gap-8">
+          <ProfileAbout user={currentUser} />
+          <div className="relative h-px w-full bg-linear-to-r from-transparent via-red-500/20 to-transparent" />
 
-            <ProfileSkills user={currentUser} />
+          <ProfileSkills user={currentUser} />
+          <div className="relative h-px w-full bg-linear-to-r from-transparent via-red-500/20 to-transparent" />
 
-            {/* Uncomment later */}
-            {/* <ProfileActivity user={currentUser} metric={metric} /> */}
+          <ProfileAchievements
+            badges={badges}
+            loading={repLoading}
+            error={repError}
+          />
+          <div className="sm:hidden relative h-px w-full bg-linear-to-r from-transparent via-red-500/20 to-transparent" />
+        </div>
 
-            {/* <ProfileReviews
-              userId={currentUser.id}
-              metric={metric}
-              metricLoading={repLoading}
-            /> */}
-            <ProfileAchievements
-              badges={badges}
-              loading={repLoading}
-              error={repError}
+        {/* LEFT COLUMN */}
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+          {/* Always Visible */}
+
+          {/*  Trust Score */}
+          {trustMetrics.map((data, index) => (
+            <ProfileMetricCard
+              key={index}
+              title={data.title}
+              value={
+                typeof data.value === "function"
+                  ? data.value(metric)
+                  : data.value
+              }
+              subtitle={data.subtitle}
+              icon={data.icon}
+              color={data.color}
+              progress={
+                typeof data.progress === "function"
+                  ? data.progress(metric)
+                  : data.progress
+              }
+              size={data.size}
+              showProgress={data.showProgress}
+              trend={data?.trend}
+              badge={
+                typeof data.badge === "function"
+                  ? data.badge(metric)
+                  : undefined
+              }
             />
-          </div>
+          ))}
 
-          {/* LEFT COLUMN */}
-          <div className="col-span-12 lg:col-span-4 space-y-6">
-            {/* Always Visible */}
-
-            {/*  Trust Score */}
-            {trustMetrics.map((data, index) => (
+          <div className="grid grid-cols-2 gap-4">
+            {commonMetrics.map((data, index) => (
               <ProfileMetricCard
                 key={index}
                 title={data.title}
@@ -197,107 +221,76 @@ export default function ProfileView({
                 size={data.size}
                 showProgress={data.showProgress}
                 trend={data?.trend}
-                badge={
-                  typeof data.badge === "function"
-                    ? data.badge(metric)
-                    : undefined
-                }
               />
             ))}
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {commonMetrics.map((data, index) => (
-                <ProfileMetricCard
-                  key={index}
-                  title={data.title}
-                  value={
-                    typeof data.value === "function"
-                      ? data.value(metric)
-                      : data.value
-                  }
-                  subtitle={data.subtitle}
-                  icon={data.icon}
-                  color={data.color}
-                  progress={
-                    typeof data.progress === "function"
-                      ? data.progress(metric)
-                      : data.progress
-                  }
-                  size={data.size}
-                  showProgress={data.showProgress}
-                  trend={data?.trend}
-                />
-              ))}
-            </div>
+          {/* Metric Tabs */}
+          <div className="rounded-2xl border border-[#232327] bg-[#111113] p-2">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setActiveMetricTab("helper")}
+                className={`rounded-xl py-2 text-xs font-semibold transition ${
+                  activeMetricTab === "helper"
+                    ? "bg-[#FF3F3F] text-white"
+                    : "text-zinc-400 hover:bg-zinc-800"
+                }`}
+              >
+                Helper
+              </button>
 
-            {/* Metric Tabs */}
-            <div className="rounded-2xl border border-[#232327] bg-[#111113] p-2">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => setActiveMetricTab("helper")}
-                  className={`rounded-xl py-2 text-xs font-semibold transition ${
-                    activeMetricTab === "helper"
-                      ? "bg-[#FF3F3F] text-white"
-                      : "text-zinc-400 hover:bg-zinc-800"
-                  }`}
-                >
-                  Helper
-                </button>
-
-                <button
-                  onClick={() => setActiveMetricTab("hunter")}
-                  className={`rounded-xl py-2 text-xs font-semibold transition ${
-                    activeMetricTab === "hunter"
-                      ? "bg-[#FF3F3F] text-white"
-                      : "text-zinc-400 hover:bg-zinc-800"
-                  }`}
-                >
-                  Hunter
-                </button>
-              </div>
-            </div>
-
-            {/* Selected Metrics */}
-            <div className="grid grid-cols-2 gap-4">
-              {(activeMetricTab === "helper"
-                ? helperMetrics
-                : hunterMetrics
-              ).map((data, index) => (
-                <ProfileMetricCard
-                  key={index}
-                  title={data.title}
-                  value={
-                    typeof data.value === "function"
-                      ? data.value(metric)
-                      : data.value
-                  }
-                  subtitle={data.subtitle}
-                  icon={data.icon}
-                  color={data.color}
-                  progress={
-                    typeof data.progress === "function"
-                      ? data.progress(metric)
-                      : data.progress
-                  }
-                  size={data.size}
-                  showProgress={data.showProgress}
-                  trend={data?.trend}
-                />
-              ))}
+              <button
+                onClick={() => setActiveMetricTab("hunter")}
+                className={`rounded-xl py-2 text-xs font-semibold transition ${
+                  activeMetricTab === "hunter"
+                    ? "bg-[#FF3F3F] text-white"
+                    : "text-zinc-400 hover:bg-zinc-800"
+                }`}
+              >
+                Hunter
+              </button>
             </div>
           </div>
-        </div>
 
-        {/* FOOTER */}
-        <div className="hidden lg:flex justify-end">
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF3F3F] text-white font-semibold hover:bg-[#e63939] transition"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
+          {/* Selected Metrics */}
+          <div className="grid grid-cols-2 gap-4">
+            {(activeMetricTab === "helper" ? helperMetrics : hunterMetrics).map(
+              (data, index) => (
+                <ProfileMetricCard
+                  key={index}
+                  title={data.title}
+                  value={
+                    typeof data.value === "function"
+                      ? data.value(metric)
+                      : data.value
+                  }
+                  subtitle={data.subtitle}
+                  icon={data.icon}
+                  color={data.color}
+                  progress={
+                    typeof data.progress === "function"
+                      ? data.progress(metric)
+                      : data.progress
+                  }
+                  size={data.size}
+                  showProgress={data.showProgress}
+                  trend={data?.trend}
+                />
+              ),
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* FOOTER */}
+      <div className="hidden lg:flex justify-end">
+        <button
+          onClick={handleLogout}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#FF3F3F] text-white font-semibold hover:bg-[#e63939] transition"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </button>
       </div>
     </div>
   );

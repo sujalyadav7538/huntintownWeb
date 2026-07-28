@@ -1,13 +1,7 @@
 import { Post } from "@/src/types";
-import {
-  ArrowUpRight,
-  Coins,
-  Compass,
-  LucideIcon,
-  Radio,
-  ShieldCheck,
-  Wrench,
-} from "lucide-react";
+import { ArrowUpRight, LucideIcon, Radio } from "lucide-react";
+import ProfileMetricCard from "../profile/ProfileMetricCard";
+import { heroSectionStats } from "@/src/data";
 
 interface HeroSectionProps {
   activePosts: Post[];
@@ -20,13 +14,14 @@ export default function HeroSection({
   onPostRequirement,
   onExplore,
 }: HeroSectionProps) {
+  const isMobile = window.innerWidth < 768; // Adjust the breakpoint as needed
   return (
     <section className="relative overflow-hidden">
       {/* Background Glow */}
-      <div className="absolute top-0 right-10 w-[500px] h-[500px] bg-[#FF3F3F]/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute -bottom-10 -left-10 w-[300px] h-[300px] bg-[#FF3F3F]/5 rounded-full blur-[90px] pointer-events-none" />
+      {/* <div className="absolute top-0 right-10 w-125 h-125  rounded-full blur-[120px] pointer-events-none" /> */}
+      {/* <div className="absolute -bottom-10 -left-10 w-75 h-75  rounded-full blur-[90px] pointer-events-none" /> */}
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-center rounded-3xl border border-[#232327] bg-gradient-to-br from-[#121214] via-[#121214] to-[#1a1a1f] p-6 sm:p-10 lg:p-12 relative overflow-hidden">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-center p-6 sm:p-10 lg:p-12 relative overflow-hidden">
         <HeroContent
           onPostRequirement={onPostRequirement}
           onExplore={onExplore}
@@ -56,7 +51,7 @@ function HeroContent({ onPostRequirement, onExplore }) {
       <div className="inline-flex items-center gap-2 rounded-full border border-[#FF3F3F]/30 bg-[#FF3F3F]/10 px-4 py-2">
         <Radio className="w-4 h-4 text-[#FF3F3F] animate-pulse" />
 
-        <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[#FF3F3F]">
+        <span className="text-[11px] font-black uppercase tracking-[0.18em] text-[#FF3F3F]">
           Community Powered Marketplace
         </span>
       </div>
@@ -81,10 +76,10 @@ function HeroContent({ onPostRequirement, onExplore }) {
 
       {/* CTA */}
 
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-row gap-4">
         <button
           onClick={onPostRequirement}
-          className="group inline-flex items-center gap-2 rounded-xl bg-[#FF3F3F] px-6 py-3.5 font-bold uppercase tracking-wider text-white transition-all hover:bg-[#e23636] hover:shadow-lg hover:shadow-[#FF3F3F]/20 cursor-pointer"
+          className="inline-flex  items-center gap-2 rounded-xl bg-[#FF3F3F] px-3 py-2.5 font-bold uppercase  text-white transition-all hover:bg-[#e23636] hover:shadow-lg hover:shadow-[#FF3F3F]/20 cursor-pointer"
         >
           Post Requirement
           <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
@@ -94,7 +89,7 @@ function HeroContent({ onPostRequirement, onExplore }) {
           onClick={onExplore}
           className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3.5 font-bold uppercase tracking-wider text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 cursor-pointer"
         >
-          Explore Feed
+          Explore Needs
         </button>
       </div>
 
@@ -144,47 +139,24 @@ function HeroTrustWidget({ avatars }: HeroTrustWidgetProps) {
   );
 }
 
-function HeroStats({ activePosts }) {
-  const stats = [
-    {
-      title: "Active Requests",
-      value: `${activePosts}`,
-      suffix: "Live",
-      description: "People currently looking for local help",
-      icon: Compass,
-      color: "text-[#FF3F3F]",
-    },
-    {
-      title: "Verified Helpers",
-      value: "12+",
-      suffix: "",
-      description: "Community members with trusted profiles",
-      icon: Wrench,
-      color: "text-sky-400",
-    },
-    {
-      title: "Platform Fee",
-      value: "0%",
-      suffix: "",
-      description: "Keep every rupee you earn",
-      icon: Coins,
-      color: "text-amber-400",
-    },
-    {
-      title: "Trust System",
-      value: "Live",
-      suffix: "",
-      description: "Ratings, badges & reputation",
-      icon: ShieldCheck,
-      color: "text-emerald-400",
-    },
-  ];
-
+function HeroStats({ activePosts }: { activePosts: number }) {
   return (
     <div className="xl:col-span-5">
-      <div className="grid grid-cols-2 gap-4">
-        {stats.map((stat) => (
-          <HeroStatCard key={stat.title} {...stat} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {heroSectionStats.map((stat) => (
+          <ProfileMetricCard
+            key={stat.title}
+            title={stat.title}
+            value={
+              stat.value instanceof Function
+                ? stat.value(activePosts)
+                : stat.value
+            }
+            subtitle={stat.subtitle}
+            icon={stat.icon}
+            color={stat.color}
+            size="md"
+          />
         ))}
       </div>
     </div>

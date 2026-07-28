@@ -7,6 +7,12 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/pagination";
+
 const STEPS = [
   {
     icon: FileText,
@@ -41,8 +47,8 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-16">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="py-12">
+      <div>
         <div className="text-center max-w-3xl mx-auto mb-16">
           <p className="text-[#FF3F3F] uppercase tracking-[0.2em] text-sm font-semibold">
             HOW IT WORKS
@@ -59,34 +65,57 @@ export default function HowItWorks() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-8">
+
+        {/* Mobile Swiper */}
+        <div className="block lg:hidden">
+          <Swiper
+            modules={[Pagination]}
+            spaceBetween={16}
+            slidesPerView={1}
+            pagination={{
+              clickable: true,
+            }}
+            className="pb-10"
+          >
+            {STEPS.map((step, index) => {
+              const Icon = step.icon;
+
+              return (
+                <SwiperSlide key={step.title}>
+                  <StepCard
+                    step={step}
+                    index={index}
+                    Icon={Icon}
+                  />
+                </SwiperSlide>
+              );
+            })}
+          </Swiper>
+        </div>
+
+
+        {/* Desktop Layout */}
+        <div className="hidden lg:grid lg:grid-cols-5 gap-8">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
 
             return (
               <div key={step.title} className="relative">
-                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm p-6 h-full group hover:border-[#FF3F3F]/50 transition">
-                  <div className="w-14 h-14 rounded-xl bg-[#FF3F3F]/10 flex items-center justify-center mb-6 group-hover:bg-[#FF3F3F]/20 transition">
-                    <Icon className="w-7 h-7 text-[#FF3F3F]" />
-                  </div>
-
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-7 h-7 rounded-full bg-[#FF3F3F] text-white text-xs font-bold flex items-center justify-center">
-                      {index + 1}
-                    </div>
-
-                    <h3 className="text-lg font-bold text-white">
-                      {step.title}
-                    </h3>
-                  </div>
-
-                  <p className="text-sm leading-7 text-zinc-400">
-                    {step.description}
-                  </p>
-                </div>
+                <StepCard
+                  step={step}
+                  index={index}
+                  Icon={Icon}
+                />
 
                 {index !== STEPS.length - 1 && (
-                  <ArrowRight className="hidden lg:block absolute -right-6 top-1/2 -translate-y-1/2 text-zinc-700 w-6 h-6" />
+                  <ArrowRight
+                    className="
+                      absolute -right-6 top-1/2
+                      -translate-y-1/2
+                      text-zinc-700
+                      w-6 h-6
+                    "
+                  />
                 )}
               </div>
             );
@@ -94,5 +123,71 @@ export default function HowItWorks() {
         </div>
       </div>
     </section>
+  );
+}
+
+
+function StepCard({
+  step,
+  index,
+  Icon,
+}: {
+  step: {
+    title: string;
+    description: string;
+  };
+  index: number;
+  Icon: React.ElementType;
+}) {
+  return (
+    <div
+      className="
+        rounded-2xl
+        border border-zinc-800
+        bg-zinc-900/40
+        backdrop-blur-sm
+        p-6
+        h-full
+        group
+        hover:border-[#FF3F3F]/50
+        transition
+      "
+    >
+      <div
+        className="
+          w-14 h-14
+          rounded-xl
+          bg-[#FF3F3F]/10
+          flex items-center justify-center
+          mb-6
+          group-hover:bg-[#FF3F3F]/20
+          transition
+        "
+      >
+        <Icon className="w-7 h-7 text-[#FF3F3F]" />
+      </div>
+
+      <div className="flex items-center gap-3 mb-3">
+        <div
+          className="
+            w-7 h-7 rounded-full
+            bg-[#FF3F3F]
+            text-white
+            text-xs font-bold
+            flex items-center justify-center
+          "
+        >
+          {index + 1}
+        </div>
+
+        <h3 className="text-lg font-bold text-white">
+          {step.title}
+        </h3>
+      </div>
+
+      <p className="text-sm leading-7 text-zinc-400">
+        {step.description}
+      </p>
+    </div>
   );
 }

@@ -213,7 +213,7 @@ export default function App() {
           className={`flex-1 w-full mx-auto ${
             activeTab === "messaging"
               ? "flex flex-col overflow-hidden"
-              : "max-w-7xl px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8"
+              : "sm:px-6 lg:px-8  pb-24 md:pb-8 p-2" 
           }`}
         >
           {renderActiveView()}

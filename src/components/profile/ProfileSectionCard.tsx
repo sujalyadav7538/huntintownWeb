@@ -27,10 +27,9 @@ export default function ProfileSectionCard({
       id={id}
       className={`
         rounded-2xl
-        border border-[#232327]
-        bg-[#1e1e1f]
+        bg-[#17171717]
         transition-colors
-        hover:border-[#313136]
+        border-[#17171717]
         ${className}
       `}
     >

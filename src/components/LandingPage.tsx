@@ -454,9 +454,7 @@ return (
 
     {/* Main Content */}
     <div className="">
-      <section className="py-12 lg:py-14">
         <MapSection posts={activePosts} />
-      </section>
 
         <WhyHuntInTown />
 

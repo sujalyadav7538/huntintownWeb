@@ -1,4 +1,6 @@
 import {
+  Coins,
+  Compass,
   Crown,
   Gem,
   MessageSquare,
@@ -10,13 +12,14 @@ import {
   Target,
   TrendingUp,
   UserIcon,
+  Wrench,
 } from "lucide-react";
 import { UserMetric } from "./types";
 import { LucideIcon } from "lucide-react";
 
 export interface MetricConfig {
   title: string;
-  value: string | number | ((metric: UserMetric) => string | number);
+  value: string | number | ((metric: UserMetric | number) => string | number);
   subtitle?: string;
   icon: LucideIcon;
   color?: string;
@@ -184,3 +187,58 @@ export function getTrustLevel(trustScore: number) {
     bar: "#71717A",
   };
 }
+
+export const heroSectionStats: MetricConfig[] = [
+  {
+    title: "Active Requests",
+    value: (activePosts: number) => activePosts,
+    subtitle: "People currently looking for local help",
+    icon: Compass,
+    color: "#FF3F3F",
+    // badge: {
+    //   label: "LIVE",
+    //   color: "text-red-400",
+    //   bg: "bg-red-500/10",
+    //   border: "border-red-500/20",
+    // },
+  },
+  {
+    title: "Verified Helpers",
+    value: "12+",
+    subtitle: "Trusted community members",
+    icon: Wrench,
+    color: "#38BDF8",
+    // badge: {
+    //   label: "Verified",
+    //   color: "text-sky-400",
+    //   bg: "bg-sky-500/10",
+    //   border: "border-sky-500/20",
+    // },
+  },
+  // {
+  //   title: "Platform Fee",
+  //   value: "0%",
+  //   subtitle: "Keep every rupee you earn",
+  //   icon: Coins,
+  //   color: "#F59E0B",
+  //   // badge: {
+  //   //   label: "No Commission",
+  //   //   color: "text-amber-400",
+  //   //   bg: "bg-amber-500/10",
+  //   //   border: "border-amber-500/20",
+  //   // },
+  // },
+  // {
+  //   title: "Trust System",
+  //   value: "Live",
+  //   subtitle: "Ratings • Badges • Reputation",
+  //   icon: ShieldCheck,
+  //   color: "#10B981",
+  //   // badge: {
+  //   //   label: "Enabled",
+  //   //   color: "text-emerald-400",
+  //   //   bg: "bg-emerald-500/10",
+  //   //   border: "border-emerald-500/20",
+  //   // },
+  // },
+];

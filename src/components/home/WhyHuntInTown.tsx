@@ -1,4 +1,9 @@
 import { BadgeCheck, MessageCircleMore, Wallet, Users } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/pagination";
 
 const FEATURES = [
   {
@@ -29,8 +34,8 @@ const FEATURES = [
 
 export default function WhyHuntInTown() {
   return (
-    <section className="py-16">
-      <div className="max-w-7xl mx-auto px-6">
+    <section className="">
+      <div className="">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <p className="text-[#FF3F3F] font-semibold uppercase tracking-[0.2em] text-sm">
             WHY HUNTINTOWN
@@ -48,31 +53,82 @@ export default function WhyHuntInTown() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {/* Mobile Swiper */}
+        <div className="block md:hidden">
+          <Swiper
+            modules={[Pagination]}
+            spaceBetween={16}
+            slidesPerView={1}
+            pagination={{
+              clickable: true,
+            }}
+            className="pb-10"
+          >
+            {FEATURES.map((feature) => {
+              const Icon = feature.icon;
+
+              return (
+                <SwiperSlide key={feature.title}>
+                  <FeatureCard feature={feature} Icon={Icon} />
+                </SwiperSlide>
+              );
+            })}
+          </Swiper>
+        </div>
+
+        {/* Desktop Grid */}
+        <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-4 gap-6">
           {FEATURES.map((feature) => {
             const Icon = feature.icon;
 
             return (
-              <div
-                key={feature.title}
-                className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-sm p-7 hover:border-[#FF3F3F]/50 transition-all duration-300"
-              >
-                <div className="w-14 h-14 rounded-xl bg-[#FF3F3F]/10 flex items-center justify-center mb-6 group-hover:bg-[#FF3F3F]/20 transition">
-                  <Icon className="w-7 h-7 text-[#FF3F3F]" />
-                </div>
-
-                <h3 className="text-lg font-bold text-white mb-3">
-                  {feature.title}
-                </h3>
-
-                <p className="text-sm leading-7 text-zinc-400">
-                  {feature.description}
-                </p>
-              </div>
+              <FeatureCard key={feature.title} feature={feature} Icon={Icon} />
             );
           })}
         </div>
       </div>
     </section>
+  );
+}
+
+function FeatureCard({
+  feature,
+  Icon,
+}: {
+  feature: {
+    title: string;
+    description: string;
+  };
+  Icon: React.ElementType;
+}) {
+  return (
+    <div
+      className="
+        group
+        h-full
+        rounded-2xl
+        border border-zinc-800
+        bg-zinc-900/40
+        backdrop-blur-sm
+        p-7
+        transition-all duration-300
+        hover:border-[#FF3F3F]/50
+      "
+    >
+      <div
+        className="
+          mb-6 flex h-14 w-14 items-center justify-center
+          rounded-xl bg-[#FF3F3F]/10
+          transition
+          group-hover:bg-[#FF3F3F]/20
+        "
+      >
+        <Icon className="h-7 w-7 text-[#FF3F3F]" />
+      </div>
+
+      <h3 className="mb-3 text-lg font-bold text-white">{feature.title}</h3>
+
+      <p className="text-sm leading-7 text-zinc-400">{feature.description}</p>
+    </div>
   );
 }
