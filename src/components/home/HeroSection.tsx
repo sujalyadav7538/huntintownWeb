@@ -156,6 +156,7 @@ function HeroStats({ activePosts }: { activePosts: number }) {
             icon={stat.icon}
             color={stat.color}
             size="md"
+            className={stat?.className ?? ""}
           />
         ))}
       </div>

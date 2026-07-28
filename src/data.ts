@@ -37,6 +37,7 @@ export interface MetricConfig {
         icon?: LucideIcon;
       })
     | null;
+  className?: string;
 }
 
 export const trustMetrics: MetricConfig[] = [
@@ -49,6 +50,7 @@ export const trustMetrics: MetricConfig[] = [
     size: "md",
     subtitle: "Community trust",
     badge: (m: UserMetric | null) => getTrustLevel(m?.trustScore ?? 0),
+    className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
   },
 ] as const;
 
@@ -63,6 +65,8 @@ export const commonMetrics: MetricConfig[] = [
     icon: Star,
     color: "#F59E0B",
     size: "md",
+    className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
+
   },
   {
     title: "Profile",
@@ -72,6 +76,8 @@ export const commonMetrics: MetricConfig[] = [
     icon: UserIcon,
     color: "#3B82F6",
     size: "md",
+    className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
+
   },
 ] as const;
 
@@ -86,6 +92,8 @@ export const helperMetrics: MetricConfig[] = [
     color: "#2dd4bf",
     size: "md",
     showProgress: false,
+    className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
+
   },
   {
     title: "COMPLETION RATE",
@@ -96,6 +104,8 @@ export const helperMetrics: MetricConfig[] = [
     color: "#f472b6",
     size: "md",
     showProgress: false,
+    className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
+
   },
 ] as const;
 
@@ -110,6 +120,8 @@ export const hunterMetrics: MetricConfig[] = [
     color: "#2dd4bf",
     size: "md",
     showProgress: false,
+    className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
+
   },
   {
     title: "COMPLETION RATE",
@@ -120,6 +132,8 @@ export const hunterMetrics: MetricConfig[] = [
     color: "#f472b6",
     size: "md",
     showProgress: false,
+    className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
+
   },
   {
     title: "POSTS CREATED",
@@ -130,6 +144,8 @@ export const hunterMetrics: MetricConfig[] = [
     color: "#FF3F3F",
     size: "md",
     showProgress: false,
+    className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
+
   },
 ] as const;
 
@@ -195,6 +211,7 @@ export const heroSectionStats: MetricConfig[] = [
     subtitle: "People currently looking for local help",
     icon: Compass,
     color: "#FF3F3F",
+    className: "border border-[#232327] bg-[#1e1e1f]",
     // badge: {
     //   label: "LIVE",
     //   color: "text-red-400",
@@ -208,6 +225,7 @@ export const heroSectionStats: MetricConfig[] = [
     subtitle: "Trusted community members",
     icon: Wrench,
     color: "#38BDF8",
+    className: "border border-[#232327] bg-[#1e1e1f]",
     // badge: {
     //   label: "Verified",
     //   color: "text-sky-400",

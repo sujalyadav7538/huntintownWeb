@@ -57,7 +57,7 @@ export default function ProfileMetricCard({
 
   return (
     <div
-      className={`rounded-2xl border border-[#232327]  bg-[#1e1e1f] p-4 ${className}`}
+      className={`rounded-2xl  p-4 ${className}`}
     >
       <div
         className={`flex ${

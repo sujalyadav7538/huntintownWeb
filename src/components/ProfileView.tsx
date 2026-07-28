@@ -138,14 +138,14 @@ export default function ProfileView({
   if (!currentUser) return null;
 
   return (
-    <div className="relative min-h-screen bg-[#171717] border rounded-2xl border-[#232327] ">
+    <div className="relative min-h-screen bg-[#171717]  ">
       <ProfileHero
         user={currentUser}
         metric={metric}
         isOwner
         onEdit={() => setMode("edit")}
       />
-      
+
       {/* HERO */}
 
       {/* BODY */}
@@ -197,6 +197,7 @@ export default function ProfileView({
                   ? data.badge(metric)
                   : undefined
               }
+              className={data?.className ?? ""}
             />
           ))}
 
@@ -221,6 +222,7 @@ export default function ProfileView({
                 size={data.size}
                 showProgress={data.showProgress}
                 trend={data?.trend}
+                className={data?.className ?? ""}
               />
             ))}
           </div>
@@ -275,6 +277,7 @@ export default function ProfileView({
                   size={data.size}
                   showProgress={data.showProgress}
                   trend={data?.trend}
+                  className={data?.className ?? ""}
                 />
               ),
             )}
