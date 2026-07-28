@@ -25,7 +25,7 @@ export interface MetricConfig {
   color?: string;
   progress?: number | ((metric: UserMetric) => number);
   trend?: string;
-  size?: "md" | "md" | "lg";
+  size?: "md" | "sm" | "lg";
   showProgress?: boolean;
   badge?:
     | ((metric: UserMetric) => {
@@ -61,7 +61,7 @@ export const commonMetrics: MetricConfig[] = [
       `${m?.reviewMetrics.averageRating?.toFixed(1) ?? "0.0"} / 5`,
     progress: (m: UserMetric | null) =>
       ((m?.reviewMetrics.averageRating ?? 0) / 5) * 100,
-    subtitle: "Community reviews",
+    subtitle: "Review Score",
     icon: Star,
     color: "#F59E0B",
     size: "md",
@@ -72,7 +72,7 @@ export const commonMetrics: MetricConfig[] = [
     title: "Profile",
     value: (m: UserMetric | null) => `${m?.profileMetrics?.completion ?? 0}%`,
     progress: (m: UserMetric | null) => m?.profileMetrics?.completion ?? 0,
-    subtitle: "Completion",
+    subtitle: "Completion Rate",
     icon: UserIcon,
     color: "#3B82F6",
     size: "md",
@@ -90,7 +90,7 @@ export const helperMetrics: MetricConfig[] = [
     subtitle: "Offer Acceptance",
     icon: Percent,
     color: "#2dd4bf",
-    size: "md",
+    size: "sm",
     showProgress: false,
     className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
 
@@ -102,7 +102,7 @@ export const helperMetrics: MetricConfig[] = [
     subtitle: "Offer Acceptance",
     icon: TrendingUp,
     color: "#f472b6",
-    size: "md",
+    size: "sm",
     showProgress: false,
     className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
 
@@ -118,7 +118,7 @@ export const hunterMetrics: MetricConfig[] = [
     subtitle: "Offer Acceptance",
     icon: Percent,
     color: "#2dd4bf",
-    size: "md",
+    size: "sm",
     showProgress: false,
     className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
 
@@ -130,7 +130,7 @@ export const hunterMetrics: MetricConfig[] = [
     subtitle: "finish rate",
     icon: TrendingUp,
     color: "#f472b6",
-    size: "md",
+    size: "sm",
     showProgress: false,
     className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
 
@@ -142,7 +142,7 @@ export const hunterMetrics: MetricConfig[] = [
     subtitle: "total posted",
     icon: Target,
     color: "#FF3F3F",
-    size: "md",
+    size: "sm",
     showProgress: false,
     className: "sm:border sm:border-[#232327] sm:bg-[#1e1e1f]",
 
