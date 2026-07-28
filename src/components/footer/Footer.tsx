@@ -136,7 +136,8 @@ export default function Footer() {
               mt-8 rounded-2xl
               border border-zinc-800
               bg-zinc-900/60
-              p-4
+              p-2
+              lg:p-4
             "
             >
               <label

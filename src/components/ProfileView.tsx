@@ -150,7 +150,7 @@ export default function ProfileView({
 
       {/* BODY */}
 
-      <div className="grid grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-12 gap-8 items-start sm:px-2">
         {/* RIGHT COLUMN */}
         <div className="col-span-12 lg:col-span-8 flex flex-col gap-8">
           <ProfileAbout user={currentUser} />
