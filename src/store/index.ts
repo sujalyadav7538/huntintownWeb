@@ -3,6 +3,7 @@ import authReducer from './authSlice';
 import postsReducer from './postsSlice';
 import conversationsReducer from './conversationsSlice';
 import uiReducer from './uiSlice';
+import { persistAuthStorage } from '../lib/authStorage';
 
 export const store = configureStore({
   reducer: {
@@ -16,17 +17,19 @@ export const store = configureStore({
 // Sync entire relevant state to localStorage on every change
 store.subscribe(() => {
   const state = store.getState();
-  localStorage.setItem('neighbourly_auth', String(state.auth.isAuthenticated));
-  localStorage.setItem('neighbourly_user', JSON.stringify(state.auth.currentUser));
-  localStorage.setItem('neighbourly_posts', JSON.stringify(state.posts));
-  localStorage.setItem(
-    'neighbourly_conversations',
-    JSON.stringify(state.conversations.conversations)
-  );
-  if (state.auth.token) {
-    localStorage.setItem('access_token', state.auth.token);
-  } else {
-    localStorage.removeItem('access_token');
+
+  persistAuthStorage({
+    isAuthenticated: state.auth.isAuthenticated,
+    currentUser: state.auth.currentUser,
+    token: state.auth.token,
+  });
+
+  if (state.auth.isAuthenticated && state.auth.token) {
+    localStorage.setItem('neighbourly_posts', JSON.stringify(state.posts));
+    localStorage.setItem(
+      'neighbourly_conversations',
+      JSON.stringify(state.conversations.conversations)
+    );
   }
 });
 

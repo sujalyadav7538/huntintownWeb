@@ -9,26 +9,24 @@ import { fetchPosts } from "./store/postsSlice";
 import {
   openCreatePost,
   closeCreatePost,
-  closeLoginModal,
   setSearchTerm,
 } from "./store/uiSlice";
 import { deletePostThunk, updatePostStatusThunk } from "./store/thunks";
 
 import Header from "./components/Header";
 import LandingPage from "./components/LandingPage";
-import HomeFeed from "./components/HomeFeed";
 import CreatePost from "./components/CreatePost";
 import Dashboard from "./components/Dashboard";
 import Messaging from "./components/Messaging";
 import ProfileView from "./components/ProfileView";
-import LoginModal from "./components/LoginModal";
 import LoginPage from "./components/LoginPage";
 import MyActivity from "./components/MyActivity";
-import MyResponses from "./components/MyResponses";
 import ExplorePage from "./components/ExplorePage";
 
 import { LayoutGrid, Plus, Home, Activity, Inbox } from "lucide-react";
 import SidePanel from "./components/sidepan/SidePan";
+import MobileBottomNavigation from "./components/footer/MobileBottomNavigation";
+import MobileHomePage from "./components/MobileHomePage";
 
 const PROTECTED_TABS = [
   "feed",
@@ -37,7 +35,7 @@ const PROTECTED_TABS = [
   "profile",
   "activity",
   "responses",
-];
+] as const;
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -46,9 +44,7 @@ export default function App() {
   const { conversations, activeConversationId } = useAppSelector(
     (s) => s.conversations,
   );
-  const { isCreatePostOpen, isLoginOpen, searchTerm } = useAppSelector(
-    (s) => s.ui,
-  );
+  const { isCreatePostOpen, searchTerm } = useAppSelector((s) => s.ui);
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -122,6 +118,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    setSocketAuth("");
     socket.disconnect();
     dispatch(logout());
     setSidePanelOpen(false);
@@ -144,6 +141,8 @@ export default function App() {
     }
 
     switch (activeTab) {
+      case "mobile":
+        return <MobileHomePage setActiveTab={setActiveTab} />;
       case "landing":
         return (
           <LandingPage
@@ -188,7 +187,12 @@ export default function App() {
       case "activity":
         return <MyActivity onInitiateChat={() => setActiveTab("messaging")} />;
       case "responses":
-        return <MyResponses onInitiateChat={() => setActiveTab("messaging")} />;
+        return (
+          <MyActivity
+            initialTab="responses"
+            onInitiateChat={() => setActiveTab("messaging")}
+          />
+        );
       case "login":
         return <LoginPage onLogin={handleLogin} />;
       case "explore":
@@ -213,87 +217,20 @@ export default function App() {
           className={`flex-1 w-full mx-auto ${
             activeTab === "messaging"
               ? "flex flex-col overflow-hidden"
-              : "sm:px-6 lg:px-8  pb-24 md:pb-8 p-2" 
+              : "sm:px-6 lg:px-8  pb-24 md:pb-8 p-2"
           }`}
         >
           {renderActiveView()}
         </main>
 
         {/* ── Mobile bottom nav ── */}
-        <div className="md:hidden fixed bottom-0 inset-x-0 bg-[#121214]/95 backdrop-blur-md border-t border-[#232327] z-40 shadow-xl">
-          <div className="flex items-center justify-around px-2 pb-safe">
-            {/* Home */}
-            <button
-              onClick={() => setActiveTab("landing")}
-              className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
-                activeTab === "landing" ? "text-[#FF3F3F]" : "text-zinc-500"
-              }`}
-            >
-              <Home className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider">
-                Home
-              </span>
-            </button>
-
-            {/* Explore */}
-            <button
-              onClick={() => setActiveTab("explore")}
-              className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
-                activeTab === "explore" || activeTab === "feed"
-                  ? "text-[#FF3F3F]"
-                  : "text-zinc-500"
-              }`}
-            >
-              <LayoutGrid className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider">
-                Explore
-              </span>
-            </button>
-
-            {/* Post (FAB) */}
-            <button
-              onClick={guardedOpenCreatePost}
-              className="flex items-center justify-center w-12 h-12 bg-[#FF3F3F] text-white rounded-full -mt-5 shadow-lg shadow-[#FF3F3F]/40 hover:bg-[#E53535] active:scale-95 transition"
-              aria-label="Post"
-            >
-              <Plus className="w-6 h-6" />
-            </button>
-
-            {/* Activity */}
-            <button
-              onClick={() =>
-                isAuthenticated
-                  ? setActiveTab("activity")
-                  : setActiveTab("login")
-              }
-              className={`flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
-                activeTab === "activity" ? "text-[#FF3F3F]" : "text-zinc-500"
-              }`}
-            >
-              <Activity className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider">
-                Activity
-              </span>
-            </button>
-
-            {/* Inbox */}
-            <button
-              onClick={() =>
-                isAuthenticated
-                  ? setActiveTab("responses")
-                  : setActiveTab("login")
-              }
-              className={`relative flex flex-col items-center gap-0.5 py-2.5 px-3 transition ${
-                activeTab === "responses" ? "text-[#FF3F3F]" : "text-zinc-500"
-              }`}
-            >
-              <Inbox className="w-5 h-5" />
-              <span className="text-[9px] font-bold uppercase tracking-wider">
-                Inbox
-              </span>
-            </button>
-          </div>
-        </div>
+        <MobileBottomNavigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          isAuthenticated={isAuthenticated}
+          currentUser={currentUser}
+          onCreatePost={guardedOpenCreatePost}
+        />
       </div>
 
       {isAuthenticated && (

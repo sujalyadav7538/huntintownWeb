@@ -421,10 +421,6 @@ export default function HomePage({
 }: HomePageProps) {
   const posts = useAppSelector((s) => s.posts);
   const dispatch = useAppDispatch();
-  const [selectedMapPin, setSelectedMapPin] = useState<string | null>(null);
-  const [activeCharterTab, setActiveCharterTab] = useState<
-    "fees" | "trust" | "safety"
-  >("fees");
 
   useEffect(() => {
     console.log("Calling Post ");
@@ -443,17 +439,17 @@ export default function HomePage({
     category: post.category,
     budget: post.budget || "Negotiable",
   }));
-return (
-  <main className="min-h-screen bg-[#171717] text-white overflow-x-hidden">
-    {/* Hero */}
-    <HeroSection
-      activePosts={activePosts}
-      onPostRequirement={onPostRequirement}
-      onExplore={onExplore}
-    />
+  return (
+    <main className="min-h-screen bg-[#171717] text-white overflow-x-hidden">
+      {/* Hero */}
+      <HeroSection
+        activePosts={activePosts}
+        onPostRequirement={onPostRequirement}
+        onExplore={onExplore}
+      />
 
-    {/* Main Content */}
-    <div className="">
+      {/* Main Content */}
+      <div className="">
         <MapSection posts={activePosts} />
 
         <WhyHuntInTown />
@@ -463,10 +459,10 @@ return (
         <TrustSystem />
 
         <CommunityPrinciples />
-    </div>
+      </div>
 
-    {/* Footer */}
-    <Footer />
-  </main>
-);
+      {/* Footer */}
+      <Footer />
+    </main>
+  );
 }

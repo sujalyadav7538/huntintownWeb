@@ -30,6 +30,7 @@ export interface User {
   governmentVerificationStatus?: "none" | "pending" | "verified" | "rejected";
   // Account
   isActive?: boolean;
+  isOnline?: boolean;
   lastSeen?: string;
   // UI-only
   joinedAt?: string;
@@ -162,10 +163,22 @@ export interface Message {
     avatar: string;
   };
   text: string;
+  content?: string;
+  messageType?: "text" | "image" | "video" | "audio" | "document";
+  attachment?: {
+    url?: string;
+    publicId?: string;
+    fileName?: string;
+    mimeType?: string;
+    size?: number;
+    thumbnail?: string;
+  };
   isRead: boolean;
   readBy?: string[];
   createdAt: string;
   updatedAt?: string;
+  /** Frontend-only: tracks optimistic send lifecycle */
+  sendStatus?: "sending" | "sent" | "failed";
 }
 
 export interface Conversation {

@@ -1,3 +1,5 @@
+import { AUTH_REDIRECT_LOCK_KEY, clearAuthStorage } from "./authStorage";
+
 /**
  * Single source-of-truth for all API calls.
  *
@@ -27,9 +29,22 @@ export async function apiFetch(
     try {
       const body = await response.clone().json();
 
-      if (body?.message === "Invalid token") {
-        localStorage.clear();
-        window.location.href = "/login";
+      const message = String(body?.message ?? "").toLowerCase();
+      const hasToken = Boolean(localStorage.getItem("access_token"));
+      const isTokenError =
+        message.includes("invalid token") ||
+        message.includes("jwt") ||
+        message.includes("unauthorized");
+
+      if (hasToken && isTokenError) {
+        const alreadyRedirecting =
+          sessionStorage.getItem(AUTH_REDIRECT_LOCK_KEY) === "1";
+
+        if (!alreadyRedirecting) {
+          sessionStorage.setItem(AUTH_REDIRECT_LOCK_KEY, "1");
+          clearAuthStorage();
+          window.location.replace("/login");
+        }
       }
     } catch {
       // Ignore if response is not JSON

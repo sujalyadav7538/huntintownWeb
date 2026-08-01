@@ -8,6 +8,8 @@ import {
   setActiveConversationId,
   setConversations,
   setChatPosts,
+  setUserPresence,
+  addMessageToConversation,
 } from "../store/conversationsSlice";
 import { socket } from "../lib/socket";
 
@@ -16,7 +18,9 @@ import ChatList from "./messaging/ChatList";
 import ChatHeader from "./messaging/ChatHeader";
 import MessageBubble from "./messaging/MessageBubble";
 import MessageInput from "./messaging/MessageInput";
+import DateSeparator from "./messaging/DateSeparator";
 import { apiFetch } from "../lib/api";
+import { formatDateLabel } from "../lib/presence";
 
 export default function Messaging() {
   const dispatch = useAppDispatch();
@@ -24,8 +28,12 @@ export default function Messaging() {
   const [searchParams] = useSearchParams();
 
   const { currentUser, token } = useAppSelector((s) => s.auth);
-  const { conversations, activeConversationId, conversationMessages, chatPosts } =
-    useAppSelector((s) => s.conversations);
+  const {
+    conversations,
+    activeConversationId,
+    conversationMessages,
+    chatPosts,
+  } = useAppSelector((s) => s.conversations);
 
   const activePostId = searchParams.get("postId");
   const [postsLoading, setPostsLoading] = useState(false);
@@ -52,13 +60,19 @@ export default function Messaging() {
   // When URL postId changes, load conversations for that post
   useEffect(() => {
     dispatch(setActiveConversationId(null));
-    if (!activePostId) { dispatch(setConversations([])); return; }
+    if (!activePostId) {
+      dispatch(setConversations([]));
+      return;
+    }
     const load = async () => {
       setConvsLoading(true);
       try {
-        const res = await apiFetch(`/api/chat/posts/${activePostId}/conversations`, {
-          headers: { Authorization: `${token}` },
-        });
+        const res = await apiFetch(
+          `/api/chat/posts/${activePostId}/conversations`,
+          {
+            headers: { Authorization: `${token}` },
+          },
+        );
         const data = await res.json();
         dispatch(setConversations(data?.data ?? []));
       } finally {
@@ -82,9 +96,14 @@ export default function Messaging() {
     if (!activeConversationId) return;
 
     const join = () => {
-      socket.emit("join-conversation", activeConversationId, (response: any) => {
-        if (!response?.success) console.error("❌ Join failed:", response?.message);
-      });
+      socket.emit(
+        "join-conversation",
+        activeConversationId,
+        (response: any) => {
+          if (!response?.success)
+            console.error("❌ Join failed:", response?.message);
+        },
+      );
     };
 
     if (socket.connected) {
@@ -98,18 +117,66 @@ export default function Messaging() {
     };
   }, [activeConversationId]);
 
+  // new-message lives here (stable parent) so it's never missed during conversation switches
+  useEffect(() => {
+    const handleNewMessage = (message: any) => {
+      // Coerce conversationId to string — backend sends BSON ObjectId over socket
+      const convId = String(message.conversationId);
+      const isIncoming = message.sender?.id !== currentUser?.id;
+      dispatch(
+        addMessageToConversation({
+          conversationId: convId,
+          message: { ...message, conversationId: convId },
+          incoming: isIncoming,
+        }),
+      );
+    };
+
+    socket.on("new-message", handleNewMessage);
+    return () => socket.off("new-message", handleNewMessage);
+  }, [dispatch, currentUser?.id]);
+
+  // Live presence updates
+  useEffect(() => {
+    const handleUserOnline = (userId: string) => {
+      dispatch(setUserPresence({ userId, isOnline: true }));
+    };
+
+    const handleUserOffline = (payload: {
+      userId: string;
+      lastSeen?: string;
+    }) => {
+      dispatch(
+        setUserPresence({
+          userId: payload.userId,
+          isOnline: false,
+          lastSeen: payload.lastSeen,
+        }),
+      );
+    };
+
+    socket.on("user-online", handleUserOnline);
+    socket.on("user-offline", handleUserOffline);
+
+    return () => {
+      socket.off("user-online", handleUserOnline);
+      socket.off("user-offline", handleUserOffline);
+    };
+  }, [dispatch]);
+
   const handleSelectPost = (postId: string) =>
     navigate(`/messaging?postId=${postId}`, { replace: true });
 
   const handleBackToPosts = () => navigate("/messaging", { replace: true });
 
-  const activeConversation = conversations.find((c) => c._id === activeConversationId);
+  const activeConversation = conversations.find(
+    (c) => c._id === activeConversationId,
+  );
   const activePostTitle = chatPosts.find((p) => p._id === activePostId)?.title;
 
   return (
     <>
       <div className="flex flex-1 overflow-hidden text-zinc-100 font-sans border-t border-[#1e1e22]">
-
         {/* LEFT PANEL — Post Picker when no post selected, Conversation List when post selected */}
         {!activePostId ? (
           <PostPicker
@@ -120,7 +187,9 @@ export default function Messaging() {
         ) : (
           <ChatList
             activeConversationId={activeConversationId}
-            setActiveConversationId={(id) => dispatch(setActiveConversationId(id))}
+            setActiveConversationId={(id) =>
+              dispatch(setActiveConversationId(id))
+            }
             onBackToPosts={handleBackToPosts}
             postTitle={activePostTitle}
             loading={convsLoading}
@@ -139,7 +208,9 @@ export default function Messaging() {
             <>
               <ChatHeader
                 activeConv={activeConversation}
-                setActiveConversationId={(id) => dispatch(setActiveConversationId(id))}
+                setActiveConversationId={(id) =>
+                  dispatch(setActiveConversationId(id))
+                }
               />
               <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
                 <div className="flex justify-center pb-5 select-none">
@@ -148,15 +219,31 @@ export default function Messaging() {
                   </span>
                 </div>
                 <div className="space-y-3">
-                  {activeMessages.map((msg) => (
-                    <MessageBubble key={msg._id} msg={msg} currentUserId={currentUser.id} />
-                  ))}
+                  {activeMessages.map((msg, idx) => {
+                    const label = formatDateLabel(msg.createdAt);
+                    const prevLabel =
+                      idx > 0
+                        ? formatDateLabel(activeMessages[idx - 1].createdAt)
+                        : null;
+                    const showSeparator = label !== prevLabel;
+                    return (
+                      <div key={msg._id}>
+                        {showSeparator && <DateSeparator label={label} />}
+                        <MessageBubble
+                          msg={msg}
+                          currentUserId={currentUser.id}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
                 <div ref={chatEndRef} />
               </div>
               <MessageInput
                 participantName={
-                  activeConversation.participants.find((p) => p.id !== currentUser?.id)?.name ?? ""
+                  activeConversation.participants.find(
+                    (p) => p.id !== currentUser?.id,
+                  )?.name ?? ""
                 }
               />
             </>
@@ -164,7 +251,9 @@ export default function Messaging() {
             <div className="p-12 text-center text-zinc-500 space-y-2 select-none">
               <MessageSquare className="w-12 h-12 text-zinc-700 mx-auto" />
               <p className="text-sm font-bold text-zinc-300 font-display uppercase tracking-wider">
-                {activePostId ? "Select a conversation" : "Select a post to begin"}
+                {activePostId
+                  ? "Select a conversation"
+                  : "Select a post to begin"}
               </p>
               <p className="text-xs text-zinc-500 leading-relaxed max-w-xs mx-auto">
                 {activePostId
@@ -174,7 +263,6 @@ export default function Messaging() {
             </div>
           )}
         </div>
-
       </div>
       <div className="shrink-0 h-14 md:hidden" />
     </>

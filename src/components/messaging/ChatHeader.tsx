@@ -3,6 +3,7 @@ import { Conversation } from '../../types';
 import { MapPin } from 'lucide-react';
 import { getAvatarUrl, handleAvatarError } from '../../utils';
 import { useAppSelector } from '@/src/store/hooks';
+import { formatLastSeen } from '@/src/lib/presence';
 
 interface ChatHeaderProps {
   activeConv: Conversation;
@@ -35,7 +36,11 @@ export default function ChatHeader({ activeConv, setActiveConversationId }: Chat
           <div className="flex items-center gap-1.5 leading-none">
             <h4 className="font-bold text-xs text-zinc-100 font-display">{otherParticipant?.name}</h4>
           </div>
-          <p className="text-[10px] text-zinc-400 truncate max-w-xs mt-0.5 leading-none">{otherParticipant?.role}</p>
+          <p className="text-[10px] text-zinc-400 truncate max-w-xs mt-0.5 leading-none">
+            {otherParticipant?.isOnline
+              ? "Online"
+              : formatLastSeen(otherParticipant?.lastSeen)}
+          </p>
         </div>
       </div>
 

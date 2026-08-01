@@ -1,7 +1,6 @@
-import { AppDispatch, RootState } from './index';
+import { AppDispatch } from './index';
 import { apiFetch } from '../lib/api';
 import { deletePost, updatePostStatus, upsertPost, normalizePost, addComment } from './postsSlice';
-// setConversations removed — was only used in fetchConversations (now dead code)
 import { Comment } from '../types';
 
 // ─── Create a post via API then upsert into Redux ────────────────────────────
@@ -48,47 +47,22 @@ export const updatePostStatusThunk =
   ) =>
   async (dispatch: AppDispatch): Promise<void> => {
     const token = localStorage.getItem('access_token');
-    const res = await apiFetch(`/api/posts/${postId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `${token}`,
+    const isCompletion = status === 'completed';
+    const res = await apiFetch(
+      isCompletion ? `/api/posts/${postId}/complete` : `/api/posts/${postId}`,
+      {
+        method: isCompletion ? 'PATCH' : 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${token}`,
+        },
+        body: isCompletion ? undefined : JSON.stringify({ status }),
       },
-      body: JSON.stringify({ status }),
-    });
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to update post status');
     dispatch(updatePostStatus({ postId, status }));
   };
-
-// ─── Mark a post as completed via API then sync Redux ───────────────────────
-export const markPostCompletedThunk =
-  (postId: string) =>
-  async (dispatch: AppDispatch): Promise<void> => {
-    const token = localStorage.getItem('access_token');
-    const res = await apiFetch(`/api/posts/${postId}/complete`, {
-      method: 'PATCH',
-      headers: { Authorization: `${token}` },
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to mark post as completed');
-    dispatch(updatePostStatus({ postId, status: 'completed' }));
-  };
-
-// DEAD: fetchConversations — calls GET /api/chat/conversations (getMyConversations) but is never
-// imported or dispatched anywhere in the app. Messaging uses /api/chat/posts + /api/chat/posts/:id/conversations.
-// export const fetchConversations =
-//   () =>
-//   async (dispatch: AppDispatch, getState: () => RootState): Promise<void> => {
-//     const token = getState().auth.token;
-//     if (!token) return;
-//     const res = await apiFetch('/api/chat/conversations', {
-//       headers: { Authorization: `${token}` },
-//     });
-//     if (!res.ok) return;
-//     const data = await res.json();
-//     dispatch(setConversations(data?.data ?? []));
-//   };
 
 // ─── Submit an offer via API then optimistically update Redux ─────────────────
 export const submitOfferThunk =
@@ -119,27 +93,5 @@ export const submitOfferThunk =
       answers,
     };
     dispatch(addComment({ postId, comment: fakeComment, isOffer: true }));
-  };
-
-// ─── Navigate to messaging — real conversations are created server-side ───────
-export const openDirectChat =
-  (_recipient: unknown) =>
-  (_dispatch: AppDispatch): void => {
-    // Conversations are created in the backend when an offer is accepted.
-    // Just navigate to /messaging; Messaging.tsx fetches all conversations on mount.
-  };
-
-// ─── sendMessage is handled via socket.io in MessageInput.tsx ────────────────
-export const sendMessage =
-  (_conversationId: string, _content: string) =>
-  (_dispatch: AppDispatch): void => {
-    // No-op: MessageInput.tsx emits directly via socket.io.
-  };
-
-// ─── (legacy) submitComment — use submitOfferThunk instead ────────────────────
-export const submitComment =
-  () =>
-  (_dispatch: AppDispatch): void => {
-    // Deprecated.
   };
 

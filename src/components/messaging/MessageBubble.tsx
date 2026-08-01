@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCheck } from "lucide-react";
+import { AlertCircle, CheckCheck, Loader2 } from "lucide-react";
 import { Message } from "../../types";
 
 interface MessageBubbleProps {
@@ -13,6 +13,8 @@ export default function MessageBubble({
   currentUserId,
 }: MessageBubbleProps) {
   const isMe = msg.sender.id === currentUserId;
+  const hasAttachment = Boolean(msg.attachment?.url);
+  const isImage = msg.messageType === "image";
 
   return (
     <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
@@ -23,7 +25,31 @@ export default function MessageBubble({
             : "rounded-bl-md border-[#26262b] bg-[#121216]/92 text-zinc-100"
         }`}
       >
-        <p className="whitespace-pre-wrap">{msg.text}</p>
+        {hasAttachment && isImage ? (
+          <a href={msg.attachment?.url} target="_blank" rel="noreferrer">
+            <img
+              src={msg.attachment?.thumbnail || msg.attachment?.url}
+              alt={msg.attachment?.fileName || "attachment"}
+              className="mb-2 max-h-60 w-auto rounded-lg border border-[#2a2a2f] object-cover"
+            />
+          </a>
+        ) : null}
+
+        {hasAttachment && !isImage ? (
+          <a
+            href={msg.attachment?.url}
+            target="_blank"
+            rel="noreferrer"
+            className="mb-2 block rounded-lg border border-[#2a2a2f] bg-[#0d0d11] px-3 py-2 text-[11px] text-zinc-200 hover:border-[#3a3a42]"
+          >
+            <p className="font-semibold truncate">{msg.attachment?.fileName || "Attachment"}</p>
+            <p className="text-[10px] text-zinc-500 mt-0.5">
+              {msg.attachment?.mimeType || "file"}
+            </p>
+          </a>
+        ) : null}
+
+        {msg.text ? <p className="whitespace-pre-wrap">{msg.text}</p> : null}
 
         <div
           className={`flex justify-end items-center gap-1 mt-1 text-[9px] ${
@@ -37,7 +63,15 @@ export default function MessageBubble({
             })}
           </span>
 
-          {isMe && <CheckCheck className="w-3 h-3" />}
+          {isMe && msg.sendStatus === "sending" && (
+            <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
+          )}
+          {isMe && msg.sendStatus === "failed" && (
+            <AlertCircle className="w-3 h-3 text-red-400"  />
+          )}
+          {isMe && (!msg.sendStatus || msg.sendStatus === "sent") && (
+            <CheckCheck className="w-3 h-3" />
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../types";
 import { socket } from "../lib/socket";
+import { AUTH_REDIRECT_LOCK_KEY, clearAuthStorage } from "../lib/authStorage";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -36,15 +37,17 @@ export const authSlice = createSlice({
       socket.auth = {
         token: action.payload.token,
       };
+      sessionStorage.removeItem(AUTH_REDIRECT_LOCK_KEY);
       socket.connect();
     },
     logout: (state) => {
       state.isAuthenticated = false;
       state.currentUser = null;
       state.token = null;
-      localStorage.removeItem("neighbourly_auth");
-      localStorage.removeItem("neighbourly_user");
-      localStorage.removeItem("access_token");
+      clearAuthStorage();
+      sessionStorage.removeItem(AUTH_REDIRECT_LOCK_KEY);
+      socket.auth = { token: "" };
+      socket.disconnect();
     },
     updateProfile: (state, action: PayloadAction<User>) => {
       state.currentUser = action.payload;

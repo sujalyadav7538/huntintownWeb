@@ -61,9 +61,6 @@ export const postsSlice = createSlice({
   name: "posts",
   initialState,
   reducers: {
-    setPosts: (_state, action: PayloadAction<Post[]>) => {
-      return action.payload;
-    },
     upsertPost: (state, action: PayloadAction<Post>) => {
       const idx = state.findIndex(
         (p) => p._id === action.payload._id || p.id === action.payload.id,
@@ -73,9 +70,6 @@ export const postsSlice = createSlice({
       } else {
         state.unshift(action.payload);
       }
-    },
-    createPost: (state, action: PayloadAction<Post>) => {
-      state.unshift(action.payload);
     },
     deletePost: (state, action: PayloadAction<string>) => {
       return state.filter(
@@ -121,9 +115,7 @@ export const postsSlice = createSlice({
 });
 
 export const {
-  setPosts,
   upsertPost,
-  createPost,
   deletePost,
   addComment,
   updatePostStatus,

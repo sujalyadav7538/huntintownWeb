@@ -28,11 +28,11 @@ export default function HuntMap({
 
   // Fly to user's location once the map is ready and location is available
   useEffect(() => {
-    console.log("njinji",mapReady,map.current)
+    console.log("njinji", mapReady, map.current);
     // if (!mapReady || !map.current ) return;
     // 1. Browser GPS
     if (location) {
-      console.log("Rendering GPS location")
+      console.log("Rendering GPS location");
       map.current.flyTo({
         center: [location.longitude, location.latitude],
         zoom: 14,
@@ -43,7 +43,7 @@ export default function HuntMap({
     const userCoordinates = currentUser?.location?.coordinates;
     // 2. Saved profile location
     if (userCoordinates) {
-      console.log("Rendering User location")
+      console.log("Rendering User location");
       map.current.flyTo({
         center: [userCoordinates.longitude, userCoordinates.latitude],
         zoom: 14,
@@ -69,9 +69,9 @@ export default function HuntMap({
         hasPosts = true;
       }
     });
-    console.log(bounds)
+    console.log(bounds);
     if (hasPosts) {
-      console.log("Rendering Cluster location")
+      console.log("Rendering Cluster location");
       map.current.fitBounds(bounds, {
         padding: {
           top: 80,
@@ -89,60 +89,32 @@ export default function HuntMap({
 
   return (
     <div
-      className={`relative w-full overflow-hidden border-2 border-[#1e1e22] bg-[#0e0e10] ${
-        className ?? "h-[60vh] md:h-[440px]"
-      } rounded-2xl  shadow-lg`}
+      className={`relative w-full overflow-hidden rounded-2xl ${
+        className ?? "h-full"
+      }`}
     >
       <div
         ref={mapContainer}
-        className="absolute inset-0 w-full h-full touch-none sm:touch-auto"
+        className="absolute inset-0 h-full w-full touch-none sm:touch-auto"
       />
 
       {mapReady && (
         <>
-          {/* Recenter button */}
-          <button
-            aria-label="Recenter map"
-            className="absolute left-3 top-3 z-20 inline-flex items-center justify-center w-10 h-10 bg-[#0b0b0d] border border-[#2a2a2f] rounded-md shadow-md text-white hover:brightness-110"
-            onClick={() => {
-              if (map.current && location) {
-                map.current.easeTo({
-                  center: [location.longitude, location.latitude],
-                  zoom: 14,
-                });
-              }
-            }}
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5L3.5 3.5M20.5 20.5L19 19M19 5l1.5-1.5M4.5 20.5L6 19"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
           <UserMarker map={map.current} location={location} />
-          {/* Posts layer renders markers and handles clicks */}
+
           <PostsLayer
             map={map.current}
             posts={posts}
             onPostClick={(post) => {
-              // on small screens, center the clicked post for clarity
               const coords = post?.location?.coordinates;
+
               if (coords && map.current) {
                 map.current.easeTo({
                   center: [coords[0], coords[1]],
                   zoom: 14,
                 });
               }
+
               setSelectedPost(post);
               onPostClick?.(post);
             }}
@@ -151,15 +123,14 @@ export default function HuntMap({
           {selectedPost && (
             <MapPostPreview
               post={selectedPost}
-              // map={map.current}
               onClose={() => setSelectedPost(null)}
-              onView={() => {
+              onView={() =>
                 navigate("/explore", {
                   state: {
                     openPostId: selectedPost._id || selectedPost.id,
                   },
-                });
-              }}
+                })
+              }
             />
           )}
         </>

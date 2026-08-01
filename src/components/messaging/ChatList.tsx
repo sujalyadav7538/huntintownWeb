@@ -6,6 +6,7 @@ import { getAvatarUrl, handleAvatarError } from "../../utils";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { apiFetch } from "@/src/lib/api";
 import { setConversationMessages } from "@/src/store/conversationsSlice";
+import { formatLastSeen } from "@/src/lib/presence";
 
 export default function ChatList({
   setActiveConversationId,
@@ -129,7 +130,13 @@ export default function ChatList({
                     referrerPolicy="no-referrer"
                   />
 
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0d0d0f] animate-pulse" />
+                  <span
+                    className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0d0d0f] ${
+                      otherUser?.isOnline
+                        ? "bg-emerald-500 animate-pulse"
+                        : "bg-zinc-600"
+                    }`}
+                  />
                 </div>
 
                 {/* Info (you can re-enable later) */}
@@ -140,6 +147,11 @@ export default function ChatList({
 
                   <p className="mt-1 text-xs text-zinc-500 truncate">
                     {conv?.post?.title || "No post title"}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-zinc-500 truncate">
+                    {otherUser?.isOnline
+                      ? "Online"
+                      : formatLastSeen(otherUser?.lastSeen)}
                   </p>
                 </div>
 

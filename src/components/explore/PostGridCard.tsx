@@ -1,40 +1,47 @@
-import { MapPin, Clock, Users, IndianRupee, Zap } from "lucide-react";
-import { Post } from "../../types";
-import { getPostExpiryLabel, handleAvatarError, isPostExpired } from "../../utils";
+﻿import { MapPin, Clock, Users, IndianRupee, Zap } from "lucide-react";
+import {
+  getPostExpiryLabel,
+  handleAvatarError,
+  isPostExpired,
+  getAvatarUrl,
+} from "../../utils";
+import { CATEGORY_GRADIENTS, CATEGORY_COLORS } from "../../lib/postConstants";
 
-const CATEGORY_GRADIENTS: Record<string, string> = {
-  Technology: "from-indigo-950 to-indigo-900",
-  Design: "from-pink-950 to-pink-900",
-  Marketing: "from-amber-950 to-amber-900",
-  Writing: "from-emerald-950 to-emerald-900",
-  Education: "from-blue-950 to-blue-900",
-  Finance: "from-teal-950 to-teal-900",
-  Health: "from-green-950 to-green-900",
-  Legal: "from-violet-950 to-violet-900",
-  "Home & Living": "from-orange-950 to-orange-900",
-};
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Technology: "#6366f1",
-  Design: "#ec4899",
-  Marketing: "#f59e0b",
-  Writing: "#10b981",
-  Education: "#3b82f6",
-  Finance: "#14b8a6",
-  Health: "#22c55e",
-  Legal: "#8b5cf6",
-  "Home & Living": "#f97316",
-};
-
-interface PostGridCardProps {
-  post: Post;
-  onSelect: () => void;
+/** Minimum shape required â€” satisfied by Post, ActivityPost, and ResponsePost */
+export interface PostCardData {
+  title: string;
+  description: string;
+  category: string;
+  status: string;
+  address?: string;
+  budget?: string;
+  timeline?: string;
+  images?: string[];
+  expiresAt?: string;
+  offersCount?: number;
+  createdAt?: string;
+  author?: { name: string; avatar?: string | null };
 }
 
-export default function PostGridCard({ post, onSelect }: PostGridCardProps) {
-  const expired = isPostExpired(post.expiresAt);
-  const timeLabel = getPostExpiryLabel(post.expiresAt);
-  const gradient = CATEGORY_GRADIENTS[post.category] || "from-zinc-900 to-zinc-800";
+interface PostGridCardProps {
+  post: PostCardData;
+  onSelect: () => void;
+  /** Thumbnail bottom-left overlay (e.g. "3 new" pill, offer status) */
+  badge?: React.ReactNode;
+  /** Extra row below the footer (e.g. offer count, accepted count) */
+  meta?: React.ReactNode;
+}
+
+export default function PostGridCard({
+  post,
+  onSelect,
+  badge,
+  meta,
+}: PostGridCardProps) {
+  const expired = post.expiresAt ? isPostExpired(post.expiresAt) : false;
+  const timeLabel = post.expiresAt ? getPostExpiryLabel(post.expiresAt) : null;
+  const gradient =
+    CATEGORY_GRADIENTS[post.category] || "from-zinc-900 to-zinc-800";
   const accent = CATEGORY_COLORS[post.category] || "#FF3F3F";
   const isUrgent =
     post.title.toLowerCase().includes("urgent") ||
@@ -45,8 +52,10 @@ export default function PostGridCard({ post, onSelect }: PostGridCardProps) {
       onClick={onSelect}
       className="group flex flex-col overflow-hidden rounded-xl border border-zinc-800/60 bg-[#0e0e10] cursor-pointer transition-all duration-200 hover:border-zinc-700 hover:shadow-lg hover:shadow-black/40 hover:-translate-y-0.5"
     >
-      {/* Thumbnail */}
-      <div className={`relative h-36 bg-linear-to-br ${gradient} overflow-hidden`}>
+      {/* â”€â”€ Thumbnail â”€â”€ */}
+      <div
+        className={`relative h-36 bg-linear-to-br ${gradient} overflow-hidden`}
+      >
         {post.images?.length ? (
           <img
             src={post.images[0]}
@@ -56,7 +65,7 @@ export default function PostGridCard({ post, onSelect }: PostGridCardProps) {
         ) : (
           <div className="flex h-full items-center justify-center">
             <span
-              className="text-4xl font-black opacity-20 select-none"
+              className="text-5xl font-black opacity-15 select-none"
               style={{ color: accent }}
             >
               {post.category?.[0] ?? "?"}
@@ -64,73 +73,99 @@ export default function PostGridCard({ post, onSelect }: PostGridCardProps) {
           </div>
         )}
 
-        {/* Top badges */}
+        {/* top-left: category + urgent */}
         <div className="absolute top-2 left-2 flex gap-1.5">
           <span
             className="px-2 py-0.5 rounded-full text-[10px] font-semibold backdrop-blur-md"
-            style={{ background: `${accent}22`, color: accent, border: `1px solid ${accent}44` }}
+            style={{
+              background: `${accent}22`,
+              color: accent,
+              border: `1px solid ${accent}44`,
+            }}
           >
             {post.category}
           </span>
           {isUrgent && !expired && (
-            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-[#FF3F3F]/20 text-[#FF3F3F] border border-[#FF3F3F]/40 backdrop-blur-md uppercase tracking-wide">
+            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-[#FF3F3F]/20 text-[#FF3F3F] border border-[#FF3F3F]/40 backdrop-blur-md uppercase">
               <Zap className="w-2.5 h-2.5" />
               Urgent
             </span>
           )}
         </div>
 
-        {/* Offers badge */}
-        <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 backdrop-blur-md text-[10px] text-zinc-300">
+        {/* top-right: offer count */}
+        <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 backdrop-blur-md text-[10px] text-zinc-300">
           <Users className="w-3 h-3" />
-          {post.offersCount}
+          {post.offersCount ?? 0}
         </div>
 
+        {/* bottom-left: optional badge slot */}
+        {badge && <div className="absolute bottom-2 left-2">{badge}</div>}
+
         {expired && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="text-xs font-semibold text-zinc-400 bg-black/60 px-3 py-1 rounded-full">Expired</span>
+          <div className="absolute inset-0 bg-black/55 flex items-center justify-center">
+            <span className="text-xs font-semibold text-zinc-400 bg-black/60 px-3 py-1 rounded-full">
+              Expired
+            </span>
           </div>
         )}
       </div>
 
-      {/* Body */}
-      <div className="flex flex-1 flex-col gap-2 p-3">
+      {/* â”€â”€ Body â”€â”€ */}
+      <div className="flex flex-1 flex-col p-3 gap-2">
+        {/* author row â€” only when author data is provided */}
+        {post.author && (
+          <div className="flex items-center gap-2">
+            <img
+              src={getAvatarUrl(
+                post.author.name,
+                post.author.avatar ?? undefined,
+              )}
+              alt={post.author.name}
+              className="h-6 w-6 rounded-full object-cover ring-1 ring-zinc-700 shrink-0"
+              onError={(e) => handleAvatarError(e, post.author!.name)}
+              referrerPolicy="no-referrer"
+            />
+            <span className="truncate text-[11px] text-zinc-400">
+              {post.author.name}
+            </span>
+            {post.createdAt && (
+              <span className="ml-auto shrink-0 text-[10px] text-zinc-600">
+                {new Date(post.createdAt).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                })}
+              </span>
+            )}
+          </div>
+        )}
+
         <h3 className="line-clamp-2 text-[13px] font-semibold leading-snug text-zinc-100 group-hover:text-white">
           {post.title}
         </h3>
 
-        {/* Author row */}
-        <div className="flex items-center gap-2 mt-auto">
-          <img
-            src={post.author?.avatar || ""}
-            alt={post.author?.name}
-            className="h-6 w-6 rounded-full object-cover ring-1 ring-zinc-700 shrink-0"
-            onError={(e) => handleAvatarError(e, post.author?.name || "?")}
-            referrerPolicy="no-referrer"
-          />
-          <span className="truncate text-[11px] text-zinc-400">{post.author?.name}</span>
-        </div>
-
-        {/* Meta row */}
-        <div className="flex items-center justify-between text-[10px] text-zinc-600 pt-1 border-t border-zinc-800/60">
+        <div className="mt-auto flex items-center justify-between gap-2 text-[10px] text-zinc-600 pt-1.5 border-t border-zinc-800/50">
           <span className="flex items-center gap-1 truncate">
             <MapPin className="w-2.5 h-2.5 shrink-0" />
-            <span className="truncate">{post.address}</span>
+            <span className="truncate">{post.address || "â€”"}</span>
           </span>
-          <span className="flex items-center gap-1 shrink-0 ml-2">
-            {post.budget && (
-              <>
+          <div className="flex items-center gap-2 shrink-0">
+            {post.budget && post.budget !== "Negotiable" && (
+              <span className="flex items-center gap-0.5">
                 <IndianRupee className="w-2.5 h-2.5" />
                 {post.budget}
-              </>
+              </span>
             )}
-          </span>
+            {timeLabel && !expired && (
+              <span className="flex items-center gap-0.5">
+                <Clock className="w-2.5 h-2.5" />
+                {timeLabel}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 text-[10px] text-zinc-600">
-          <Clock className="w-2.5 h-2.5 shrink-0" />
-          {timeLabel}
-        </div>
+        {meta && <div>{meta}</div>}
       </div>
     </article>
   );

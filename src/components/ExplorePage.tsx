@@ -41,7 +41,9 @@ export default function ExplorePage() {
   useEffect(() => {
     const state = location.state as { openPostId?: string } | null;
     if (state?.openPostId && posts.length) {
-      const p = posts.find((p) => p._id === state.openPostId || p.id === state.openPostId);
+      const p = posts.find(
+        (p) => p._id === state.openPostId || p.id === state.openPostId,
+      );
       if (p) setSelectedPost(p);
       // Clear the state so refreshing doesn't re-open it
       navigate(location.pathname, { replace: true, state: {} });
@@ -99,10 +101,15 @@ export default function ExplorePage() {
             <Compass className="w-4 h-4 text-[#FF3F3F]" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-bold text-zinc-100 leading-tight">Browse Requirements</p>
+            <p className="text-[13px] font-bold text-zinc-100 leading-tight">
+              Browse Requirements
+            </p>
             <p className="text-[11px] text-zinc-500 mt-0.5">
               Viewing as guest.{" "}
-              <button onClick={() => navigate("/login")} className="text-[#FF3F3F] hover:underline font-semibold cursor-pointer">
+              <button
+                onClick={() => navigate("/login")}
+                className="text-[#FF3F3F] hover:underline font-semibold cursor-pointer"
+              >
                 Sign in
               </button>{" "}
               to offer help or message posters.
@@ -149,15 +156,21 @@ export default function ExplorePage() {
       {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       ) : filteredPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-[#FF3F3F]/8 border border-[#FF3F3F]/15 flex items-center justify-center mb-4">
             <SlidersHorizontal className="w-6 h-6 text-[#FF3F3F]/60" />
           </div>
-          <p className="text-[15px] font-semibold text-zinc-300">No matching requirements</p>
-          <p className="text-[12px] text-zinc-600 mt-1.5 max-w-xs">Try a different filter or search term.</p>
+          <p className="text-[15px] font-semibold text-zinc-300">
+            No matching requirements
+          </p>
+          <p className="text-[12px] text-zinc-600 mt-1.5 max-w-xs">
+            Try a different filter or search term.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">

@@ -22,16 +22,6 @@ export const conversationsSlice = createSlice({
     setActiveConversationId: (state, action: PayloadAction<string | null>) => {
       state.activeConversationId = action.payload;
     },
-    upsertConversation: (state, action: PayloadAction<Conversation>) => {
-      const idx = state.conversations.findIndex(
-        (c) => c._id === action.payload._id,
-      );
-      if (idx >= 0) {
-        state.conversations[idx] = action.payload;
-      } else {
-        state.conversations.unshift(action.payload);
-      }
-    },
     addMessageToConversation: (
       state,
       action: PayloadAction<{
@@ -40,31 +30,29 @@ export const conversationsSlice = createSlice({
         incoming?: boolean;
       }>,
     ) => {
-      const conv = state.conversations.find(
-        (c) => c._id === action.payload.conversationId,
+      const { conversationId, message, incoming } = action.payload;
+
+      // Always maintain the messages array — don't gate on conv existence
+      if (!state.conversationMessages[conversationId]) {
+        state.conversationMessages[conversationId] = [];
+      }
+
+      // Deduplicate: socket room broadcasts to sender AND receiver
+      const alreadyExists = state.conversationMessages[conversationId].some(
+        (m) => m._id === message._id,
       );
+      if (!alreadyExists) {
+        state.conversationMessages[conversationId].push(message);
+      }
+
+      // Update conversation metadata only if it's loaded in the list
+      const conv = state.conversations.find((c) => c._id === conversationId);
       if (conv) {
-        if (!state.conversationMessages[conv._id]) {
-          state.conversationMessages[conv._id] = [];
-        }
-        state.conversationMessages[conv._id].push(action.payload.message);
-        conv.lastMessage = action.payload.message.text;
-        conv.lastMessageAt = action.payload.message.createdAt;
-        if (action.payload.incoming) conv.unreadCount = (conv.unreadCount ?? 0) + 1;
+        conv.lastMessage = message.text || (message as any).content || "";
+        conv.lastMessageAt = message.createdAt;
+        if (incoming && !alreadyExists) conv.unreadCount = (conv.unreadCount ?? 0) + 1;
       }
     },
-    markConversationRead: (state, action: PayloadAction<string>) => {
-      const conv = state.conversations.find((c) => c._id === action.payload);
-      if (conv) conv.unreadCount = 0;
-    },
-    clearUnreadForUser: (state, action: PayloadAction<string>) => {
-      state.conversations = state.conversations.map((c) =>
-        c.participants.some((p) => p.id === action.payload)
-          ? { ...c, unreadCount: 0 }
-          : c,
-      );
-    },
-
     setConversations: (state, action: PayloadAction<Conversation[]>) => {
       state.conversations = action.payload ? action.payload : [];
     },
@@ -80,40 +68,75 @@ export const conversationsSlice = createSlice({
       state.conversationMessages[action.payload.conversationId] =
         action.payload.messages;
     },
-    updateConversationLastMessage: (
+    replaceMessage: (
       state,
       action: PayloadAction<{
         conversationId: string;
+        tempId: string;
         message: Message;
       }>,
     ) => {
-      const { conversationId, message } = action.payload;
-
-      const conv = state.conversations.find((c) => c._id === conversationId);
-
-      if (!conv) return;
-
-      if (!state.conversationMessages[conversationId]) {
-        state.conversationMessages[conversationId] = [];
+      const { conversationId, tempId, message } = action.payload;
+      const msgs = state.conversationMessages[conversationId];
+      if (!msgs) return;
+      const tempIdx = msgs.findIndex((m) => m._id === tempId);
+      const realIdx = msgs.findIndex((m) => m._id === message._id);
+      if (tempIdx >= 0) {
+        if (realIdx >= 0 && realIdx !== tempIdx) {
+          // Real message already arrived via new-message event before callback
+          msgs.splice(tempIdx, 1);
+          const adjusted = realIdx > tempIdx ? realIdx - 1 : realIdx;
+          msgs[adjusted] = { ...msgs[adjusted], sendStatus: message.sendStatus };
+        } else {
+          msgs[tempIdx] = message;
+        }
+      } else if (realIdx >= 0) {
+        msgs[realIdx] = { ...msgs[realIdx], sendStatus: message.sendStatus };
       }
-
-      state.conversationMessages[conversationId].push(message);
-
-      conv.lastMessage = message.text;
-      conv.lastMessageAt = message.createdAt;
+    },
+    setMessageStatus: (
+      state,
+      action: PayloadAction<{
+        conversationId: string;
+        messageId: string;
+        status: Message["sendStatus"];
+      }>,
+    ) => {
+      const { conversationId, messageId, status } = action.payload;
+      const msg = state.conversationMessages[conversationId]?.find(
+        (m) => m._id === messageId,
+      );
+      if (msg) msg.sendStatus = status;
+    },
+    setUserPresence: (
+      state,
+      action: PayloadAction<{
+        userId: string;
+        isOnline: boolean;
+        lastSeen?: string;
+      }>,
+    ) => {
+      const { userId, isOnline, lastSeen } = action.payload;
+      state.conversations = state.conversations.map((conversation) => ({
+        ...conversation,
+        participants: conversation.participants.map((participant) =>
+          participant.id === userId
+            ? { ...participant, isOnline, lastSeen: lastSeen ?? participant.lastSeen }
+            : participant,
+        ),
+      }));
     },
   },
 });
 
 export const {
   setActiveConversationId,
-  upsertConversation,
   addMessageToConversation,
-  markConversationRead,
-  clearUnreadForUser,
   setConversations,
   setChatPosts,
   setConversationMessages,
-  updateConversationLastMessage,
+  replaceMessage,
+  setMessageStatus,
+  setUserPresence,
 } = conversationsSlice.actions;
 export default conversationsSlice.reducer;
