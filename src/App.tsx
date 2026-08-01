@@ -61,6 +61,7 @@ export default function App() {
     }
     navigate(tab === "landing" ? "/" : `/${tab}`);
   };
+  console.log("Google API id",import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
   useEffect(() => {
     if (PROTECTED_TABS.includes(activeTab) && !isAuthenticated) {
