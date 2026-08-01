@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Paperclip, Send, Smile } from "lucide-react";
-import Picker from "@emoji-mart/react";
-import data from "@emoji-mart/data";
+import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { socket } from "@/src/lib/socket";
 import { Message } from "@/src/types";
@@ -90,9 +89,8 @@ export default function MessageInput({ participantName }: MessageInputProps) {
     };
   }, [isEmojiOpen]);
 
-  const handleEmojiSelect = (emoji: { native?: string }) => {
-    if (!emoji?.native) return;
-    setTypedText((prev) => `${prev}${emoji.native}`);
+  const handleEmojiSelect = (emoji: EmojiClickData) => {
+    setTypedText((prev) => `${prev}${emoji.emoji}`);
   };
 
   const handleUploadAttachment = async (
@@ -192,14 +190,13 @@ export default function MessageInput({ participantName }: MessageInputProps) {
           ref={pickerRef}
           className="absolute bottom-[calc(100%+10px)] left-4 z-50 rounded-xl border border-[#1e1e22] shadow-2xl overflow-hidden"
         >
-          <Picker
-            data={data}
-            onEmojiSelect={handleEmojiSelect}
-            theme="dark"
-            previewPosition="none"
-            skinTonePosition="none"
-            navPosition="bottom"
-            perLine={8}
+          <EmojiPicker
+            onEmojiClick={handleEmojiSelect}
+            theme={Theme.DARK}
+            previewConfig={{ showPreview: false }}
+            skinTonesDisabled
+            width={320}
+            height={380}
           />
         </div>
       )}
