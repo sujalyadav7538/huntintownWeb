@@ -7,6 +7,7 @@ import {
   LayoutGrid,
   Activity,
   Inbox,
+  MessageSquare,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -62,6 +63,7 @@ export default function SidePanel({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {/* Profile */}
           <button
             onClick={() => {
               navigate("/profile");
@@ -76,7 +78,22 @@ export default function SidePanel({
 
             <ChevronRight className="w-4 h-4 text-zinc-600" />
           </button>
+          {/* Chat */}
+          <button
+            onClick={() => {
+              navigate("/messaging");
+              onClose();
+            }}
+            className="w-full flex items-center justify-between rounded-xl px-4 py-3 hover:bg-white/5 transition"
+          >
+            <div className="flex items-center gap-3">
+              <MessageSquare className="w-5 h-5 text-zinc-400" />
+              <span className="text-white font-medium">Chat</span>
+            </div>
 
+            <ChevronRight className="w-4 h-4 text-zinc-600" />
+          </button>
+          {/* Explore */}
           <button
             onClick={() => {
               navigate("/explore");
@@ -91,6 +108,7 @@ export default function SidePanel({
 
             <ChevronRight className="w-4 h-4 text-zinc-600" />
           </button>
+          {/* Activity */}
           <button
             onClick={() => {
               navigate("/activity");
@@ -105,6 +123,7 @@ export default function SidePanel({
 
             <ChevronRight className="w-4 h-4 text-zinc-600" />
           </button>
+          {/* Responses */}
           <button
             onClick={() => {
               navigate("/responses");
@@ -118,7 +137,7 @@ export default function SidePanel({
             </div>
 
             <ChevronRight className="w-4 h-4 text-zinc-600" />
-          </button>
+          </button>{" "}
         </div>
 
         {/* Footer */}

@@ -2,7 +2,7 @@
 
 import { useAppSelector } from "@/src/store/hooks";
 import { getAvatarUrl, handleAvatarError } from "@/src/utils";
-import { MessageSquare, Search } from "lucide-react";
+import { Ham, Menu, MessageSquare, Search } from "lucide-react";
 
 interface MobileNavigationProps {
   activeTab: string;
@@ -23,6 +23,30 @@ export default function MobileNavigation({
 
   return (
     <div className="flex h-14 items-center justify-between border-b border-[#232327] px-4">
+      {/* Profile */}
+      {/* <button
+        onClick={handleSidePanelOpen}
+        className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+          activeTab === "profile"
+            ? "border-red-600"
+            : "hover:bg-zinc-800"
+        }`}
+      >
+        {isAuthenticated && currentUser ? (
+          <img
+            src={getAvatarUrl(currentUser.name, currentUser.avatar)}
+            alt={currentUser.name}
+            className="h-7 w-7 rounded-full object-cover ring-2 ring-[#2a2a2e]"
+            onError={(e) => handleAvatarError(e, currentUser.name)}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="h-7 w-7 rounded-full bg-zinc-700 flex items-center justify-center">
+            <span className="text-[11px] font-bold text-zinc-400">?</span>
+          </div>
+        )}
+      </button> */}
+
       {/* Logo */}
       <button
         onClick={() => setActiveTab("mobile")}
@@ -55,7 +79,7 @@ export default function MobileNavigation({
       </div>
 
       {/* Chat */}
-      <button
+      {/* <button
         onClick={() => setActiveTab(isAuthenticated ? "messaging" : "login")}
         className={`
                   relative
@@ -76,6 +100,13 @@ export default function MobileNavigation({
             {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
           </span>
         )}
+      </button> */}
+
+      <button>
+        <Menu
+          className="h-5 w-5 text-zinc-400 hover:text-white"
+          onClick={handleSidePanelOpen}
+        />
       </button>
     </div>
   );
