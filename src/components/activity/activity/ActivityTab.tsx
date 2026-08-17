@@ -10,25 +10,7 @@ import {
 import { ComponentType, useEffect, useState } from "react";
 import { ActivityResponse } from "@/src/types";
 import ActivityOfferDetail from "./ActivityOfferDetail";
-import ActivityOfferCard from "./ActivityofferCard";
-
-const RESPONSE_STATUS_CFG = {
-  accepted: {
-    label: "Accepted",
-    icon: CheckCircle2,
-    pill: "bg-emerald-950/60 text-emerald-400 border-emerald-800/50",
-  },
-  rejected: {
-    label: "Rejected",
-    icon: XCircle,
-    pill: "bg-red-950/60 text-red-400 border-red-800/50",
-  },
-  pending: {
-    label: "Awaiting",
-    icon: Clock,
-    pill: "bg-zinc-900 text-zinc-400 border-zinc-700",
-  },
-} as const;
+import ActivityOfferCard from "./ActivityOfferCard";
 
 interface ActivityTabProps {
   onInitiateChat: () => void;
