@@ -6,6 +6,8 @@ import {
   Inbox,
   LucideIcon,
   User,
+  Send,
+  Compass,
 } from "lucide-react";
 import { getAvatarUrl, handleAvatarError } from "../../utils";
 
@@ -48,7 +50,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: "explore",
     label: "Explore",
-    icon: LayoutGrid,
+    icon: Compass,
   },
   {
     id: "activity",
@@ -57,9 +59,9 @@ const NAV_ITEMS: NavItem[] = [
     auth: true,
   },
   {
-    id: "profile",
-    label: "Profile",
-    icon: User,
+    id: "messaging",
+    label: "Chat",
+    icon: Send,
     auth: true,
   },
 ];
@@ -69,7 +71,7 @@ export default function MobileBottomNavigation({
   setActiveTab,
   isAuthenticated,
   onCreatePost,
-  currentUser
+  currentUser,
 }: MobileBottomNavigationProps) {
   return (
     <div className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-[#232327] bg-[#121214]/95 backdrop-blur-md shadow-xl">
@@ -89,9 +91,9 @@ export default function MobileBottomNavigation({
                 active ? "text-[#FF3F3F]" : "text-zinc-500"
               }`}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-4 w-4" />
 
-              <span className="text-[9px] font-bold uppercase tracking-wider">
+              <span className="text-[8px] font-bold uppercase tracking-wider">
                 {item.label}
               </span>
             </button>
@@ -101,50 +103,29 @@ export default function MobileBottomNavigation({
         {/* Floating Action Button */}
         <button
           onClick={onCreatePost}
-          className="flex h-12 w-12 -mt-5 items-center justify-center rounded-full bg-[#FF3F3F] text-white shadow-lg shadow-[#FF3F3F]/40 transition active:scale-95"
+          className="flex h-10 w-10  items-center justify-center rounded-full bg-[#FF3F3F] text-white"
         >
-          <Plus className="h-6 w-6" />
+          <Plus className="h-5 w-5" />
         </button>
 
         {NAV_ITEMS.slice(2).map((item) => {
-          const active = item.id === activeTab;
+          const Icon = item.icon;
+
+          const active =
+            item.id === activeTab ||
+            (item.id === "explore" && activeTab === "feed");
 
           return (
             <button
               key={item.id}
-              onClick={() =>
-                setActiveTab(item.auth && !isAuthenticated ? "login" : item.id)
-              }
+              onClick={() => setActiveTab(item.id)}
               className={`flex flex-col items-center gap-0.5 px-3 py-2.5 transition ${
                 active ? "text-[#FF3F3F]" : "text-zinc-500"
               }`}
             >
-              {item.id === "profile" && isAuthenticated && currentUser ? (
-                <div className="relative">
-                  <img
-                    src={getAvatarUrl(currentUser.name, currentUser.avatar)}
-                    alt={currentUser.name}
-                    onError={(e) => handleAvatarError(e, currentUser.name)}
-                    className={`
-              h-6 w-6 rounded-full object-cover transition
-              ${
-                active
-                  ? "ring-2 ring-[#FF3F3F] ring-offset-2 ring-offset-[#121214]"
-                  : "ring-1 ring-white/10"
-              }
-            `}
-                  />
+              <Icon className="h-4 w-4" />
 
-                  <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-[#121214] bg-emerald-400" />
-                </div>
-              ) : (
-                (() => {
-                  const Icon = item.icon;
-                  return <Icon className="h-5 w-5" />;
-                })()
-              )}
-
-              <span className="text-[9px] font-bold uppercase tracking-wider">
+              <span className="text-[8px] font-bold uppercase tracking-wider">
                 {item.label}
               </span>
             </button>

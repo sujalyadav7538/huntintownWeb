@@ -7,14 +7,14 @@ import { apiFetch } from '../../lib/api';
 import { Post, User } from '../../types';
 import { getAvatarUrl, handleAvatarError } from '../../utils';
 
-interface BackendOffer {
+interface BackendResponse {
   _id: string;
   postId: string;
   message: string;
   answers: { question: string; answer: string }[];
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
-  offeredBy: {
+  respondedBy: {
     id: string;
     name: string;
     email: string;
@@ -35,49 +35,42 @@ const STATUS_CONFIG = {
 };
 
 export default function OffersReceivedModal({ post, onClose, onInitiateChat }: OffersReceivedModalProps) {
-  const [offers, setOffers] = useState<BackendOffer[]>([]);
+  const [responses, setResponses] = useState<BackendResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null); // offerId being actioned
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const postId = (post as any)._id || post.id;
 
-  const fetchOffers = async () => {
+  const fetchResponses = async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('access_token');
-      const res = await apiFetch(`/api/offers/post/${postId}`, {
-        headers: token ? { Authorization: `${token}` } : {},
-      });
-      if (!res.ok) throw new Error('Failed to load offers');
+      const res = await apiFetch(`/api/responses/post/${postId}`);
+      if (!res.ok) throw new Error('Failed to load responses');
       const data = await res.json();
-      setOffers(data.offers || []);
+      setResponses(data.responses || []);
     } catch (e: any) {
-      setError(e.message || 'Failed to load offers');
+      setError(e.message || 'Failed to load responses');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchOffers(); }, [postId]);
+  useEffect(() => { fetchResponses(); }, [postId]);
 
-  const handleStatus = async (offerId: string, newStatus: 'accepted' | 'rejected') => {
-    setActionLoading(offerId);
+  const handleStatus = async (responseId: string, newStatus: 'accepted' | 'rejected') => {
+    setActionLoading(responseId);
     try {
-      const token = localStorage.getItem('access_token');
-      const res = await apiFetch(`/api/offers/${offerId}/${newStatus === 'accepted' ? 'accept' : 'reject'}`, {
+      const res = await apiFetch(`/api/responses/${responseId}/${newStatus === 'accepted' ? 'accept' : 'reject'}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error('Action failed');
-      setOffers((prev) =>
-        prev.map((o) => (o._id === offerId ? { ...o, status: newStatus } : o))
+      setResponses((prev) =>
+        prev.map((r) => (r._id === responseId ? { ...r, status: newStatus } : r))
       );
     } catch {
       // silently keep old status on error
@@ -86,9 +79,9 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
     }
   };
 
-  const pending  = offers.filter((o) => o.status === 'pending');
-  const accepted = offers.filter((o) => o.status === 'accepted');
-  const rejected = offers.filter((o) => o.status === 'rejected');
+  const pending  = responses.filter((r) => r.status === 'pending');
+  const accepted = responses.filter((r) => r.status === 'accepted');
+  const rejected = responses.filter((r) => r.status === 'rejected');
 
   return (
     <div
@@ -104,11 +97,11 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <div className="w-2 h-2 rounded-full bg-[#FF3F3F] shrink-0" />
-              <h2 className="text-[13px] font-bold text-zinc-100 truncate">Offers Received</h2>
+              <h2 className="text-[13px] font-bold text-zinc-100 truncate">Responses Received</h2>
               {!loading && (
                 <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-[#161619] border border-[#222226] rounded-full text-[10px] text-zinc-500 font-medium">
                   <Users className="w-2.5 h-2.5" />
-                  {offers.length}
+                  {responses.length}
                 </span>
               )}
             </div>
@@ -123,7 +116,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
         </div>
 
         {/* ── Summary strip ── */}
-        {!loading && offers.length > 0 && (
+        {!loading && responses.length > 0 && (
           <div className="flex gap-0 border-b border-[#161619] shrink-0">
             {[
               { label: 'Pending',  count: pending.length,  color: 'text-zinc-400' },
@@ -143,50 +136,50 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
           {loading ? (
             <div className="flex items-center justify-center py-16 gap-2 text-zinc-600">
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-[12px]">Loading offers…</span>
+              <span className="text-[12px]">Loading responses…</span>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-16 gap-2 text-center px-6">
               <AlertCircle className="w-6 h-6 text-zinc-700" />
               <p className="text-[13px] text-zinc-500">{error}</p>
               <button
-                onClick={fetchOffers}
+                onClick={fetchResponses}
                 className="mt-1 text-[11px] text-[#FF3F3F] hover:underline cursor-pointer"
               >
                 Retry
               </button>
             </div>
-          ) : offers.length === 0 ? (
+          ) : responses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3 text-center px-6">
               <div className="w-12 h-12 rounded-2xl bg-[#1a1a1e] border border-[#222226] flex items-center justify-center">
                 <MessageSquare className="w-5 h-5 text-zinc-700" />
               </div>
-              <p className="text-[13px] font-semibold text-zinc-400">No offers yet</p>
+              <p className="text-[13px] font-semibold text-zinc-400">No responses yet</p>
               <p className="text-[11px] text-zinc-600 max-w-xs">
-                When people respond to your post, their offers will appear here.
+                When people respond to your post, their responses will appear here.
               </p>
             </div>
           ) : (
             <div className="divide-y divide-[#161619]">
-              {offers.map((offer) => {
-                const expanded = expandedId === offer._id;
-                const isActioning = actionLoading === offer._id;
-                const statusCfg = STATUS_CONFIG[offer.status] || STATUS_CONFIG.pending;
+              {responses.map((r) => {
+                const expanded = expandedId === r._id;
+                const isActioning = actionLoading === r._id;
+                const statusCfg = STATUS_CONFIG[r.status] || STATUS_CONFIG.pending;
 
                 return (
-                  <div key={offer._id} className="p-4 sm:p-5 hover:bg-[#0e0e10] transition-colors">
-                    {/* ── Offer header row ── */}
+                  <div key={r._id} className="p-4 sm:p-5 hover:bg-[#0e0e10] transition-colors">
+                    {/* ── Response header row ── */}
                     <div className="flex items-start gap-3">
                       <img
-                        src={getAvatarUrl(offer.offeredBy.name, offer.offeredBy.avatar)}
-                        alt={offer.offeredBy.name}
+                        src={getAvatarUrl(r.respondedBy.name, r.respondedBy.avatar)}
+                        alt={r.respondedBy.name}
                         className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1e1e22] shrink-0 mt-0.5"
-                        onError={(e) => handleAvatarError(e, offer.offeredBy.name)}
+                        onError={(e) => handleAvatarError(e, r.respondedBy.name)}
                         referrerPolicy="no-referrer"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[13px] font-semibold text-zinc-100">{offer.offeredBy.name}</span>
+                          <span className="text-[13px] font-semibold text-zinc-100">{r.respondedBy.name}</span>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border uppercase tracking-wide ${statusCfg.class}`}>
                             {statusCfg.label}
                           </span>
@@ -194,14 +187,14 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                         <div className="flex items-center gap-3 mt-0.5 text-[11px] text-zinc-600">
                           <span className="flex items-center gap-0.5">
                             <Clock className="w-3 h-3" />
-                            {new Date(offer.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            {new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
                         </div>
                       </div>
 
                       {/* Expand toggle */}
                       <button
-                        onClick={() => setExpandedId(expanded ? null : offer._id)}
+                        onClick={() => setExpandedId(expanded ? null : r._id)}
                         className="shrink-0 w-7 h-7 rounded-full bg-[#161619] border border-[#222226] flex items-center justify-center hover:bg-[#1e1e22] transition-colors cursor-pointer"
                       >
                         {expanded
@@ -212,7 +205,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
 
                     {/* ── Message preview (always visible) ── */}
                     <p className={`mt-2.5 text-[12px] text-zinc-400 leading-relaxed pl-12 ${!expanded ? 'line-clamp-2' : ''}`}>
-                      {offer.message}
+                      {r.message}
                     </p>
 
                     {/* ── Expanded: Q&A + actions ── */}
@@ -220,10 +213,10 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                       <div className="pl-12 mt-3 space-y-3">
 
                         {/* Q&A answers */}
-                        {offer.answers && offer.answers.length > 0 && (
+                        {r.answers && r.answers.length > 0 && (
                           <div className="bg-[#111113] border border-[#1e1e22] rounded-xl p-3.5 space-y-2.5">
                             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Question Answers</p>
-                            {offer.answers.map((ans, i) => (
+                            {r.answers.map((ans, i) => (
                               <div key={i}>
                                 <p className="text-[11px] text-zinc-600 font-medium">Q: {ans.question}</p>
                                 <p className="text-[12px] text-zinc-300 mt-0.5 pl-2 border-l border-[#FF3F3F]/25 leading-relaxed">
@@ -234,11 +227,11 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                           </div>
                         )}
 
-                        {/* Accept / Reject actions — only for pending offers */}
-                        {offer.status === 'pending' && (
+                        {/* Accept / Reject actions — only for pending responses */}
+                        {r.status === 'pending' && (
                           <div className="flex items-center gap-2 pt-1">
                             <button
-                              onClick={() => handleStatus(offer._id, 'accepted')}
+                              onClick={() => handleStatus(r._id, 'accepted')}
                               disabled={!!actionLoading}
                               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-800/50 text-emerald-400 text-[11px] font-bold rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -246,7 +239,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                               Accept
                             </button>
                             <button
-                              onClick={() => handleStatus(offer._id, 'rejected')}
+                              onClick={() => handleStatus(r._id, 'rejected')}
                               disabled={!!actionLoading}
                               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-red-950/30 hover:bg-red-900/30 border border-red-800/40 text-red-400 text-[11px] font-bold rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -257,12 +250,12 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                         )}
 
                         {/* Already actioned state */}
-                        {offer.status !== 'pending' && (
+                        {r.status !== 'pending' && (
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="text-[11px] text-zinc-600 italic">
-                              You {offer.status} this offer.
+                              You {r.status} this response.
                             </p>
-                            {offer.status === 'accepted' && (
+                            {r.status === 'accepted' && (
                               <button
                                 onClick={() => {
                                   onInitiateChat(postId);
@@ -271,7 +264,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 border border-[#FF3F3F]/30 text-[#FF3F3F] text-[11px] font-bold rounded-xl transition-all cursor-pointer"
                               >
                                 <MessageCircle className="w-3.5 h-3.5" />
-                                Chat with {offer.offeredBy.name.split(' ')[0]}
+                                Chat with {r.respondedBy.name.split(' ')[0]}
                               </button>
                             )}
                           </div>

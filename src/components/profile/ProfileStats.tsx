@@ -171,8 +171,8 @@ export default function ProfileStats({
       <SectionLabel title="As a Helper" />
       <div className="grid grid-cols-2 gap-3">
         <StatCard
-          label="Offers Sent"
-          value={metric?.helperMetrics.offersSubmitted ?? 0}
+          label="Responses Sent"
+          value={metric?.helperMetrics.responsesSubmitted ?? 0}
           sub="total submitted"
           icon={MessageSquare}
           iconColor="text-sky-400"
@@ -181,7 +181,7 @@ export default function ProfileStats({
         />
         <StatCard
           label="Accepted"
-          value={metric?.helperMetrics.offersAccepted ?? 0}
+          value={metric?.helperMetrics.responsesAccepted ?? 0}
           sub="by post owners"
           icon={CheckCircle}
           iconColor="text-emerald-400"
@@ -191,7 +191,7 @@ export default function ProfileStats({
         <StatCard
           label="Accept Rate"
           value={`${(metric?.helperMetrics.acceptanceScore ?? 0).toFixed(0)}%`}
-          sub="offer acceptance"
+          sub="response acceptance"
           icon={Percent}
           iconColor="text-violet-400"
           iconBg="bg-violet-400/10"
@@ -230,8 +230,8 @@ export default function ProfileStats({
           accent="#34d399"
         />
         <StatCard
-          label="Offers Got"
-          value={metric?.hunterMetrics.offersReceived ?? 0}
+          label="Responses Got"
+          value={metric?.hunterMetrics.responsesReceived ?? 0}
           sub="received on posts"
           icon={BarChart2}
           iconColor="text-amber-400"
@@ -241,7 +241,7 @@ export default function ProfileStats({
         <StatCard
           label="Accept Rate"
           value={`${(metric?.hunterMetrics.acceptanceScore ?? 0).toFixed(0)}%`}
-          sub="offers accepted"
+          sub="responses accepted"
           icon={Percent}       
           iconColor="text-teal-400"
           iconBg="bg-teal-400/10"

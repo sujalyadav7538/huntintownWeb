@@ -1,33 +1,36 @@
-"use client";
-
 import { useRef, useEffect, useState } from "react";
-import { MessageSquare } from "lucide-react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+
 import { useAppSelector, useAppDispatch } from "../store/hooks";
+
 import {
   setActiveConversationId,
   setConversations,
   setChatPosts,
   setUserPresence,
   addMessageToConversation,
+  setConversationMessages,
 } from "../store/conversationsSlice";
-import { socket } from "../lib/socket";
 
-import PostPicker from "./messaging/PostPicker";
-import ChatList from "./messaging/ChatList";
-import ChatHeader from "./messaging/ChatHeader";
-import MessageBubble from "./messaging/MessageBubble";
-import MessageInput from "./messaging/MessageInput";
-import DateSeparator from "./messaging/DateSeparator";
+import { socket } from "../lib/socket";
 import { apiFetch } from "../lib/api";
-import { formatDateLabel } from "../lib/presence";
+
+import MessageSidebar from "./messaging/MessageSidebar";
+import ChatList from "./messaging/ChatList";
+
+import { handleHideMobileBottomNav } from "../store/uiSlice";
+import ChatPanel from "./messaging/ChatPanel";
+
+type ChatMode = "posts" | "chats";
 
 export default function Messaging() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
   const [searchParams] = useSearchParams();
 
   const { currentUser, token } = useAppSelector((s) => s.auth);
+
   const {
     conversations,
     activeConversationId,
@@ -35,111 +38,287 @@ export default function Messaging() {
     chatPosts,
   } = useAppSelector((s) => s.conversations);
 
+  /*
+   * ---------------------------------------------------------
+   * URL STATE
+   * ---------------------------------------------------------
+   */
+
   const activePostId = searchParams.get("postId");
+  const activeConversationFromUrl = searchParams.get("conversationId");
+
+  /*
+   * ---------------------------------------------------------
+   * LOCAL STATE
+   * ---------------------------------------------------------
+   */
+
+  const [mode, setMode] = useState<ChatMode>("posts");
+
+  const [myChats, setMyChats] = useState<any[]>([]);
+
   const [postsLoading, setPostsLoading] = useState(false);
+  const [chatsLoading, setChatsLoading] = useState(false);
   const [convsLoading, setConvsLoading] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // Load post list for the picker on mount
+  const loadConversationsByPost = async (postId: string) => {
+    if (!token || !postId) return;
+
+    dispatch(setActiveConversationId(null));
+    setConvsLoading(true);
+
+    try {
+      const res = await apiFetch(`/api/chat/posts/${postId}/conversations`, {
+        method: "GET",
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+
+      const data = await res.json();
+      dispatch(setConversations(data?.data ?? []));
+    } catch (error) {
+      console.error("Failed to load conversations:", error);
+      dispatch(setConversations([]));
+    } finally {
+      setConvsLoading(false);
+    }
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * ACTIVE MESSAGES
+   * ---------------------------------------------------------
+   */
+
+  const activeMessages = conversationMessages[activeConversationId ?? ""] ?? [];
+
+  /*
+   * ---------------------------------------------------------
+   * LOAD MY POSTS
+   *
+   * Posts created by the current user.
+   *
+   * A post can have multiple conversations.
+   * ---------------------------------------------------------
+   */
+
   useEffect(() => {
-    const load = async () => {
+    if (!token) return;
+
+    const loadPosts = async () => {
       setPostsLoading(true);
+
       try {
         const res = await apiFetch("/api/chat/posts", {
-          headers: { Authorization: `${token}` },
+          method: "GET",
+          headers: {
+            Authorization: `${token}`,
+          },
         });
+
         const data = await res.json();
+
         dispatch(setChatPosts(data?.data ?? []));
+      } catch (error) {
+        console.error("Failed to load chat posts:", error);
+        dispatch(setChatPosts([]));
       } finally {
         setPostsLoading(false);
       }
     };
-    load();
-  }, []);
 
-  // When URL postId changes, load conversations for that post
+    loadPosts();
+  }, [token, dispatch]);
+
+  /*
+   * ---------------------------------------------------------
+   * LOAD MY CHATS
+   *
+   * Conversations where the current user is the helper.
+   *
+   * IMPORTANT:
+   *
+   * Replace this endpoint with your actual backend endpoint
+   * if it is different.
+   *
+   * Expected response:
+   *
+   * [
+   *   {
+   *     _id,
+   *     post: {...},
+   *     otherUser: {...},
+   *     lastMessageAt,
+   *     unreadCount
+   *   }
+   * ]
+   * ---------------------------------------------------------
+   */
+
   useEffect(() => {
-    dispatch(setActiveConversationId(null));
+    if (!token) return;
+
+    const loadMyChats = async () => {
+      setChatsLoading(true);
+      dispatch(setActiveConversationId(null));
+
+      try {
+        const res = await apiFetch("/api/chat/my-chats", {
+          method: "GET",
+          headers: {
+            Authorization: `${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        setMyChats(data?.data ?? []);
+      } catch (error) {
+        console.error("Failed to load my chats:", error);
+        setMyChats([]);
+      } finally {
+        setChatsLoading(false);
+      }
+    };
+
+    loadMyChats();
+  }, [token]);
+
+  /*
+   * ---------------------------------------------------------
+   * LOAD CONVERSATIONS FOR A POST
+   *
+   * This is only required for "My Posts".
+   *
+   * A post owner can have multiple conversations.
+   * ---------------------------------------------------------
+   */
+
+  useEffect(() => {
     if (!activePostId) {
       dispatch(setConversations([]));
       return;
     }
-    const load = async () => {
-      setConvsLoading(true);
-      try {
-        const res = await apiFetch(
-          `/api/chat/posts/${activePostId}/conversations`,
-          {
-            headers: { Authorization: `${token}` },
-          },
-        );
-        const data = await res.json();
-        dispatch(setConversations(data?.data ?? []));
-      } finally {
-        setConvsLoading(false);
-      }
-    };
-    load();
-  }, [activePostId]);
 
-  const activeMessages = conversationMessages[activeConversationId ?? ""] ?? [];
+    /*
+     * In "My Chats" mode we don't need to fetch the
+     * conversations of a post because the chat itself
+     * is already known.
+     */
+    if (mode !== "posts") {
+      return;
+    }
 
-  // Auto-scroll to bottom whenever a new message is added or the conversation changes
+    loadConversationsByPost(activePostId);
+  }, [activePostId, mode, token, dispatch]);
+
+  /*
+   * ---------------------------------------------------------
+   * RESTORE ACTIVE CONVERSATION FROM URL
+   * ---------------------------------------------------------
+   */
+
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!activeConversationFromUrl) return;
+
+    dispatch(setActiveConversationId(activeConversationFromUrl));
+  }, [activeConversationFromUrl, dispatch]);
+
+  /*
+   * ---------------------------------------------------------
+   * AUTO SCROLL CHAT
+   * ---------------------------------------------------------
+   */
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
   }, [activeConversationId, activeMessages.length]);
 
-  // Join conversation room — single place responsible for this.
-  // Fires when the active conversation changes, and also when the socket
-  // connects/reconnects so we re-join if the connection dropped mid-session.
+  /*
+   * ---------------------------------------------------------
+   * JOIN SOCKET CONVERSATION
+   * ---------------------------------------------------------
+   */
+
   useEffect(() => {
     if (!activeConversationId) return;
 
-    const join = () => {
+    const joinConversation = () => {
       socket.emit(
         "join-conversation",
         activeConversationId,
         (response: any) => {
-          if (!response?.success)
-            console.error("❌ Join failed:", response?.message);
+          if (!response?.success) {
+            console.error("Join conversation failed:", response?.message);
+          }
         },
       );
     };
 
     if (socket.connected) {
-      join();
+      joinConversation();
     } else {
-      socket.once("connect", join);
+      socket.once("connect", joinConversation);
     }
 
     return () => {
-      socket.off("connect", join);
+      socket.off("connect", joinConversation);
     };
   }, [activeConversationId]);
 
-  // new-message lives here (stable parent) so it's never missed during conversation switches
+  /*
+   * ---------------------------------------------------------
+   * NEW MESSAGE
+   *
+   * Keep this listener at Messaging level so it survives
+   * switching between conversations.
+   * ---------------------------------------------------------
+   */
+
   useEffect(() => {
     const handleNewMessage = (message: any) => {
-      // Coerce conversationId to string — backend sends BSON ObjectId over socket
-      const convId = String(message.conversationId);
-      const isIncoming = message.sender?.id !== currentUser?.id;
+      const conversationId = String(message.conversationId);
+
+      const incoming = message.sender?.id !== currentUser?.id;
+
       dispatch(
         addMessageToConversation({
-          conversationId: convId,
-          message: { ...message, conversationId: convId },
-          incoming: isIncoming,
+          conversationId,
+          message: {
+            ...message,
+            conversationId,
+          },
+          incoming,
         }),
       );
     };
 
     socket.on("new-message", handleNewMessage);
-    return () => socket.off("new-message", handleNewMessage);
+
+    return () => {
+      socket.off("new-message", handleNewMessage);
+    };
   }, [dispatch, currentUser?.id]);
 
-  // Live presence updates
+  /*
+   * ---------------------------------------------------------
+   * PRESENCE
+   * ---------------------------------------------------------
+   */
+
   useEffect(() => {
     const handleUserOnline = (userId: string) => {
-      dispatch(setUserPresence({ userId, isOnline: true }));
+      dispatch(
+        setUserPresence({
+          userId,
+          isOnline: true,
+        }),
+      );
     };
 
     const handleUserOffline = (payload: {
@@ -154,7 +333,6 @@ export default function Messaging() {
         }),
       );
     };
-
     socket.on("user-online", handleUserOnline);
     socket.on("user-offline", handleUserOffline);
 
@@ -162,109 +340,186 @@ export default function Messaging() {
       socket.off("user-online", handleUserOnline);
       socket.off("user-offline", handleUserOffline);
     };
-  }, [dispatch]);
+  }, []);
 
-  const handleSelectPost = (postId: string) =>
-    navigate(`/messaging?postId=${postId}`, { replace: true });
+  /*
+   * ---------------------------------------------------------
+   * MODE SWITCH
+   * ---------------------------------------------------------
+   */
 
-  const handleBackToPosts = () => navigate("/messaging", { replace: true });
+  const handleModeChange = (nextMode: ChatMode) => {
+    setMode(nextMode);
 
-  const activeConversation = conversations.find(
-    (c) => c._id === activeConversationId,
-  );
-  const activePostTitle = chatPosts.find((p) => p._id === activePostId)?.title;
+    dispatch(setActiveConversationId(null));
+    dispatch(setConversations([]));
+
+    /*
+     * Clear selected post/conversation from URL.
+     */
+    navigate("/messaging", {
+      replace: true,
+    });
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * SELECT POST
+   * ---------------------------------------------------------
+   */
+
+  const handleSelectPost = (postId: string) => {
+    setMode("posts");
+    dispatch(setActiveConversationId(null));
+    loadConversationsByPost(postId);
+
+    navigate(`/messaging?postId=${postId}`, {
+      replace: true,
+    });
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * SELECT CHAT
+   *
+   * Used by helper's "My Chats".
+   * ---------------------------------------------------------
+   */
+
+  const handleSelectChat = async (chat: any) => {
+    setMode("chats");
+    const conversationId = chat._id;
+    console.log(chat);
+
+    dispatch(setActiveConversationId(conversationId));
+    dispatch(handleHideMobileBottomNav(true));
+
+    /*
+     * Keep postId as well because the chat belongs to a post.
+     */
+    const postId = chat.post?._id ?? chat.postId ?? null;
+
+    const messages = await fetch(`/api/chat/${conversationId}/messages`, {
+      method: "GET",
+      headers: {
+        Authorization: `${token}`,
+      },
+    });
+    const data = await messages.json();
+    dispatch(
+      setConversationMessages({ conversationId, messages: data?.data ?? [] }),
+    );
+  };
+  /*
+   * ---------------------------------------------------------
+   * SELECT CONVERSATION
+   *
+   * Used by post owner.
+   * ---------------------------------------------------------
+   */
+
+  const handleSelectConversation = (conversationId: string) => {
+    dispatch(setActiveConversationId(conversationId));
+    dispatch(handleHideMobileBottomNav(true));
+
+    navigate(
+      `/messaging?postId=${activePostId}&conversationId=${conversationId}`,
+      {
+        replace: true,
+      },
+    );
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * BACK TO POSTS
+   * ---------------------------------------------------------
+   */
+
+  const handleBack = () => {
+    dispatch(setActiveConversationId(null));
+    dispatch(handleHideMobileBottomNav(false));
+
+    navigate("/messaging", {
+      replace: true,
+    });
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * ACTIVE CONVERSATION
+   * ---------------------------------------------------------
+   */
+
+  const activeConversation =
+    conversations.find(
+      (conversation) => conversation._id === activeConversationId,
+    ) ?? myChats.find((chat) => chat._id === activeConversationId);
+
+  /*
+   * ---------------------------------------------------------
+   * ACTIVE POST
+   * ---------------------------------------------------------
+   */
+
+  const activePost =
+    chatPosts.find((post) => post._id === activePostId) ??
+    myChats.find(
+      (chat) => chat.post?._id === activePostId || chat.postId === activePostId,
+    )?.post;
+
+  const activePostTitle = activePost?.title ?? "";
+
+  /*
+   * ---------------------------------------------------------
+   * RENDER
+   * ---------------------------------------------------------
+   */
 
   return (
     <>
-      <div className="flex flex-1 overflow-hidden text-zinc-100 font-sans border-t border-[#1e1e22]">
-        {/* LEFT PANEL — Post Picker when no post selected, Conversation List when post selected */}
-        {!activePostId ? (
-          <PostPicker
-            posts={chatPosts}
-            onSelectPost={handleSelectPost}
-            loading={postsLoading}
-          />
-        ) : (
-          <ChatList
-            activeConversationId={activeConversationId}
-            setActiveConversationId={(id) =>
-              dispatch(setActiveConversationId(id))
-            }
-            onBackToPosts={handleBackToPosts}
-            postTitle={activePostTitle}
-            loading={convsLoading}
-          />
-        )}
-
-        {/* RIGHT PANEL — Chat thread */}
+      <div className="flex min-h-0 flex-1 overflow-hidden border-t border-[#1e1e22] bg-[#171717] font-sans text-zinc-100">
+        {/* Left */}
         <div
-          className={`flex-1 flex flex-col bg-[#171717] ${
-            !activeConversationId
-              ? "hidden md:flex items-center justify-center"
-              : "flex"
+          className={`flex min-h-0 w-full shrink-0 flex-col md:w-72 lg:w-80 ${
+            activeConversationId ? "hidden md:flex" : "flex"
           }`}
         >
-          {activeConversation ? (
-            <>
-              <ChatHeader
-                activeConv={activeConversation}
-                setActiveConversationId={(id) =>
-                  dispatch(setActiveConversationId(id))
-                }
-              />
-              <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-                <div className="flex justify-center pb-5 select-none">
-                  <span className="inline-flex items-center rounded-full border border-[#1e1e22] bg-[#0d0d10] px-3 py-1 text-[10px] text-zinc-600 tracking-wide">
-                    — start of conversation —
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {activeMessages.map((msg, idx) => {
-                    const label = formatDateLabel(msg.createdAt);
-                    const prevLabel =
-                      idx > 0
-                        ? formatDateLabel(activeMessages[idx - 1].createdAt)
-                        : null;
-                    const showSeparator = label !== prevLabel;
-                    return (
-                      <div key={msg._id}>
-                        {showSeparator && <DateSeparator label={label} />}
-                        <MessageBubble
-                          msg={msg}
-                          currentUserId={currentUser.id}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                <div ref={chatEndRef} />
-              </div>
-              <MessageInput
-                participantName={
-                  activeConversation.participants.find(
-                    (p) => p.id !== currentUser?.id,
-                  )?.name ?? ""
-                }
-              />
-            </>
+          {mode === "posts" && activePostId ? (
+            <ChatList
+              activeConversationId={activeConversationId}
+              setActiveConversationId={handleSelectConversation}
+              onBackToPosts={handleBack}
+              postTitle={activePostTitle}
+              loading={convsLoading}
+            />
           ) : (
-            <div className="p-12 text-center text-zinc-500 space-y-2 select-none">
-              <MessageSquare className="w-12 h-12 text-zinc-700 mx-auto" />
-              <p className="text-sm font-bold text-zinc-300 font-display uppercase tracking-wider">
-                {activePostId
-                  ? "Select a conversation"
-                  : "Select a post to begin"}
-              </p>
-              <p className="text-xs text-zinc-500 leading-relaxed max-w-xs mx-auto">
-                {activePostId
-                  ? "Choose a conversation from the left panel."
-                  : "Pick a post from the left to see its conversations."}
-              </p>
-            </div>
+            <MessageSidebar
+              posts={chatPosts}
+              chats={myChats}
+              loading={postsLoading}
+              chatLoading={chatsLoading}
+              selectedPostId={activePostId}
+              selectedChatId={activeConversationId}
+              mode={mode}
+              onModeChange={handleModeChange}
+              onSelectPost={handleSelectPost}
+              onSelectChat={handleSelectChat}
+            />
           )}
         </div>
+
+        {/* Right  */}
+        <ChatPanel
+          activeConversation={activeConversation}
+          activeMessages={activeMessages}
+          currentUserId={currentUser?.id}
+          mode={mode}
+          onSetActiveConversation={(id) =>
+            dispatch(setActiveConversationId(id))
+          }
+        />
       </div>
-      <div className="shrink-0 h-14 md:hidden" />
     </>
   );
 }

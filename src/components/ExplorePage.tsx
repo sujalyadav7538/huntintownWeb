@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Search, SlidersHorizontal, X, LogIn, Compass } from "lucide-react";
+import { SlidersHorizontal, X, LogIn, Compass } from "lucide-react";
 
 import CategoryFilterRow from "./feed/CategoryFilterRow";
 import PostGridCard from "./explore/PostGridCard";
 import PostDetailView from "./explore/PostDetailView";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Post } from "../types";
-import { fetchPosts } from "../store/postsSlice";
+import { fetchPosts, fetchPostsPage } from "../store/postsSlice";
+import ExploreSearch from "./explore/ExploreSearch";
+import { handleHideMobileBottomNav } from "../store/uiSlice";
 
 function SkeletonCard() {
   return (
@@ -28,7 +30,7 @@ function SkeletonCard() {
 export default function ExplorePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, currentUser } = useAppSelector((s: any) => s.auth);
+  const { isAuthenticated } = useAppSelector((s: any) => s.auth);
   const posts = useAppSelector((s) => s.posts);
   const dispatch = useAppDispatch();
 
@@ -36,6 +38,19 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Refs hold the live values so the observer closure never goes stale
+  const loadingMoreRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const pageRef = useRef(1);
+
+  // Sentinel div ref for IntersectionObserver
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Support opening a specific post from external navigation (e.g. map click)
   useEffect(() => {
@@ -45,15 +60,70 @@ export default function ExplorePage() {
         (p) => p._id === state.openPostId || p.id === state.openPostId,
       );
       if (p) setSelectedPost(p);
-      // Clear the state so refreshing doesn't re-open it
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, posts]);
 
+  // Stop skeleton once posts land in Redux (from this component or App.tsx)
   useEffect(() => {
-    setLoading(true);
-    dispatch(fetchPosts()).finally(() => setLoading(false));
+    if (posts.length >= 0) setLoading(false);
+  }, [posts.length]);
+
+  // Kick off initial fetch — thunk's condition guard prevents duplicate calls
+  useEffect(() => {
+    loadingMoreRef.current = true; // block observer until initial load settles
+    dispatch(fetchPosts())
+      .then((action: any) => {
+        if (action?.payload?.hasMore === false) {
+          hasMoreRef.current = false;
+          setHasMore(false);
+        }
+      })
+      .finally(() => {
+        loadingMoreRef.current = false;
+        if (posts.length > 0) setLoading(false);
+      });
   }, []);
+
+  // Load next page — reads from refs so the observer closure is never stale
+  const loadMore = useCallback(async () => {
+    if (loadingMoreRef.current || !hasMoreRef.current) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    const nextPage = pageRef.current + 1;
+    try {
+      const action = (await dispatch(fetchPostsPage(nextPage))) as any;
+      if (action?.payload?.hasMore === false) {
+        hasMoreRef.current = false;
+        setHasMore(false);
+      }
+      pageRef.current = nextPage;
+      setPage(nextPage);
+    } catch {
+      // keep current page so the user can scroll back up and retry naturally
+    } finally {
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
+    }
+  }, [dispatch]);
+
+  // Attach IntersectionObserver to the sentinel div
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        if (!entries[0].isIntersecting) return;
+        if (!hasMoreRef.current) {
+          obs.disconnect();
+          return;
+        }
+        loadMore();
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   const filteredPosts = posts.filter((post) => {
     const matchesSearch =
@@ -69,7 +139,7 @@ export default function ExplorePage() {
           post.title.toLowerCase().includes("urgent") ||
           post.description.toLowerCase().includes("urgent");
       } else if (selectedCategory === "Trending") {
-        matchesCategory = post.offersCount >= 8;
+        matchesCategory = post.responsesCount >= 8;
       } else if (selectedCategory === "Nearby") {
         matchesCategory = post.address.includes("Sector 62");
       } else if (selectedCategory === "Premium") {
@@ -79,108 +149,132 @@ export default function ExplorePage() {
     return matchesSearch && matchesCategory;
   });
 
+  const handleSelectPost = (post: Post) => {
+    dispatch(handleHideMobileBottomNav(true));
+    setSelectedPost(post);
+  };
+
+  const handleClosePost = () => {
+    dispatch(handleHideMobileBottomNav(false));
+    setSelectedPost(null);
+  };
+
   // ── Render post detail inline ──
   if (selectedPost) {
     return (
       <PostDetailView
         post={selectedPost}
-        onBack={() => setSelectedPost(null)}
+        onBack={handleClosePost}
         onViewProfile={() => {}}
-        onNavigateToLogin={() => navigate("/login")}
       />
     );
   }
 
   // ── Render grid ──
   return (
-    <div className="space-y-5">
-      {/* Guest banner */}
+    <div className="mx-auto w-full max-w-7xl space-y-6 pt-3 lg:pt-4">
+      {/* Guest notice */}
       {!isAuthenticated && (
-        <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-[#0e0e10] via-[#131316] to-[#0e0e10] border border-[#1e1e22] px-5 py-4 flex items-center gap-4">
-          <div className="shrink-0 w-9 h-9 rounded-xl bg-[#FF3F3F]/10 border border-[#FF3F3F]/20 flex items-center justify-center">
-            <Compass className="w-4 h-4 text-[#FF3F3F]" />
+        <div className="flex items-center gap-3 border-b border-zinc-800/70 pb-4">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FF3F3F]/10">
+            <Compass className="h-4 w-4 text-[#FF3F3F]" />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-bold text-zinc-100 leading-tight">
-              Browse Requirements
+
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-zinc-200">
+              Browsing as guest
             </p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">
-              Viewing as guest.{" "}
-              <button
-                onClick={() => navigate("/login")}
-                className="text-[#FF3F3F] hover:underline font-semibold cursor-pointer"
-              >
-                Sign in
-              </button>{" "}
-              to offer help or message posters.
+
+            <p className="mt-0.5 text-[10px] text-zinc-600">
+              Sign in to offer help or message posters.
             </p>
           </div>
+
           <button
             onClick={() => navigate("/login")}
-            className="shrink-0 hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FF3F3F] hover:bg-[#e53535] text-white text-xs font-bold rounded-xl transition cursor-pointer"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#FF3F3F] px-3 py-1.5 text-[10px] font-bold text-white transition hover:bg-[#e53535]"
           >
-            <LogIn className="w-3 h-3" /> Sign In
+            <LogIn className="h-3 w-3" />
+            Sign in
           </button>
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative group max-w-xl">
-        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-zinc-600 group-focus-within:text-[#FF3F3F] transition-colors" />
-        </span>
-        <input
-          type="text"
-          placeholder="Search requirements, skills, people…"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-[13px] pl-10 pr-10 py-2.5 bg-[#0e0e10] border border-[#1e1e22] text-zinc-100 rounded-xl placeholder-zinc-600 focus:outline-none focus:border-[#FF3F3F]/50 focus:bg-[#111113] transition-all"
+      {/* Search + filters */}
+      <div className="space-y-4">
+        <ExploreSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+
+        <CategoryFilterRow
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          resultCount={filteredPosts.length}
         />
-        {searchTerm && (
-          <button
-            onClick={() => setSearchTerm("")}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-600 hover:text-zinc-300 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
       </div>
 
-      {/* Filters */}
-      <CategoryFilterRow
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        resultCount={filteredPosts.length}
-      />
-
-      {/* Grid */}
+      {/* Feed */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 gap-x-5 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
       ) : filteredPosts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[#FF3F3F]/8 border border-[#FF3F3F]/15 flex items-center justify-center mb-4">
-            <SlidersHorizontal className="w-6 h-6 text-[#FF3F3F]/60" />
+        <div className="flex min-h-[360px] flex-col items-center justify-center text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900">
+            <SlidersHorizontal className="h-5 w-5 text-zinc-600" />
           </div>
-          <p className="text-[15px] font-semibold text-zinc-300">
+
+          <p className="text-sm font-semibold text-zinc-300">
             No matching requirements
           </p>
-          <p className="text-[12px] text-zinc-600 mt-1.5 max-w-xs">
-            Try a different filter or search term.
+
+          <p className="mt-1.5 max-w-xs text-[11px] text-zinc-600">
+            Try changing your search or selecting another category.
           </p>
+
+          {(searchTerm || selectedCategory !== "all") && (
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("all");
+              }}
+              className="mt-4 rounded-full border border-zinc-800 px-3 py-1.5 text-[10px] font-semibold text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-300"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 gap-x-4 gap-y-2 lg:gap-y-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredPosts.map((post) => (
             <PostGridCard
               key={post.id}
               post={post}
-              onSelect={() => setSelectedPost(post)}
+              onSelect={() => handleSelectPost(post)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Infinite scroll */}
+      <div ref={sentinelRef} className="h-px" />
+
+      {loadingMore && (
+        <div className="flex justify-center py-5">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-800 border-t-[#FF3F3F]" />
+        </div>
+      )}
+
+      {/* End */}
+      {!hasMore && !loading && filteredPosts.length > 0 && (
+        <div className="flex items-center justify-center gap-3 py-3">
+          <div className="h-px w-12 bg-zinc-800" />
+
+          <p className="text-[10px] text-zinc-700">
+            You've seen all requirements
+          </p>
+
+          <div className="h-px w-12 bg-zinc-800" />
         </div>
       )}
     </div>

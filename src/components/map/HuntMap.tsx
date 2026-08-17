@@ -28,7 +28,6 @@ export default function HuntMap({
 
   // Fly to user's location once the map is ready and location is available
   useEffect(() => {
-    console.log("njinji", mapReady, map.current);
     // if (!mapReady || !map.current ) return;
     // 1. Browser GPS
     if (location) {

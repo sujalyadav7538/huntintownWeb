@@ -119,82 +119,126 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   return (
-    <main className="min-h-screen bg-[#171717] flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border border-gray-800 bg-[#111111]">
-        {/* Left Panel */}
-        <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-[#111111] to-[#1a1a1a] border-r border-gray-800">
-          <div>
-            <h1 className="text-4xl font-bold text-white">HuntInTown</h1>
+    <main className="min-h-dvh  text-white">
+      <div className="mx-auto grid min-h-dvh w-full max-w-7xl lg:grid-cols-[minmax(0,1fr)_520px]">
+        {/* =====================================================
+         * LEFT — Desktop Brand / Context
+         * ===================================================== */}
+        <section className="relative hidden overflow-hidden border-r border-white/6 lg:flex lg:min-h-dvh lg:flex-col lg:justify-between">
+          {/* Background glow */}
+          <div className="pointer-events-none absolute -left-32 top-1/4 h-80 w-80 rounded-full bg-[#FF3F3F]/[0.06] blur-3xl" />
 
-            <p className="mt-4 text-gray-400 text-lg">
-              Connect with local businesses, skilled professionals, and
-              opportunities around you.
-            </p>
+          <div className="relative p-12 xl:p-16">
+            {/* Brand */}
+            <div className="flex items-center">
+              <img src="/name.png" alt="HuntInTown" className="h-9 w-auto" />
+            </div>
+
+            {/* Main message */}
+            <div className="mt-28 max-w-lg xl:mt-36">
+              <div className="mb-5 flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#FF3F3F]" />
+
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
+                  Your local community
+                </span>
+              </div>
+
+              <h1 className="text-5xl font-bold leading-[1.08] tracking-tight text-white xl:text-6xl">
+                Find help.
+                <br />
+                <span className="text-zinc-500">Offer help.</span>
+              </h1>
+
+              <p className="mt-6 max-w-md text-base leading-relaxed text-zinc-500">
+                Connect with people around you, share what you need, and
+                discover how you can help others.
+              </p>
+            </div>
+
+            {/* Features */}
+            <div className="mt-14 flex items-center gap-7 xl:gap-8">
+              <div>
+                <p className="text-sm font-semibold text-zinc-200">Local</p>
+
+                <p className="mt-1 text-xs text-zinc-600">People around you</p>
+              </div>
+
+              <div className="h-8 w-px bg-white/[0.08]" />
+
+              <div>
+                <p className="text-sm font-semibold text-zinc-200">Direct</p>
+
+                <p className="mt-1 text-xs text-zinc-600">Chat with people</p>
+              </div>
+
+              <div className="h-8 w-px bg-white/[0.08]" />
+
+              <div>
+                <p className="text-sm font-semibold text-zinc-200">Community</p>
+
+                <p className="mt-1 text-xs text-zinc-600">
+                  Build your reputation
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-white font-semibold mb-1">
-                Post Requirements
-              </h3>
-
-              <p className="text-gray-400 text-sm">
-                Share your requirements and receive offers from verified
-                professionals.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-white font-semibold mb-1">
-                Connect Instantly
-              </h3>
-
-              <p className="text-gray-400 text-sm">
-                Chat directly with service providers and businesses.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-white font-semibold mb-1">
-                Build Reputation
-              </h3>
-
-              <p className="text-gray-400 text-sm">
-                Grow your network and showcase your expertise.
-              </p>
-            </div>
+          {/* Footer */}
+          <div className="relative px-12 pb-8 xl:px-16">
+            <p className="text-[11px] text-zinc-700">© 2026 HuntInTown</p>
           </div>
+        </section>
 
-          <p className="text-xs text-gray-500">
-            © 2026 HuntInTown. All rights reserved.
-          </p>
-        </div>
+        {/* =====================================================
+         * RIGHT — Authentication
+         * ===================================================== */}
+        <section className="flex min-h-dvh w-full items-center justify-center px-5 py-8 sm:px-8 sm:py-12 lg:px-10">
+          <div className="w-full max-w-[390px]">
+            {/* =================================================
+             * Mobile Brand
+             * ================================================= */}
+            <div className="mb-9 lg:hidden">
+              {/* <img src="/name.png" alt="HuntInTown" className="h-8 w-auto" /> */}
 
-        {/* Right Panel */}
-        <div className="flex items-center justify-center p-6 sm:p-10">
-          <div className="w-full max-w-md">
-            {/* Mobile Logo */}
-            <div className="lg:hidden mb-8 text-center">
-              <h1 className="text-3xl font-bold text-white">HuntInTown</h1>
-
-              <p className="text-gray-400 mt-2">Connect. Collaborate. Grow.</p>
+              <p className="mt-3 text-sm text-zinc-500">
+                Find help. Offer help. Connect locally.
+              </p>
             </div>
 
-            {/* Toggle */}
-            <div className="flex bg-[#1a1a1a] rounded-xl p-1 mb-6">
+            {/* =================================================
+             * Heading
+             * ================================================= */}
+            <div className="mb-7">
+              <h2 className="text-2xl font-bold tracking-tight text-white">
+                {isSignup ? "Create your account" : "Welcome back"}
+              </h2>
+
+              <p className="mt-2 text-sm text-zinc-500">
+                {isSignup
+                  ? "Join your local community."
+                  : "Sign in to continue to HuntInTown."}
+              </p>
+            </div>
+
+            {/* =================================================
+             * Auth Toggle
+             * ================================================= */}
+            <div className="mb-7 flex border-b border-white/[0.08]">
               <button
                 type="button"
                 onClick={() => {
                   setError("");
                   setIsSignup(false);
                 }}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer ${
-                  !isSignup
-                    ? "bg-red-600 text-white"
-                    : "text-gray-400 hover:text-white"
+                className={`relative flex-1 pb-3 text-sm font-semibold transition ${
+                  !isSignup ? "text-white" : "text-zinc-600 hover:text-zinc-300"
                 }`}
               >
                 Sign In
+                {!isSignup && (
+                  <span className="absolute inset-x-0 bottom-0 h-px bg-[#FF3F3F]" />
+                )}
               </button>
 
               <button
@@ -203,107 +247,222 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   setError("");
                   setIsSignup(true);
                 }}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer ${
-                  isSignup
-                    ? "bg-red-600 text-white"
-                    : "text-gray-400 hover:text-white"
+                className={`relative flex-1 pb-3 text-sm font-semibold transition ${
+                  isSignup ? "text-white" : "text-zinc-600 hover:text-zinc-300"
                 }`}
               >
                 Sign Up
+                {isSignup && (
+                  <span className="absolute inset-x-0 bottom-0 h-px bg-[#FF3F3F]" />
+                )}
               </button>
             </div>
 
-            {/* Heading */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                {isSignup ? "Create Account" : "Welcome Back"}
-              </h2>
-
-              <p className="text-gray-400 mt-1 text-sm">
-                {isSignup
-                  ? "Join HuntInTown and start connecting."
-                  : "Sign in to continue."}
-              </p>
-            </div>
-
+            {/* =================================================
+             * Form
+             * ================================================= */}
             <form onSubmit={handleSubmit}>
               {isSignup ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Full Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="bg-[#1a1a1a] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-red-500"
-                  />
+                <div className="space-y-3.5">
+                  {/* Name */}
+                  <div>
+                    <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
+                      Full name
+                    </label>
 
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="bg-[#1a1a1a] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-red-500"
-                  />
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Your name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="
+                      w-full rounded-xl
+                      border border-white/[0.08]
+                      bg-white/[0.025]
+                      px-4 py-3
+                      text-sm text-white
+                      outline-none
+                      transition
+                      placeholder:text-zinc-700
+                      focus:border-[#FF3F3F]/50
+                      focus:bg-white/[0.04]
+                    "
+                    />
+                  </div>
 
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="bg-[#1a1a1a] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-red-500"
-                  />
+                  {/* Email */}
+                  <div>
+                    <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
+                      Email
+                    </label>
 
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="bg-[#1a1a1a] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-red-500"
-                  />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="you@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="
+                      w-full rounded-xl
+                      border border-white/[0.08]
+                      bg-white/[0.025]
+                      px-4 py-3
+                      text-sm text-white
+                      outline-none
+                      transition
+                      placeholder:text-zinc-700
+                      focus:border-[#FF3F3F]/50
+                      focus:bg-white/[0.04]
+                    "
+                    />
+                  </div>
+
+                  {/* Passwords */}
+                  <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
+                        Password
+                      </label>
+
+                      <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        className="
+                        w-full rounded-xl
+                        border border-white/[0.08]
+                        bg-white/[0.025]
+                        px-4 py-3
+                        text-sm text-white
+                        outline-none
+                        transition
+                        placeholder:text-zinc-700
+                        focus:border-[#FF3F3F]/50
+                        focus:bg-white/[0.04]
+                      "
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
+                        Confirm password
+                      </label>
+
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        placeholder="Confirm"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        className="
+                        w-full rounded-xl
+                        border border-white/[0.08]
+                        bg-white/[0.025]
+                        px-4 py-3
+                        text-sm text-white
+                        outline-none
+                        transition
+                        placeholder:text-zinc-700
+                        focus:border-[#FF3F3F]/50
+                        focus:bg-white/[0.04]
+                      "
+                      />
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Email Address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full bg-[#1a1a1a] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-red-500"
-                  />
+                <div className="space-y-3.5">
+                  {/* Email */}
+                  <div>
+                    <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
+                      Email
+                    </label>
 
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full bg-[#1a1a1a] border border-gray-800 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-red-500"
-                  />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="you@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="
+                      w-full rounded-xl
+                      border border-white/[0.08]
+                      bg-white/[0.025]
+                      px-4 py-3
+                      text-sm text-white
+                      outline-none
+                      transition
+                      placeholder:text-zinc-700
+                      focus:border-[#FF3F3F]/50
+                      focus:bg-white/[0.04]
+                    "
+                    />
+                  </div>
 
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      className="text-sm text-red-500 hover:text-red-400 cursor-pointer"
-                    >
-                      Forgot Password?
-                    </button>
+                  {/* Password */}
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label className="text-[11px] font-medium text-zinc-500">
+                        Password
+                      </label>
+
+                      <button
+                        type="button"
+                        className="text-[11px] font-medium text-zinc-600 transition hover:text-[#FF3F3F]"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="Your password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="
+                      w-full rounded-xl
+                      border border-white/[0.08]
+                      bg-white/[0.025]
+                      px-4 py-3
+                      text-sm text-white
+                      outline-none
+                      transition
+                      placeholder:text-zinc-700
+                      focus:border-[#FF3F3F]/50
+                      focus:bg-white/[0.04]
+                    "
+                    />
                   </div>
                 </div>
               )}
 
+              {/* Error */}
               {error && (
-                <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
+                <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/[0.06] px-3 py-2.5 text-xs text-red-400">
+                  {error}
+                </div>
               )}
 
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full mt-5 bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-colors text-white font-medium py-3 rounded-xl cursor-pointer"
+                className="
+                mt-6 flex w-full
+                items-center justify-center
+                rounded-xl
+                bg-[#FF3F3F]
+                py-3
+                text-sm font-semibold text-white
+                transition
+                hover:bg-[#e53535]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
               >
                 {loading
                   ? "Please wait..."
@@ -313,28 +472,75 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </button>
             </form>
 
-            <div className="flex items-center gap-4 my-6">
-              <div className="flex-1 h-px bg-gray-800" />
-              <span className="text-gray-500 text-sm">OR</span>
-              <div className="flex-1 h-px bg-gray-800" />
+            {/* =================================================
+             * Divider
+             * ================================================= */}
+            <div className="my-6 flex items-center gap-4">
+              <div className="h-px flex-1 bg-white/[0.07]" />
+
+              <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-700">
+                Or
+              </span>
+
+              <div className="h-px flex-1 bg-white/[0.07]" />
             </div>
 
+            {/* =================================================
+             * Google
+             * ================================================= */}
             <button
               type="button"
               onClick={() => googleLogin()}
               disabled={loading}
-              className="w-full border border-gray-800 bg-[#1a1a1a] hover:bg-[#222] disabled:opacity-50 transition-colors text-white py-3 rounded-xl font-medium cursor-pointer flex items-center justify-center gap-3"
+              className="
+              flex w-full
+              items-center justify-center
+              gap-3
+              rounded-xl
+              border border-white/[0.08]
+              bg-white/[0.025]
+              py-3
+              text-sm font-medium
+              text-zinc-300
+              transition
+              hover:bg-white/[0.05]
+              hover:text-white
+              disabled:opacity-50
+            "
             >
-              <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              <svg
+                width="17"
+                height="17"
+                viewBox="0 0 48 48"
+                aria-hidden="true"
+              >
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                />
+
+                <path
+                  fill="#4285F4"
+                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                />
+
+                <path
+                  fill="#FBBC05"
+                  d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                />
+
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                />
               </svg>
               Continue with Google
             </button>
 
-            <p className="text-center text-gray-400 text-sm mt-6">
+            {/* =================================================
+             * Switch Account Type
+             * ================================================= */}
+            <p className="mt-7 text-center text-xs text-zinc-600">
               {isSignup ? "Already have an account?" : "Don't have an account?"}
 
               <button
@@ -343,13 +549,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   setError("");
                   setIsSignup((prev) => !prev);
                 }}
-                className="ml-2 text-red-500 hover:text-red-400 cursor-pointer"
+                className="ml-1.5 font-semibold text-zinc-300 transition hover:text-[#FF3F3F]"
               >
                 {isSignup ? "Sign In" : "Create Account"}
               </button>
             </p>
           </div>
-        </div>
+        </section>
       </div>
     </main>
   );

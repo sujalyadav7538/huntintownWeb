@@ -34,7 +34,7 @@ const FEATURES = [
 
 export default function WhyHuntInTown() {
   return (
-    <section className="">
+    <section className="mt-12">
       <div className="">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <p className="text-[#FF3F3F] font-semibold uppercase tracking-[0.2em] text-sm">

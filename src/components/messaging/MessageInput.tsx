@@ -43,7 +43,11 @@ export default function MessageInput({ participantName }: MessageInputProps) {
     const optimistic: Message = {
       _id: tempId,
       conversationId,
-      sender: { id: currentUser.id, name: currentUser.name, avatar: currentUser.avatar },
+      sender: {
+        id: currentUser.id,
+        name: currentUser.name,
+        avatar: currentUser.avatar,
+      },
       text,
       content: text,
       messageType: "text",
@@ -66,11 +70,16 @@ export default function MessageInput({ participantName }: MessageInputProps) {
           }),
         );
       } else {
-        dispatch(setMessageStatus({ conversationId, messageId: tempId, status: "failed" }));
+        dispatch(
+          setMessageStatus({
+            conversationId,
+            messageId: tempId,
+            status: "failed",
+          }),
+        );
       }
     });
   };
-
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -116,7 +125,11 @@ export default function MessageInput({ participantName }: MessageInputProps) {
     const optimistic: Message = {
       _id: tempId,
       conversationId,
-      sender: { id: currentUser.id, name: currentUser.name, avatar: currentUser.avatar },
+      sender: {
+        id: currentUser.id,
+        name: currentUser.name,
+        avatar: currentUser.avatar,
+      },
       text: caption || file.name,
       content: caption,
       messageType: inferredType as Message["messageType"],
@@ -149,7 +162,10 @@ export default function MessageInput({ participantName }: MessageInputProps) {
 
       const messageRes = await apiFetch("/api/chat/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
         body: JSON.stringify({
           conversationId,
           messageType: uploadData.data.messageType,
@@ -166,7 +182,8 @@ export default function MessageInput({ participantName }: MessageInputProps) {
       });
 
       const messageData = await messageRes.json();
-      if (!messageRes.ok) throw new Error(messageData?.message || "Failed to send attachment");
+      if (!messageRes.ok)
+        throw new Error(messageData?.message || "Failed to send attachment");
 
       dispatch(
         replaceMessage({
@@ -176,7 +193,13 @@ export default function MessageInput({ participantName }: MessageInputProps) {
         }),
       );
     } catch (error) {
-      dispatch(setMessageStatus({ conversationId, messageId: tempId, status: "failed" }));
+      dispatch(
+        setMessageStatus({
+          conversationId,
+          messageId: tempId,
+          status: "failed",
+        }),
+      );
     } finally {
       setIsUploading(false);
       event.target.value = "";
@@ -184,11 +207,12 @@ export default function MessageInput({ participantName }: MessageInputProps) {
   };
 
   return (
-    <div className="relative border-t border-[#1e1e22] bg-[#0c0c0e]">
+    <div className="shrink-0 border-t border-white/6 bg-[#0c0c0e]">
+      {/* Emoji picker */}
       {isEmojiOpen && (
         <div
           ref={pickerRef}
-          className="absolute bottom-[calc(100%+10px)] left-4 z-50 rounded-xl border border-[#1e1e22] shadow-2xl overflow-hidden"
+          className="absolute bottom-[calc(100%+10px)] left-3 z-50 overflow-hidden rounded-2xl border border-white/[0.08] shadow-2xl"
         >
           <EmojiPicker
             onEmojiClick={handleEmojiSelect}
@@ -203,16 +227,17 @@ export default function MessageInput({ participantName }: MessageInputProps) {
 
       <form
         onSubmit={handleSubmit}
-        className="px-4 py-3 flex items-center gap-2 font-sans sm:px-5"
+        className="flex items-end gap-2 px-3 py-3 sm:px-4 sm:py-3.5"
       >
+        {/* Attachment */}
         <button
           type="button"
-          className="rounded-md p-2 text-zinc-500 transition cursor-pointer hover:bg-[#141416] hover:text-zinc-300"
           title="Attach file"
-          onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
+          onClick={() => fileInputRef.current?.click()}
+          className="mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <Paperclip className="w-5 h-5" />
+          <Paperclip className="h-[17px] w-[17px]" />
         </button>
 
         <input
@@ -222,41 +247,48 @@ export default function MessageInput({ participantName }: MessageInputProps) {
           onChange={handleUploadAttachment}
         />
 
-        <button
-          id="emoji-chat-btn"
-          type="button"
-          className={`rounded-md p-2 transition cursor-pointer ${
-            isEmojiOpen
-              ? "bg-[#1d1d21] text-zinc-200"
-              : "text-zinc-500 hover:bg-[#141416] hover:text-zinc-300"
-          }`}
-          title="Choose mood emojis"
-          onClick={() => setIsEmojiOpen((prev) => !prev)}
-        >
-          <Smile className="w-5 h-5" />
-        </button>
+        {/* Message composer */}
+        <div className="relative flex min-w-0 flex-1 items-center rounded-2xl border border-white/[0.07] bg-[#141416] transition focus-within:border-[#FF3F3F]/40 focus-within:bg-[#171719]">
+          {/* Emoji */}
+          <button
+            id="emoji-chat-btn"
+            type="button"
+            title="Add emoji"
+            disabled={isUploading}
+            onClick={() => setIsEmojiOpen((prev) => !prev)}
+            className={`ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${
+              isEmojiOpen
+                ? "bg-white/[0.07] text-zinc-200"
+                : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-300"
+            } disabled:opacity-40`}
+          >
+            <Smile className="h-[18px] w-[18px]" />
+          </button>
 
-        <input
-          id="chat-message-text-input"
-          type="text"
-          placeholder={`Type immediate signal message to ${participantName}...`}
-          value={typedText}
-          onChange={(e) => setTypedText(e.target.value)}
-          className="flex-1 rounded-md border border-[#1e1e22] bg-[#141416] px-3.5 py-2.5 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[#FF3F3F]/60"
-          required
-          disabled={isUploading}
-        />
+          <input
+            id="chat-message-text-input"
+            type="text"
+            value={typedText}
+            onChange={(e) => setTypedText(e.target.value)}
+            placeholder={`Message ${participantName || "user"}...`}
+            disabled={isUploading}
+            required
+            autoComplete="off"
+            className="min-w-0 flex-1 bg-transparent px-2.5 py-2.5 text-sm text-zinc-200 outline-none placeholder:text-zinc-600 disabled:cursor-not-allowed"
+          />
+        </div>
 
+        {/* Send */}
         <button
           id="chat-send-submit"
           type="submit"
-          disabled={isUploading}
-          className="flex shrink-0 items-center justify-center rounded-md bg-[#FF3F3F] p-2.5 text-white transition cursor-pointer hover:bg-[#e53535] active:scale-95"
+          disabled={isUploading || !typedText.trim()}
+          className="mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FF3F3F] text-white transition hover:bg-[#e53535] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isUploading ? (
-            <span className="text-[10px] font-semibold">...</span>
+            <span className="text-[10px] font-bold">...</span>
           ) : (
-            <Send className="w-3.5 h-3.5 text-white" />
+            <Send className="h-4 w-4" />
           )}
         </button>
       </form>

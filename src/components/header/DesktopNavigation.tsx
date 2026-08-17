@@ -57,7 +57,7 @@ export default function DesktopNavigation({
   const { searchTerm } = useAppSelector((s) => s.ui);
 
   return (
-    <header className="hidden md:flex sticky top-0 z-40 h-16 items-center justify-between border-b border-[#232327] bg-[#121214]/90 px-6 backdrop-blur-xl">
+    <div className="hidden md:flex h-16 items-center justify-between px-6">
       {/* Left */}
       <button
         onClick={() => setActiveTab("mobile")}
@@ -158,6 +158,6 @@ export default function DesktopNavigation({
           onLogoutSimulate={onLogoutSimulate}
         />
       </div>
-    </header>
+    </div>
   );
 }

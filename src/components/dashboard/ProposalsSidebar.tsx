@@ -1,11 +1,10 @@
-"use client";
 
 import React, { useEffect, useState } from 'react';
 import { Post, User } from '../../types';
 import { apiFetch } from '../../lib/api';
 import { Send, Loader2, CheckCircle2, XCircle, Clock, ChevronRight } from 'lucide-react';
 
-interface MyOffer {
+interface MyResponse {
   _id: string;
   postId: string;
   message: string;
@@ -35,20 +34,17 @@ export default function ProposalsSidebar({
   currentUser,
   onSelectPost,
 }: ProposalsSidebarProps) {
-  const [myOffers, setMyOffers] = useState<MyOffer[]>([]);
+  const [myResponses, setMyResponses] = useState<MyResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMyOffers = async () => {
+    const fetchMyResponses = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('access_token');
-        const res = await apiFetch('/api/offers/my', {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        const res = await apiFetch('/api/responses/my');
         if (res.ok) {
           const data = await res.json();
-          setMyOffers(data.offers || []);
+          setMyResponses(data.responses || []);
           return;
         }
       } catch {
@@ -56,7 +52,7 @@ export default function ProposalsSidebar({
       }
 
       // Fallback: derive from local Redux state (postsUserCommentedOn)
-      const derived: MyOffer[] = postsUserCommentedOn.flatMap((post) =>
+      const derived: MyResponse[] = postsUserCommentedOn.flatMap((post) =>
         post.comments
           .filter((c) => c.author.id === currentUser.id)
           .map((c) => ({
@@ -69,11 +65,11 @@ export default function ProposalsSidebar({
             post: { title: post.title, category: post.category },
           }))
       );
-      setMyOffers(derived);
+      setMyResponses(derived);
       setLoading(false);
     };
 
-    fetchMyOffers();
+    fetchMyResponses();
   }, [postsUserCommentedOn.length]);
 
   return (
@@ -83,7 +79,7 @@ export default function ProposalsSidebar({
         <h3 className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">My Submitted Offers</h3>
         {!loading && (
           <span className="ml-auto text-[9px] font-bold bg-[#1a1a1e] border border-[#252529] text-zinc-500 px-1.5 py-0.5 rounded-full">
-            {myOffers.length}
+            {myResponses.length}
           </span>
         )}
       </div>
@@ -93,23 +89,23 @@ export default function ProposalsSidebar({
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="text-[11px]">Loading…</span>
         </div>
-      ) : myOffers.length === 0 ? (
+      ) : myResponses.length === 0 ? (
         <div className="p-8 text-center">
           <p className="text-[12px] font-semibold text-zinc-500">No proposals submitted yet.</p>
           <p className="text-[11px] text-zinc-600 mt-1">Browse the feed and offer your help.</p>
         </div>
       ) : (
         <div className="divide-y divide-[#161619]">
-          {myOffers.map((offer) => {
-            const cfg = STATUS_CONFIG[offer.status] || STATUS_CONFIG.pending;
+          {myResponses.map((r) => {
+            const cfg = STATUS_CONFIG[r.status] || STATUS_CONFIG.pending;
             const StatusIcon = cfg.icon;
-            const linkedPostId = offer.postId;
-            const postTitle = offer.post?.title
-              || postsUserCommentedOn.find((p) => p.id === offer.postId || (p as any)._id === offer.postId)?.title
+            const linkedPostId = r.postId;
+            const postTitle = r.post?.title
+              || postsUserCommentedOn.find((p) => p.id === r.postId || (p as any)._id === r.postId)?.title
               || 'View post';
 
             return (
-              <div key={offer._id} className="px-4 py-3.5 hover:bg-[#111113] transition-colors">
+              <div key={r._id} className="px-4 py-3.5 hover:bg-[#111113] transition-colors">
                 {/* Post title link */}
                 <button
                   onClick={() => onSelectPost(linkedPostId)}
@@ -123,7 +119,7 @@ export default function ProposalsSidebar({
 
                 {/* Message preview */}
                 <p className="text-[11px] text-zinc-500 line-clamp-2 leading-relaxed mb-2">
-                  {offer.message}
+                  {r.message}
                 </p>
 
                 {/* Status + date */}
@@ -133,7 +129,7 @@ export default function ProposalsSidebar({
                     {cfg.label}
                   </span>
                   <span className="text-[10px] text-zinc-700 font-mono">
-                    {new Date(offer.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    {new Date(r.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                   </span>
                 </div>
               </div>

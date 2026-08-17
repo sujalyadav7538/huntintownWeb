@@ -1,54 +1,97 @@
-import React from 'react';
-import { Conversation } from '../../types';
-import { MapPin } from 'lucide-react';
-import { getAvatarUrl, handleAvatarError } from '../../utils';
-import { useAppSelector } from '@/src/store/hooks';
-import { formatLastSeen } from '@/src/lib/presence';
+import { Conversation } from "../../types";
+import { ArrowLeft, FileText, MapPin } from "lucide-react";
+import { getAvatarUrl, handleAvatarError } from "../../utils";
+import { useAppSelector } from "@/src/store/hooks";
+import { formatLastSeen } from "@/src/lib/presence";
 
 interface ChatHeaderProps {
   activeConv: Conversation;
-  setActiveConversationId: (id: string | null) => void;
+  handleBack: () => void;
 }
 
-export default function ChatHeader({ activeConv, setActiveConversationId }: ChatHeaderProps) {
-  const {currentUser} = useAppSelector((s) => s.auth);
-  const otherParticipant = activeConv.participants.find(p => p.id !== currentUser?.id);
-  return (
-    <div className="border-b border-[#1e1e22] bg-[#0c0c0e] px-4 py-3.5 font-sans select-none sm:px-5">
-      <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
-        <button
-          id="chat-back-mobile"
-          onClick={() => setActiveConversationId(null)}
-          className="md:hidden text-xs text-zinc-400 font-bold p-1 hover:bg-zinc-800 rounded mr-1 cursor-pointer uppercase tracking-wider font-mono"
-        >
-          ← 
-        </button>
+export default function ChatHeader({
+  activeConv,
+  handleBack,
+}: ChatHeaderProps) {
+  const { currentUser } = useAppSelector((s) => s.auth);
 
-        <img
-          src={otherParticipant?.avatar || getAvatarUrl(otherParticipant?.name)}
-          alt={otherParticipant?.name}
-          className="w-9 h-9 rounded-full object-cover border border-[#2b2b30]"
-          onError={(e) => handleAvatarError(e, otherParticipant?.name)}
-          referrerPolicy="no-referrer"
-        />
-        <div className="text-left">
-          <div className="flex items-center gap-1.5 leading-none">
-            <h4 className="font-bold text-xs text-zinc-100 font-display">{otherParticipant?.name}</h4>
+  const otherParticipant = activeConv.participants.find(
+    (p) => p.id !== currentUser?.id,
+  );
+
+  return (
+    <header className="shrink-0 border-b border-[#1e1e22] bg-[#0c0c0e] px-3 py-3 sm:px-5">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        {/* Left */}
+        <div className="flex min-w-0 items-center gap-2.5">
+          {/* Back */}
+          <button
+            id="chat-back-mobile"
+            type="button"
+            onClick={handleBack}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200 md:hidden"
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+
+          {/* Avatar */}
+          <div className="relative shrink-0">
+            <img
+              src={
+                otherParticipant?.avatar || getAvatarUrl(otherParticipant?.name)
+              }
+              alt={otherParticipant?.name || "User"}
+              className="h-9 w-9 rounded-full border border-[#2b2b30] object-cover"
+              onError={(e) => handleAvatarError(e, otherParticipant?.name)}
+              referrerPolicy="no-referrer"
+            />
+
+            {/* Online indicator */}
+            <span
+              className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#0c0c0e] ${
+                otherParticipant?.isOnline ? "bg-emerald-500" : "bg-zinc-600"
+              }`}
+            />
           </div>
-          <p className="text-[10px] text-zinc-400 truncate max-w-xs mt-0.5 leading-none">
-            {otherParticipant?.isOnline
-              ? "Online"
-              : formatLastSeen(otherParticipant?.lastSeen)}
-          </p>
+
+          {/* User */}
+          <div className="min-w-0">
+            <h4 className="truncate text-xs font-bold text-zinc-100 sm:text-sm">
+              {otherParticipant?.name || "Unknown"}
+            </h4>
+
+            <p className="truncate text-[10px] text-zinc-500">
+              {otherParticipant?.isOnline
+                ? "Online"
+                : formatLastSeen(otherParticipant?.lastSeen)}
+            </p>
+          </div>
+        </div>
+
+        {/* Right side */}
+        <div className="flex min-w-0 shrink-0 items-center gap-2">
+          {/* Post */}
+          {activeConv?.post?.title && (
+            <div className="hidden min-w-0 max-w-[180px] items-center rounded-lg border border-white/[0.06] bg-white/[0.025] px-2.5 py-1.5 sm:flex">
+              <span className="truncate text-[10px] font-medium text-zinc-500">
+                {activeConv.post.title}
+              </span>
+            </div>
+          )}
+
+          {/* Address — desktop only */}
+          {(otherParticipant as any)?.address && (
+            <div className="hidden max-w-[160px] items-center gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.025] px-2.5 py-1.5 lg:flex">
+              <MapPin className="h-3 w-3 shrink-0 text-[#FF3F3F]" />
+
+              <span className="truncate text-[10px] text-zinc-500">
+                {(otherParticipant as any).address}
+              </span>
+            </div>
+          )}
         </div>
       </div>
-
-      <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-[#25252a] bg-[#151518] px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-400">
-        <MapPin className="w-3.5 h-3.5 text-[#FF3F3F]" />
-        <span>{(otherParticipant as any)?.address || ''}</span>
-      </div>
-      </div>
-    </div>
+    </header>
   );
 }

@@ -5,7 +5,8 @@ import { User } from "./types";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { login, logout, updateProfile } from "./store/authSlice";
 import { socket, setSocketAuth } from "./lib/socket";
-import { fetchPosts } from "./store/postsSlice";
+import { fetchPosts, clearPosts } from "./store/postsSlice";
+import { resetReputation } from "./store/reputationSlice";
 import {
   openCreatePost,
   closeCreatePost,
@@ -23,7 +24,6 @@ import LoginPage from "./components/LoginPage";
 import MyActivity from "./components/MyActivity";
 import ExplorePage from "./components/ExplorePage";
 
-import { LayoutGrid, Plus, Home, Activity, Inbox } from "lucide-react";
 import SidePanel from "./components/sidepan/SidePan";
 import MobileBottomNavigation from "./components/footer/MobileBottomNavigation";
 import MobileHomePage from "./components/MobileHomePage";
@@ -39,12 +39,16 @@ const PROTECTED_TABS = [
 
 export default function App() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, currentUser } = useAppSelector((s) => s.auth);
+  const {
+    isAuthenticated,
+    currentUser,
+    token: authToken,
+  } = useAppSelector((s) => s.auth);
   const posts = useAppSelector((s) => s.posts);
   const { conversations, activeConversationId } = useAppSelector(
     (s) => s.conversations,
   );
-  const { isCreatePostOpen, searchTerm } = useAppSelector((s) => s.ui);
+  const { hideMobileBottomNav } = useAppSelector((s) => s.ui);
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -61,7 +65,6 @@ export default function App() {
     }
     navigate(tab === "landing" ? "/" : `/${tab}`);
   };
-  console.log("Google API id",import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
   useEffect(() => {
     if (PROTECTED_TABS.includes(activeTab) && !isAuthenticated) {
@@ -74,7 +77,7 @@ export default function App() {
     0,
   );
 
-  // Load posts into Redux whenever the user is authenticated
+  // Load posts on first authentication — condition in thunk prevents duplicate calls
   useEffect(() => {
     if (isAuthenticated) {
       setSidePanelOpen(false);
@@ -84,7 +87,7 @@ export default function App() {
 
   // Initialize socket connection if user is authenticated
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = authToken;
     console.log("[App] Socket init effect:", {
       isAuthenticated,
       hasToken: !!token,
@@ -121,6 +124,8 @@ export default function App() {
   const handleLogout = () => {
     setSocketAuth("");
     socket.disconnect();
+    dispatch(clearPosts()); // reset fetch lock for next login
+    dispatch(resetReputation()); // clear reputation cache for next user
     dispatch(logout());
     setSidePanelOpen(false);
     navigate("/login", { replace: true });
@@ -198,6 +203,15 @@ export default function App() {
         return <LoginPage onLogin={handleLogin} />;
       case "explore":
         return <ExplorePage />;
+      case "create-post":
+        return (
+          <CreatePost
+            onPostCreated={(postId) => {
+              dispatch(closeCreatePost());
+              navigate("/explore", { state: { openPostId: postId } });
+            }}
+          />
+        );
       default:
         return null;
     }
@@ -215,23 +229,25 @@ export default function App() {
         />
 
         <main
-          className={`flex-1 w-full mx-auto ${
+          className={`flex-1 w-full mx-auto pt-14 md:pt-16 ${
             activeTab === "messaging"
               ? "flex flex-col overflow-hidden"
-              : "sm:px-6 lg:px-8  pb-24 md:pb-8 p-2"
+              : "sm:px-6 lg:px-4  pb-24 md:pb-8 p-2"
           }`}
         >
           {renderActiveView()}
         </main>
 
         {/* ── Mobile bottom nav ── */}
-        <MobileBottomNavigation
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isAuthenticated={isAuthenticated}
-          currentUser={currentUser}
-          onCreatePost={guardedOpenCreatePost}
-        />
+        {!hideMobileBottomNav && (
+          <MobileBottomNavigation
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isAuthenticated={isAuthenticated}
+            currentUser={currentUser}
+            onCreatePost={guardedOpenCreatePost}
+          />
+        )}
       </div>
 
       {isAuthenticated && (
@@ -239,16 +255,6 @@ export default function App() {
           open={sidePanelOpen}
           onClose={() => setSidePanelOpen(false)}
           onLogout={handleLogout}
-        />
-      )}
-
-      {isCreatePostOpen && (
-        <CreatePost
-          onClose={() => dispatch(closeCreatePost())}
-          onPostCreated={(postId) => {
-            dispatch(closeCreatePost());
-            navigate("/explore", { state: { openPostId: postId } });
-          }}
         />
       )}
     </div>

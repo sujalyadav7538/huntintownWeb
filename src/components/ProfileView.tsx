@@ -2,7 +2,7 @@ import { useState } from "react";
 import { apiFetch } from "../lib/api";
 import { User } from "../types";
 import { useAppSelector, useAppDispatch } from "../store/hooks";
-import { updateProfile, logout } from "../store/authSlice";
+import { updateProfile } from "../store/authSlice";
 import { LogOut, Shield, Activity, Star, User as UserIcon } from "lucide-react";
 import { useReputation } from "../hooks/useReputation";
 
@@ -61,28 +61,18 @@ export default function ProfileView({
     setIsSaving(true);
 
     try {
-      const token = localStorage.getItem("access_token");
-
       const formData = new FormData();
-      if (avatarFile) {
-        formData.append("avatar", avatarFile);
-      }
-      if (coverImageFile) {
-        formData.append("coverImage", coverImageFile);
-      }
+      if (avatarFile) formData.append("avatar", avatarFile);
+      if (coverImageFile) formData.append("coverImage", coverImageFile);
       formData.append("name", updated.name ?? "");
       formData.append("role", updated.role ?? "");
       formData.append("address", updated.address ?? "");
       formData.append("bio", updated.bio ?? "");
       formData.append("skills", JSON.stringify(updated.skills ?? []));
 
-      // DO NOT set Content-Type — the browser sets it automatically with the
-      // correct multipart boundary when body is FormData.
+      // No Content-Type header — browser sets multipart boundary automatically
       const res = await apiFetch("/api/profile/update", {
         method: "PUT",
-        headers: {
-          Authorization: `${token}`,
-        },
         body: formData,
       });
 
@@ -120,8 +110,7 @@ export default function ProfileView({
   };
 
   const handleLogout = () => {
-    dispatch(logout());
-    onLogout?.();
+    onLogout?.(); // delegates to App.tsx which calls clearPosts() + resetReputation()
   };
 
   if (mode === "edit" && currentUser) {

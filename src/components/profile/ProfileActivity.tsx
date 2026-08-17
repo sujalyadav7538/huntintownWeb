@@ -39,11 +39,11 @@ function buildActivity(user: User, metric: UserMetric | null): ActivityItem[] {
     });
   }
 
-  const completed = metric?.helperMetrics.completedOffers ?? 0;
+  const completed = metric?.helperMetrics.completedResponses ?? 0;
   if (completed > 0) {
     items.push({
       id: 'completed',
-      title: `${completed} offer${completed !== 1 ? 's' : ''} completed`,
+      title: `${completed} response${completed !== 1 ? 's' : ''} completed`,
       sub: 'Consistently delivering quality help',
       icon: CheckCircle,
       iconColor: 'text-emerald-400',

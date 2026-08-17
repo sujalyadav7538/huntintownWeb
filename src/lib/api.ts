@@ -1,29 +1,27 @@
 import { AUTH_REDIRECT_LOCK_KEY, clearAuthStorage } from "./authStorage";
 
-/**
- * Single source-of-truth for all API calls.
- *
- * Development  → set VITE_API_URL=http://localhost:5000 in .env.local
- *                (Vite proxy also forwards /api/* so an empty string works too)
- * Production   → set VITE_API_URL=https://your-backend.onrender.com in your
- *                CI / hosting environment variables.
- *
- * Usage:
- *   apiFetch('/api/posts')
- *   apiFetch('/api/profile/update', { method: 'PUT', body: formData })
- */
-
 const BASE: string =
   (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ??
   "";
+
+// Injected by store/index.ts after the store is created — avoids circular deps
+let _getToken: (() => string | null) | null = null;
+export function setApiTokenGetter(fn: () => string | null): void {
+  _getToken = fn;
+}
 
 export async function apiFetch(
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
-  const url = path.startsWith("http") ? path : `${BASE}${path}`;
+  // Auto-inject Authorization from Redux unless the caller already provided it
+  const callerHeaders = new Headers(init?.headers as HeadersInit | undefined);
+  if (_getToken && !callerHeaders.has("Authorization")) {
+    const token = _getToken();
+    if (token) callerHeaders.set("Authorization", token);
+  }
 
-  const response = await fetch(url, init);
+  const response = await fetch(BASE + path, { ...init, headers: callerHeaders });
 
   if (response.status === 401) {
     try {
@@ -41,7 +39,7 @@ export async function apiFetch(
           sessionStorage.getItem(AUTH_REDIRECT_LOCK_KEY) === "1";
 
         if (!alreadyRedirecting) {
-          sessionStorage.setItem(AUTH_REDIRECT_LOCK_KEY, "1");
+          
           clearAuthStorage();
           window.location.replace("/login");
         }

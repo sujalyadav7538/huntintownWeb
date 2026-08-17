@@ -14,6 +14,7 @@ export function clearAuthStorage(): void {
   for (const key of AUTH_STORAGE_KEYS) {
     localStorage.removeItem(key);
   }
+  sessionStorage.setItem(AUTH_REDIRECT_LOCK_KEY, "1");
 }
 
 export function persistAuthStorage(params: {
@@ -22,6 +23,13 @@ export function persistAuthStorage(params: {
   token: string | null;
 }): void {
   const { isAuthenticated, currentUser, token } = params;
+  const redirectLocked =
+    sessionStorage.getItem(AUTH_REDIRECT_LOCK_KEY) === "1";
+
+  if (redirectLocked) {
+    clearAuthStorage();
+    return;
+  }
 
   if (isAuthenticated && token) {
     localStorage.setItem("neighbourly_auth", "true");

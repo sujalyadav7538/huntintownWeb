@@ -3,7 +3,9 @@ import authReducer from './authSlice';
 import postsReducer from './postsSlice';
 import conversationsReducer from './conversationsSlice';
 import uiReducer from './uiSlice';
+import reputationReducer from './reputationSlice';
 import { persistAuthStorage } from '../lib/authStorage';
+import { setApiTokenGetter } from '../lib/api';
 
 export const store = configureStore({
   reducer: {
@@ -11,10 +13,14 @@ export const store = configureStore({
     posts: postsReducer,
     conversations: conversationsReducer,
     ui: uiReducer,
+    reputation: reputationReducer,
   },
 });
 
-// Sync entire relevant state to localStorage on every change
+// Single source of truth for auth token — all apiFetch calls read from here
+setApiTokenGetter(() => store.getState().auth.token);
+
+// Sync auth + conversations to localStorage on every state change
 store.subscribe(() => {
   const state = store.getState();
 
@@ -25,11 +31,12 @@ store.subscribe(() => {
   });
 
   if (state.auth.isAuthenticated && state.auth.token) {
-    localStorage.setItem('neighbourly_posts', JSON.stringify(state.posts));
     localStorage.setItem(
       'neighbourly_conversations',
       JSON.stringify(state.conversations.conversations)
     );
+  } else {
+    localStorage.removeItem('neighbourly_conversations');
   }
 });
 

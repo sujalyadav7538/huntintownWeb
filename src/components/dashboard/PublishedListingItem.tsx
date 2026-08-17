@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useEffect, useState } from 'react';
 import { Post } from '../../types';
@@ -21,26 +20,8 @@ export default function PublishedListingItem({
   onSelectPost,
   onViewOffers,
 }: PublishedListingItemProps) {
-  const [offerCount, setOfferCount] = useState<number | null>(null);
-  const postId = (post as any)._id || post.id;
-
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const token = localStorage.getItem('access_token');
-        const res = await apiFetch(`/api/offers/post/${postId}`, {
-          headers: token ? { Authorization: `${token}` } : {},
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setOfferCount((data.offers || []).length);
-        }
-      } catch {
-        // fail silently — count just won't show
-      }
-    };
-    fetchCount();
-  }, [postId]);
+  // responsesCount comes from Redux state — no separate API call needed
+  const responseCount = post.responsesCount ?? null;
 
   return (
     <div className="p-4 sm:p-5 hover:bg-[#0e0e10] transition-colors font-sans text-left">
@@ -77,21 +58,21 @@ export default function PublishedListingItem({
           <p className="text-[11px] text-zinc-500 line-clamp-1">{post.description}</p>
         </div>
 
-        {/* ── Right: offer count + actions ── */}
+        {/* ── Right: response count + actions ── */}
         <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
 
-          {/* View Offers button — prominent call to action */}
+          {/* View Responses button — prominent call to action */}
           <button
             onClick={() => onViewOffers(post)}
             className="relative inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0e0e10] hover:bg-[#161619] border border-[#2a2a2e] hover:border-[#FF3F3F]/40 text-zinc-300 hover:text-zinc-100 text-[11px] font-semibold rounded-xl transition-all duration-200 cursor-pointer"
           >
             <Inbox className="w-3.5 h-3.5 text-zinc-500" />
-            <span>Offers</span>
-            {offerCount === null ? (
+            <span>Responses</span>
+            {responseCount === null ? (
               <Loader2 className="w-2.5 h-2.5 animate-spin text-zinc-600" />
-            ) : offerCount > 0 ? (
+            ) : responseCount > 0 ? (
               <span className="absolute -top-1.5 -right-1.5 min-w-4.5 h-4.5 px-1 bg-[#FF3F3F] text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm shadow-[#FF3F3F]/30">
-                {offerCount}
+                {responseCount}
               </span>
             ) : null}
           </button>
@@ -101,7 +82,7 @@ export default function PublishedListingItem({
             {post.status === 'live' && (
               <button
                 id={`mark-fulfilled-${post.id}`}
-                onClick={() => onUpdateStatus(postId, 'completed')}
+                onClick={() => onUpdateStatus(post?.id, 'completed')}
                 className="p-1.5 bg-[#161619] hover:bg-emerald-950/40 border border-[#222226] hover:border-emerald-800/50 text-zinc-500 hover:text-emerald-400 rounded-lg transition-all cursor-pointer"
                 title="Mark Completed"
               >
@@ -111,7 +92,7 @@ export default function PublishedListingItem({
             {post.status !== 'live' && post.status !== 'cancelled' && (
               <button
                 id={`reopen-${post.id}`}
-                onClick={() => onUpdateStatus(postId, 'live')}
+                onClick={() => onUpdateStatus(post?.id, 'live')}
                 className="p-1.5 bg-[#161619] hover:bg-[#1e1e22] border border-[#222226] text-zinc-500 hover:text-zinc-300 rounded-lg transition-all cursor-pointer"
                 title="Reopen"
               >
@@ -121,7 +102,7 @@ export default function PublishedListingItem({
             {post.status === 'live' && (
               <button
                 id={`cancel-${post.id}`}
-                onClick={() => onUpdateStatus(postId, 'cancelled')}
+                onClick={() => onUpdateStatus(post?.id, 'cancelled')}
                 className="p-1.5 bg-[#161619] hover:bg-amber-950/30 border border-[#222226] hover:border-amber-800/40 text-zinc-500 hover:text-amber-400 rounded-lg transition-all cursor-pointer"
                 title="Cancel"
               >
@@ -130,7 +111,7 @@ export default function PublishedListingItem({
             )}
             <button
               id={`delete-listing-${post.id}`}
-              onClick={() => onDeleteListing(postId)}
+              onClick={() => onDeleteListing(post?.id)}
               className="p-1.5 bg-[#161619] hover:bg-red-950/30 border border-[#222226] hover:border-red-800/40 text-zinc-500 hover:text-[#FF3F3F] rounded-lg transition-all cursor-pointer"
               title="Delete"
             >

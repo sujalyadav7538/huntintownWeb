@@ -1,384 +1,1017 @@
-﻿"use client";
+﻿// import { useEffect, useMemo, useState } from "react";
+// import { ArrowLeft, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 
-import { useState, useEffect, useRef } from "react";
-import { useAppSelector } from "../store/hooks";
-import { apiFetch } from "../lib/api";
+// import { useAppSelector } from "../store/hooks";
+// import { apiFetch } from "../lib/api";
+
+// import PostTypeSelector, {
+//   PostType,
+// } from "../components/create-post/PostTypeSelector";
+// import CategorySelector, {
+//   Category,
+// } from "../components/create-post/CategorySelector";
+// import BudgetSelector, { Budget } from "./create-post/BudgetSelector";
+// import LocationSelector from "./create-post/LocationSelector";
+// import TimelineSelector, { Timeline } from "./create-post/TimelineSelector";
+// import ImageUploader from "./create-post/ImageUploader";
+// import PostPreview from "./create-post/PostPreview";
+// import DescriptionInput from "./create-post/DescriptionInput";
+
+// export interface CreatePostData {
+//   type: PostType;
+//   category: string;
+//   description: string;
+//   address: string;
+//   coordinates: [number, number] | null;
+//   budget: string;
+//   timeline: string;
+//   expiryDays: number;
+//   images: File[];
+// }
+
+// const DEFAULT_EXPIRY_DAYS = 7;
+
+// interface CreatePostProps {
+//   onPostCreated?: (postId: string) => void;
+// }
+
+// export default function CreatePost({ onPostCreated }: CreatePostProps) {
+//   const currentUser = useAppSelector((state) => state.auth.currentUser);
+
+//   /* -------------------------------------------------
+//    * Form state
+//    * ------------------------------------------------- */
+
+//   const [type, setType] = useState<PostType>("help_needed");
+
+//   const [category, setCategory] = useState<Category>("Home & Living");
+
+//   const [description, setDescription] = useState("");
+
+//   const [address, setAddress] = useState(currentUser?.address || "");
+
+//   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
+
+//   const [budget, setBudget] = useState<Budget>("Negotiable");
+
+//   const [timeline, setTimeline] = useState<Timeline>("Flexible");
+
+//   const [expiryDays, setExpiryDays] = useState(DEFAULT_EXPIRY_DAYS);
+
+//   const [images, setImages] = useState<File[]>([]);
+
+//   /* -------------------------------------------------
+//    * UI state
+//    * ------------------------------------------------- */
+
+//   const [submitting, setSubmitting] = useState(false);
+
+//   const [submitted, setSubmitted] = useState(false);
+
+//   const [error, setError] = useState("");
+
+//   /* -------------------------------------------------
+//    * Image previews (object URLs for PostPreview)
+//    * ------------------------------------------------- */
+
+//   const imagePreviews = useMemo(
+//     () => images.map((f) => URL.createObjectURL(f)),
+//     [images],
+//   );
+
+//   /* -------------------------------------------------
+//    * Validation
+//    * ------------------------------------------------- */
+
+//   const isValid =
+//     description.trim().length >= 10 &&
+//     category.trim().length > 0 &&
+//     address.trim().length > 0 &&
+//     coordinates !== null;
+
+//   /* -------------------------------------------------
+//    * Title
+//    *
+//    * Title is not entered by the user.
+//    * It is generated from the description.
+//    * ------------------------------------------------- */
+
+//   const generateTitle = () => {
+//     const cleaned = description.trim();
+
+//     if (!cleaned) {
+//       return "";
+//     }
+
+//     if (cleaned.length <= 60) {
+//       return cleaned;
+//     }
+
+//     return `${cleaned.slice(0, 60).trim()}…`;
+//   };
+
+//   /* -------------------------------------------------
+//    * Submit
+//    * ------------------------------------------------- */
+
+//   const handleSubmit = async () => {
+//     if (!isValid || submitting) {
+//       return;
+//     }
+
+//     setSubmitting(true);
+//     setError("");
+
+//     try {
+//       /*
+//        * Calculate expiry date.
+//        */
+//       const expiresAt = new Date();
+
+//       expiresAt.setDate(expiresAt.getDate() + expiryDays);
+
+//       /*
+//        * Build FormData.
+//        *
+//        * Only send fields that belong to postSchema.
+//        */
+//       const formData = new FormData();
+
+//       formData.append("title", generateTitle());
+
+//       formData.append("description", description.trim());
+
+//       formData.append("category", category);
+
+//       formData.append("address", address.trim());
+
+//       formData.append(
+//         "location",
+//         JSON.stringify({
+//           type: "Point",
+//           coordinates,
+//         }),
+//       );
+
+//       formData.append("type", type);
+
+//       formData.append("budget", budget || "Negotiable");
+
+//       formData.append("timeline", timeline || "Flexible");
+
+//       formData.append("status", "live");
+
+//       formData.append("expiryDays", String(expiryDays));
+
+//       formData.append("expiresAt", expiresAt.toISOString());
+
+//       /*
+//        * Images
+//        */
+//       images.forEach((file) => {
+//         formData.append("images", file);
+//       });
+
+//       /*
+//        * Send request.
+//        */
+//       const response = await apiFetch("/api/posts", {
+//         method: "POST",
+//         headers: {},
+//         body: formData,
+//       });
+
+//       const data = await response.json();
+
+//       if (!response.ok) {
+//         throw new Error(data.message || "Failed to create post");
+//       }
+
+//       const postId = data.post?._id || data.post?.id || data.id;
+
+//       setSubmitted(true);
+
+//       /*
+//        * Give the success state a moment
+//        * before closing the modal.
+//        */
+//       setTimeout(() => {
+//         // onClose();
+
+//         if (postId && onPostCreated) {
+//           onPostCreated(postId);
+//         }
+//       }, 1500);
+//     } catch (err) {
+//       setError(
+//         err instanceof Error
+//           ? err.message
+//           : "Something went wrong. Please try again.",
+//       );
+
+//       setSubmitting(false);
+//     }
+//   };
+
+//   /* -------------------------------------------------
+//    * Success state
+//    * ------------------------------------------------- */
+
+//   if (submitted) {
+//     return (
+//       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#171717]">
+//         <div className="flex max-w-sm flex-col items-center text-center">
+//           <div className="flex h-16 w-16 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10">
+//             <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+//           </div>
+
+//           <h2 className="mt-5 text-xl font-bold text-white">Post published</h2>
+
+//           <p className="mt-2 text-sm leading-relaxed text-zinc-500">
+//             Your post is now visible to people nearby.
+//           </p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   /* -------------------------------------------------
+//    * Main
+//    * ------------------------------------------------- */
+
+//   return (
+//     <div className="h-full min-h-0 overflow-hidden bg-[#09090b]">
+//       {/* HEADER */}
+//       <header className="h-14 shrink-0 border-b border-white/[0.06] bg-[#0c0c0f]">
+//         <div className="flex h-full items-center justify-between px-4 sm:px-6">
+//           <div className="flex items-center gap-2.5">
+//             <div className="h-1.5 w-1.5 rounded-full bg-[#FF3F3F]" />
+
+//             <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+//               Create Post
+//             </span>
+//           </div>
+
+//           <span className="hidden text-[10px] text-zinc-700 sm:block">
+//             Your post will be visible after publishing
+//           </span>
+//         </div>
+//       </header>
+
+//       {/* CONTENT */}
+//       <div className="grid h-[calc(100%-3.5rem)] min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px]">
+//         {/* LEFT — FORM */}
+//         <main className="min-h-0 min-w-0 overflow-y-auto scrollbar-hide">
+//           <div className="mx-auto w-full max-w-3xl px-5 py-7 sm:px-8 sm:py-9 lg:px-12">
+//             {/* Intro */}
+//             <div className="mb-10">
+//               <h1 className="text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">
+//                 Share your needs or offer
+//               </h1>
+
+//               <p className="mt-2 max-w-xl text-xs leading-relaxed text-zinc-600 sm:text-sm">
+//                 Add a few details so the right people can understand what you
+//                 need.
+//               </p>
+//             </div>
+
+//             {/* FORM */}
+//             <div className="space-y-7">
+//               {/* 01 */}
+//               <section>
+//                 <SectionHeader
+//                   step="01"
+//                   title="What are you posting?"
+//                   description="Choose whether you need help or can provide it."
+//                 />
+
+//                 <div className="mt-3">
+//                   <PostTypeSelector value={type} onChange={setType} />
+//                 </div>
+//               </section>
+
+//               {/* 02 */}
+//               <section>
+//                 <SectionHeader
+//                   step="02"
+//                   title="What is it about?"
+//                   description="Pick the category that best matches your post."
+//                 />
+
+//                 <div className="mt-3">
+//                   <CategorySelector value={category} onChange={setCategory} />
+//                 </div>
+//               </section>
+
+//               {/* 03 */}
+//               <section>
+//                 <SectionHeader
+//                   step="03"
+//                   title="Tell us about it"
+//                   description="A clear description helps people understand your requirement."
+//                 />
+
+//                 <div className="mt-3">
+//                   <DescriptionInput
+//                     value={description}
+//                     onChange={setDescription}
+//                     postType={type}
+//                   />
+//                 </div>
+//               </section>
+
+//               {/* 04 */}
+//               <section>
+//                 <SectionHeader
+//                   step="04"
+//                   title="Where?"
+//                   description="Add the location where help is needed."
+//                 />
+
+//                 <div className="mt-3">
+//                   <LocationSelector
+//                     address={address}
+//                     coordinates={coordinates}
+//                     onAddressChange={setAddress}
+//                     onCoordinatesChange={setCoordinates}
+//                   />
+//                 </div>
+//               </section>
+
+//               {/* 05 */}
+//               <section>
+//                 <SectionHeader
+//                   step="05"
+//                   title="Budget"
+//                   description="Let people know what you have in mind."
+//                 />
+
+//                 <div className="mt-3">
+//                   <BudgetSelector value={budget} onChange={setBudget} />
+//                 </div>
+//               </section>
+
+//               {/* 06 */}
+//               <section>
+//                 <SectionHeader
+//                   step="06"
+//                   title="When?"
+//                   description="Choose an approximate timeline."
+//                 />
+
+//                 <div className="mt-3">
+//                   <TimelineSelector value={timeline} onChange={setTimeline} />
+//                 </div>
+//               </section>
+
+//               {/* 07 */}
+//               <section>
+//                 <SectionHeader
+//                   step="07"
+//                   title="Add photos"
+//                   description="Optional. Up to 3 photos."
+//                 />
+
+//                 <div className="mt-3">
+//                   <ImageUploader
+//                     files={images}
+//                     previews={imagePreviews}
+//                     onChange={setImages}
+//                     maxImages={3}
+//                   />
+//                 </div>
+//               </section>
+
+//               {/* Error */}
+//               {error && (
+//                 <div className="rounded-xl border border-red-500/20 bg-red-500/[0.07] px-4 py-3">
+//                   <p className="text-xs leading-relaxed text-red-300">
+//                     {error}
+//                   </p>
+//                 </div>
+//               )}
+
+//               {/* Mobile CTA */}
+//               <button
+//                 type="button"
+//                 disabled={!isValid || submitting}
+//                 onClick={handleSubmit}
+//                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF3F3F] px-5 py-3.5 text-xs font-bold text-white transition hover:bg-[#e93636] disabled:cursor-not-allowed disabled:opacity-40 lg:hidden"
+//               >
+//                 {submitting ? (
+//                   <>
+//                     <Loader2 className="h-4 w-4 animate-spin" />
+//                     Publishing…
+//                   </>
+//                 ) : (
+//                   <>
+//                     <Sparkles className="h-4 w-4" />
+//                     Publish Post
+//                   </>
+//                 )}
+//               </button>
+//             </div>
+//           </div>
+//         </main>
+
+//         {/* RIGHT — PREVIEW */}
+//         <aside className="hidden min-h-0 border-l border-white/[0.06] bg-[#0b0b0d] lg:block">
+//           <div className="flex h-full flex-col">
+//             {/* Preview header */}
+//             <div className="shrink-0 border-b border-white/[0.06] px-6 py-5">
+//               <div className="flex items-center gap-2">
+//                 <div className="h-1.5 w-1.5 rounded-full bg-[#FF3F3F]" />
+
+//                 <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-600">
+//                   Live Preview
+//                 </span>
+//               </div>
+
+//               <h2 className="mt-1.5 text-sm font-semibold text-zinc-200">
+//                 Your post
+//               </h2>
+//             </div>
+
+//             {/* Preview content */}
+//             <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide px-6 py-6">
+//               <div className="rounded-2xl border border-white/[0.06] bg-[#101014] p-4">
+//                 <PostPreview
+//                   category={category}
+//                   description={description}
+//                   address={address}
+//                   budget={budget}
+//                   timeline={timeline}
+//                   expiryDays={expiryDays}
+//                   imagePreviews={imagePreviews}
+//                   user={currentUser}
+//                 />
+//               </div>
+
+//               {/* Completion hint */}
+//               <div className="mt-5 rounded-xl border border-white/[0.045] bg-white/[0.015] px-3.5 py-3">
+//                 <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
+//                   Publishing
+//                 </p>
+
+//                 <p className="mt-1 text-[10px] leading-relaxed text-zinc-600">
+//                   {isValid
+//                     ? "Everything looks good. Your post is ready to publish."
+//                     : "Complete the required fields to publish your post."}
+//                 </p>
+//               </div>
+//             </div>
+
+//             {/* Desktop CTA */}
+//             <div className="shrink-0 border-t border-white/[0.06] p-6">
+//               <button
+//                 type="button"
+//                 disabled={!isValid || submitting}
+//                 onClick={handleSubmit}
+//                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FF3F3F] px-5 py-3.5 text-xs font-bold text-white transition hover:bg-[#e93636] disabled:cursor-not-allowed disabled:opacity-40"
+//               >
+//                 {submitting ? (
+//                   <>
+//                     <Loader2 className="h-4 w-4 animate-spin" />
+//                     Publishing…
+//                   </>
+//                 ) : (
+//                   <>
+//                     <Sparkles className="h-4 w-4" />
+//                     Publish Post
+//                   </>
+//                 )}
+//               </button>
+//             </div>
+//           </div>
+//         </aside>
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* -------------------------------------------------
+//  * Section Header
+//  * ------------------------------------------------- */
+
+// interface SectionHeaderProps {
+//   step: string;
+//   title: string;
+//   description: string;
+// }
+
+// function SectionHeader({ step, title, description }: SectionHeaderProps) {
+//   return (
+//     <div>
+//       <div className="flex items-baseline gap-3">
+//         <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#FF3F3F]/20 to-[#FF3F3F]/5 font-mono text-xs font-bold text-[#FF3F3F]">
+//           {step}
+//         </span>
+//         <h3 className="text-base font-bold text-white">{title}</h3>
+//       </div>
+//       <p className="mt-2 ml-10 text-xs leading-relaxed text-zinc-500">
+//         {description}
+//       </p>
+//     </div>
+//   );
+// }
+
+import { useMemo, useState } from "react";
 import {
   ArrowLeft,
-  Sparkles,
-  MapPin,
-  Wallet,
-  Clock,
-  MessageSquare,
-  Phone,
+  ArrowRight,
+  Bookmark,
   Check,
-  CheckCircle2,
-  Loader2,
-  Navigation,
-  ImagePlus,
-  X,
-  IndianRupee,
-  Users,
-  Zap,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react";
-import { getAvatarUrl, handleAvatarError } from "../utils";
+import PostTypeStep from "./post/PostTypeStep";
+import CategoryStep from "./post/CategoryStep";
+import DetailsStep from "./post/DetailsStep";
+import LocationStep from "./post/LocationStep";
+import TimelineStep from "./post/TimelineStep";
+import BudgetStep from "./post/BudgetStep";
+import PhotosStep from "./post/PhotoStep";
+import PostPreview from "./create-post/PostPreview";
 
-interface CreatePostProps {
-  onClose: () => void;
-  onPostCreated?: (postId: string) => void;
-}
+// Step components — we'll build these next
 
-const CATEGORIES = [
-  "Home & Living", "Tech & Electronics", "Education & Tutoring",
-  "Health & Wellness", "Events & Celebrations", "Business & Finance",
-  "Creative & Design", "Transport & Moving", "Legal & Consulting",
-  "Pets & Animals", "Fitness & Sports", "Food & Catering",
+
+
+const STEPS = [
+  {
+    id: 1,
+    label: "Type",
+  },
+  {
+    id: 2,
+    label: "Category",
+  },
+  {
+    id: 3,
+    label: "Details",
+  },
+  {
+    id: 4,
+    label: "Location",
+  },
+  {
+    id: 5,
+    label: "Budget",
+  },
+  {
+    id: 6,
+    label: "Timeline",
+  },
+  {
+    id: 7,
+    label: "Photos",
+  },
 ];
 
-const CATEGORY_ICONS: Record<string, string> = {
-  "Home & Living": "🏠", "Tech & Electronics": "💻", "Education & Tutoring": "📚",
-  "Health & Wellness": "💪", "Events & Celebrations": "🎉", "Business & Finance": "💼",
-  "Creative & Design": "🎨", "Transport & Moving": "🚚", "Legal & Consulting": "⚖️",
-  "Pets & Animals": "🐾", "Fitness & Sports": "🏃", "Food & Catering": "🍽️",
-};
+interface CreatePostProps {
+  currentUser: any;
+  onBack?: () => void;
+  onSaveDraft?: () => void;
+  onSubmit?: (data: any) => void;
+}
 
-const CATEGORY_COLORS: Record<string, string> = {
-  "Home & Living": "#f97316", "Tech & Electronics": "#6366f1",
-  "Education & Tutoring": "#3b82f6", "Health & Wellness": "#22c55e",
-  "Events & Celebrations": "#ec4899", "Business & Finance": "#14b8a6",
-  "Creative & Design": "#a855f7", "Transport & Moving": "#f59e0b",
-  "Legal & Consulting": "#8b5cf6", "Pets & Animals": "#84cc16",
-  "Fitness & Sports": "#06b6d4", "Food & Catering": "#ef4444",
-};
+export default function CreatePost({
+  currentUser,
+  onBack,
+  onSaveDraft,
+  onSubmit,
+}: CreatePostProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [saving, setSaving] = useState(false);
 
-export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) {
-  const currentUser = useAppSelector((s) => s.auth.currentUser);
-
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
-
+  /*
+   * FORM STATE
+   *
+   * Keep all form state in the parent.
+   * Individual step components only receive value + setters.
+   */
+  const [type, setType] = useState("");
+  const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Home & Living");
-  const [address, setAddress] = useState(currentUser?.address || "");
+  const [address, setAddress] = useState("");
+  const [coordinates, setCoordinates] = useState<any>(null);
   const [budget, setBudget] = useState("");
   const [timeline, setTimeline] = useState("");
-  const [expiryDays, setExpiryDays] = useState(7);
-  const [contactMethods, setContactMethods] = useState({ whatsApp: true, phone: false, chat: true });
-
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [dragOver, setDragOver] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [coords, setCoords] = useState<[number, number] | null>(null);
-  const [locating, setLocating] = useState(false);
+  const [expiryDays, setExpiryDays] = useState(7);
 
-  useEffect(() => {
-    return () => { imagePreviews.forEach(URL.revokeObjectURL); };
-  }, [imagePreviews]);
+  const formData = useMemo(
+    () => ({
+      type,
+      category,
+      description,
+      address,
+      coordinates,
+      budget,
+      timeline,
+      images,
+      imagePreviews,
+      expiryDays,
+    }),
+    [
+      type,
+      category,
+      description,
+      address,
+      coordinates,
+      budget,
+      timeline,
+      images,
+      imagePreviews,
+      expiryDays,
+    ],
+  );
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) return;
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { setCoords([pos.coords.longitude, pos.coords.latitude]); setLocating(false); },
-      () => setLocating(false),
-      { timeout: 8000 }
-    );
+  /*
+   * STEP VALIDATION
+   *
+   * We only prevent moving forward.
+   * Users can always go backwards.
+   */
+  const isStepValid = useMemo(() => {
+    switch (currentStep) {
+      case 1:
+        return Boolean(type);
+
+      case 2:
+        return Boolean(category);
+
+      case 3:
+        return description.trim().length > 0;
+
+      case 4:
+        return Boolean(address);
+
+      case 5:
+        return Boolean(budget);
+
+      case 6:
+        return Boolean(timeline);
+
+      case 7:
+        return true;
+
+      default:
+        return false;
+    }
+  }, [currentStep, type, category, description, address, budget, timeline]);
+
+  const isLastStep = currentStep === STEPS.length;
+  const isFirstStep = currentStep === 1;
+
+  const goNext = () => {
+    if (!isStepValid || isLastStep) return;
+
+    setCurrentStep((step) => Math.min(step + 1, STEPS.length));
   };
 
-  useEffect(() => { detectLocation(); }, []);
+  const goPrevious = () => {
+    if (isFirstStep) {
+      onBack?.();
+      return;
+    }
 
-  const addImages = (files: FileList | null) => {
-    if (!files) return;
-    const newFiles = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, 3 - imageFiles.length);
-    const newPreviews = newFiles.map((f) => URL.createObjectURL(f));
-    setImageFiles((p) => [...p, ...newFiles]);
-    setImagePreviews((p) => [...p, ...newPreviews]);
+    setCurrentStep((step) => Math.max(step - 1, 1));
   };
 
-  const removeImage = (idx: number) => {
-    URL.revokeObjectURL(imagePreviews[idx]);
-    setImageFiles((p) => p.filter((_, i) => i !== idx));
-    setImagePreviews((p) => p.filter((_, i) => i !== idx));
+  const goToStep = (step: number) => {
+    // Don't allow jumping ahead.
+    if (step > currentStep) return;
+
+    setCurrentStep(step);
   };
 
-  const canSubmit = description.trim().length >= 10 && address.trim().length > 0;
-  const previewTitle = description.length > 60 ? description.substring(0, 60) + "…" : description;
-  const previewBudget = budget.trim() || "Negotiable";
-  const accentColor = CATEGORY_COLORS[category] || "#FF3F3F";
-
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
-    setSubmitting(true);
-    setError("");
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + expiryDays);
-    const locationCoords: [number, number] = coords ?? [77.3649, 28.6273];
-
-    const formData = new FormData();
-    formData.append("title", previewTitle);
-    formData.append("description", description);
-    formData.append("category", category);
-    formData.append("address", address.trim());
-    formData.append("location", JSON.stringify({ type: "Point", coordinates: locationCoords }));
-    formData.append("type", "help_needed");
-    formData.append("budget", budget.trim() || "Negotiable");
-    formData.append("timeline", timeline.trim() || "Flexible");
-    formData.append("status", "live");
-    formData.append("expiryDays", String(expiryDays));
-    formData.append("expiresAt", expiryDate.toISOString());
-    formData.append("questions", JSON.stringify([]));
-    formData.append("contactMethods", JSON.stringify(contactMethods));
-    imageFiles.forEach((file) => formData.append("images", file));
-
+  const handleSaveDraft = async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const response = await apiFetch("/api/posts", {
-        method: "POST",
-        headers: { Authorization: `${token}` }, // No Content-Type — browser sets multipart boundary
-        body: formData,
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Failed to create post");
-      setSubmitted(true);
-      const postId = data.post?._id || data.post?.id || data.id;
-      setTimeout(() => { onClose(); if (postId && onPostCreated) onPostCreated(postId); }, 1800);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
-      setSubmitting(false);
+      setSaving(true);
+      await onSaveDraft?.();
+    } finally {
+      setSaving(false);
     }
   };
 
-  const inp = "w-full px-3.5 py-2.5 bg-[#111113] border border-[#252529] text-sm text-zinc-100 rounded-xl placeholder-zinc-600 focus:outline-none focus:border-[#FF3F3F]/60 transition-all duration-200";
-  const lbl = "block text-xs font-semibold text-zinc-400 mb-1.5";
+  const handleSubmit = () => {
+    if (!isLastStep) return;
 
-  if (submitted) {
-    return (
-      <div className="fixed inset-0 z-50 bg-[#171717] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-5 text-center max-w-sm">
-          <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
-            <CheckCircle2 className="w-10 h-10 text-emerald-400" />
-          </div>
-          <h2 className="text-2xl font-extrabold text-white">Post is Live!</h2>
-          <p className="text-zinc-400 text-sm">Your requirement has been published. Helpers nearby will see it now.</p>
-        </div>
-      </div>
-    );
-  }
+    onSubmit?.(formData);
+  };
+
+  /*
+   * Render current step
+   */
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1:
+        return <PostTypeStep value={type} onChange={setType} />;
+
+      case 2:
+        return <CategoryStep value={category} onChange={setCategory} />;
+
+      case 3:
+        return (
+          <DetailsStep
+            value={description}
+            onChange={setDescription}
+            postType={type}
+          />
+        );
+
+      case 4:
+        return (
+          <LocationStep
+            address={address}
+            coordinates={coordinates}
+            onAddressChange={setAddress}
+            onCoordinatesChange={setCoordinates}
+          />
+        );
+
+      case 5:
+        return <BudgetStep value={budget} onChange={setBudget} />;
+
+      case 6:
+        return (
+          <TimelineStep
+            value={timeline}
+            expiryDays={expiryDays}
+            onChange={setTimeline}
+            onExpiryChange={setExpiryDays}
+          />
+        );
+
+      case 7:
+        return (
+          <PhotosStep
+            files={images}
+            previews={imagePreviews}
+            onChange={setImages}
+            onPreviewsChange={setImagePreviews}
+            maxImages={3}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const activeStep = STEPS[currentStep - 1];
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#171717] flex flex-col overflow-hidden animate-in fade-in duration-200">
+    <div className="h-full min-h-0 overflow-hidden bg-[#09090b]">
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
+      <header className="h-14 shrink-0 border-b border-white/[0.06] bg-[#0c0c0f]">
+        <div className="flex h-full items-center justify-between px-4 sm:px-6">
+          {/* Back */}
+          <button
+            type="button"
+            onClick={onBack}
+            className="group inline-flex items-center gap-2 text-[11px] font-medium text-zinc-500 transition hover:text-zinc-200"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
 
-      {/* Top bar */}
-      <header className="shrink-0 flex items-center justify-between px-6 py-3.5 border-b border-[#1a1a1e] bg-[#0e0e10]">
-        <button onClick={onClose} className="flex items-center gap-2 text-zinc-400 hover:text-white transition text-sm font-medium cursor-pointer">
-          <ArrowLeft className="w-4 h-4" /> 
-        </button>
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#FF3F3F]" />
-          <span className="text-sm font-bold text-white">Post a Requirement</span>
+            <span className="hidden sm:inline">Back</span>
+          </button>
+
+          {/* Title */}
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-[#FF3F3F]" />
+
+            <span className="text-[11px] font-semibold text-zinc-300">
+              Create Post
+            </span>
+          </div>
+
+          {/* Save */}
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.07] bg-white/[0.025] px-2.5 py-1.5 text-[10px] font-medium text-zinc-500 transition hover:border-white/[0.12] hover:text-zinc-300 disabled:opacity-40"
+          >
+            <Bookmark className="h-3 w-3" />
+
+            <span className="hidden sm:inline">
+              {saving ? "Saving..." : "Save Draft"}
+            </span>
+          </button>
         </div>
-        <button type="button" disabled={!canSubmit || submitting} onClick={handleSubmit} id="submit-create-post-btn"
-          className="flex items-center gap-2 px-5 py-2 rounded-xl bg-[#FF3F3F] hover:bg-[#e53535] text-white text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
-          {submitting ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Publishing…</> : <><Sparkles className="w-3.5 h-3.5" /> Publish</>}
-        </button>
       </header>
 
-      {/* Two-column body */}
-      <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-2">
+      {/* =====================================================
+          STEP PROGRESS
+      ===================================================== */}
+      <div className="shrink-0 border-b border-white/[0.05] bg-[#0b0b0d]">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center px-4 sm:px-6 lg:px-8">
+          <div className="flex w-full items-center justify-between">
+            {STEPS.map((step, index) => {
+              const active = step.id === currentStep;
+              const completed = step.id < currentStep;
+              const clickable = step.id <= currentStep;
 
-        {/* LEFT: Form */}
-        <div className="overflow-y-auto px-6 py-6 space-y-6 border-r border-[#1a1a1e]">
+              return (
+                <div key={step.id} className="flex min-w-0 flex-1 items-center">
+                  {/* Step */}
+                  <button
+                    type="button"
+                    disabled={!clickable}
+                    onClick={() => goToStep(step.id)}
+                    className="group flex shrink-0 items-center gap-2 disabled:cursor-default"
+                  >
+                    <span
+                      className={`
+                        flex h-7 w-7 items-center justify-center
+                        rounded-full border text-[9px] font-bold
+                        transition
+                        ${
+                          active
+                            ? "border-[#FF3F3F] bg-[#FF3F3F] text-white"
+                            : completed
+                              ? "border-[#FF3F3F]/30 bg-[#FF3F3F]/10 text-[#FF5b5b]"
+                              : "border-white/[0.12] bg-white/[0.02] text-zinc-600"
+                        }
+                      `}
+                    >
+                      {completed ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        String(step.id).padStart(2, "0")
+                      )}
+                    </span>
 
-          <div>
-            <label className={lbl}>What do you need? <span className="text-[#FF3F3F]">*</span></label>
-            <textarea placeholder="e.g. I need a plumber to fix a leaking pipe in my kitchen…" rows={4}
-              value={description} onChange={(e) => setDescription(e.target.value)} maxLength={300}
-              className={`${inp} resize-none`} />
-            <div className="flex justify-between mt-1.5">
-              {description.trim().length > 0 && description.trim().length < 10 && <span className="text-[11px] text-amber-500">Min. 10 characters required</span>}
-              <span className="text-[11px] text-zinc-600 ml-auto font-mono">{description.length}/300</span>
-            </div>
-          </div>
-
-          <div>
-            <label className={lbl}>Category</label>
-            <div className="grid grid-cols-4 gap-2">
-              {CATEGORIES.map((cat) => (
-                <button key={cat} type="button" onClick={() => setCategory(cat)}
-                  className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border text-center transition-all cursor-pointer ${category === cat ? "text-white" : "bg-[#111113] border-[#252529] text-zinc-500 hover:border-[#333337] hover:text-zinc-300"}`}
-                  style={category === cat ? { backgroundColor: `${accentColor}15`, borderColor: `${accentColor}50` } : {}}>
-                  <span className="text-lg leading-none">{CATEGORY_ICONS[cat]}</span>
-                  <span className="text-[9px] font-semibold leading-tight">{cat.split(" & ")[0]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className={lbl}><span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" /> Address <span className="text-[#FF3F3F]">*</span></span></label>
-            <div className="flex gap-2">
-              <input type="text" placeholder="e.g. Noida, Sector 62" value={address} onChange={(e) => setAddress(e.target.value)} className={`${inp} flex-1`} />
-              <button type="button" onClick={detectLocation} title="Detect my location"
-                className="px-3 rounded-xl border border-[#252529] bg-[#111113] text-zinc-500 hover:text-[#FF3F3F] hover:border-[#FF3F3F]/40 transition cursor-pointer">
-                {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
-              </button>
-            </div>
-            {coords && <p className="text-[11px] text-emerald-500 mt-1.5 flex items-center gap-1"><Check className="w-3 h-3" /> GPS location captured</p>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={lbl}><span className="inline-flex items-center gap-1"><Wallet className="w-3 h-3" /> Budget</span></label>
-              <input type="text" placeholder="₹5,000 or Negotiable" value={budget} onChange={(e) => setBudget(e.target.value)} className={inp} />
-            </div>
-            <div>
-              <label className={lbl}><span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" /> Timeline</span></label>
-              <input type="text" placeholder="e.g. 3 Days" value={timeline} onChange={(e) => setTimeline(e.target.value)} className={inp} />
-            </div>
-          </div>
-
-          <div>
-            <label className={lbl}><span className="inline-flex items-center gap-1"><ImagePlus className="w-3 h-3" /> Photos <span className="text-zinc-600 font-normal">(max 3)</span></span></label>
-            {imageFiles.length < 3 && (
-              <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)}
-                onDrop={(e) => { e.preventDefault(); setDragOver(false); addImages(e.dataTransfer.files); }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`flex flex-col items-center justify-center gap-2 h-24 rounded-xl border-2 border-dashed cursor-pointer transition-all ${dragOver ? "border-[#FF3F3F]/60 bg-[#FF3F3F]/5" : "border-[#252529] hover:border-[#FF3F3F]/40 hover:bg-[#111113]"}`}>
-                <ImagePlus className="w-5 h-5 text-zinc-600" />
-                <p className="text-xs text-zinc-600">Drop images here or <span className="text-[#FF3F3F]">browse</span></p>
-                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => addImages(e.target.files)} />
-              </div>
-            )}
-            {imagePreviews.length > 0 && (
-              <div className="flex gap-2 mt-3 flex-wrap">
-                {imagePreviews.map((src, i) => (
-                  <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-[#252529] group">
-                    <img src={src} alt="" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => removeImage(i)}
-                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer">
-                      <X className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className={lbl}>Post expires in</label>
-            <div className="flex gap-2">
-              {[1, 3, 5, 7, 10].map((d) => (
-                <button key={d} type="button" onClick={() => setExpiryDays(d)}
-                  className={`flex-1 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${expiryDays === d ? "bg-[#FF3F3F]/15 border-[#FF3F3F]/50 text-white" : "bg-[#111113] border-[#252529] text-zinc-500 hover:border-[#333337] hover:text-zinc-300"}`}>
-                  {d}d
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className={lbl}>Contact via</label>
-            <div className="flex gap-2">
-              {([
-                { key: "whatsApp", label: "WhatsApp", icon: MessageSquare, on: "text-emerald-400 border-emerald-500/40 bg-emerald-500/10" },
-                { key: "phone", label: "Phone", icon: Phone, on: "text-blue-400 border-blue-500/40 bg-blue-500/10" },
-                { key: "chat", label: "In-App", icon: MessageSquare, on: "text-[#FF3F3F] border-[#FF3F3F]/40 bg-[#FF3F3F]/10" },
-              ] as const).map((m) => {
-                const active = contactMethods[m.key];
-                return (
-                  <button key={m.key} type="button" onClick={() => setContactMethods((p) => ({ ...p, [m.key]: !p[m.key] }))}
-                    className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 rounded-xl border transition-all cursor-pointer text-xs font-semibold ${active ? m.on : "bg-[#111113] border-[#252529] text-zinc-600 hover:border-[#333337]"}`}>
-                    <m.icon className="w-3.5 h-3.5" />
-                    {m.label}
+                    <span
+                      className={`
+                        hidden text-[9px] font-semibold
+                        sm:block
+                        ${
+                          active
+                            ? "text-zinc-200"
+                            : completed
+                              ? "text-zinc-500"
+                              : "text-zinc-700"
+                        }
+                      `}
+                    >
+                      {step.label}
+                    </span>
                   </button>
-                );
-              })}
-            </div>
-          </div>
 
-          {error && <div className="rounded-xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">{error}</div>}
-
-          <div className="lg:hidden pt-2 pb-8">
-            <button type="button" disabled={!canSubmit || submitting} onClick={handleSubmit}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#FF3F3F] hover:bg-[#e53535] text-white text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
-              {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Publishing…</> : <><Sparkles className="w-4 h-4" /> Publish Post</>}
-            </button>
+                  {/* Connector */}
+                  {index < STEPS.length - 1 && (
+                    <div
+                      className={`
+                        mx-2 h-px flex-1
+                        ${completed ? "bg-[#FF3F3F]/30" : "bg-white/[0.06]"}
+                      `}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
+      </div>
 
-        {/* RIGHT: Live preview */}
-        <div className="hidden lg:flex flex-col overflow-y-auto bg-[#0a0a0c] px-8 py-8">
-          <div className="flex items-center gap-2 mb-6">
-            <span className="w-2 h-2 rounded-full bg-[#FF3F3F] animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-500">Live Preview</span>
-          </div>
+      {/* =====================================================
+          MAIN CONTENT
+      ===================================================== */}
+      <div className="grid h-[calc(100%-7rem)] min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px]">
+        {/* ===================================================
+            LEFT — FORM
+        =================================================== */}
+        <main className="min-h-0 min-w-0 overflow-y-auto scrollbar-hide">
+          <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-5 py-7 sm:px-8 sm:py-9 lg:px-12">
+            {/* Current step heading */}
+            <div className="mb-8">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-[9px] font-bold tracking-[0.16em] text-[#FF3F3F]">
+                  {String(activeStep.id).padStart(2, "0")}
+                </span>
 
-          <div className="relative overflow-hidden rounded-2xl border border-[#1e1e22] bg-[#0e0e10]" style={{ borderLeft: `3px solid ${accentColor}` }}>
-            <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accentColor}55, transparent)` }} />
-            <div className="p-5 space-y-4">
+                <span className="h-px w-5 bg-[#FF3F3F]/30" />
 
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="relative shrink-0">
-                    <img src={getAvatarUrl(currentUser?.name || "You", currentUser?.avatar)} alt={currentUser?.name || "You"}
-                      className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1e1e22]"
-                      onError={(e) => handleAvatarError(e, currentUser?.name || "You")} referrerPolicy="no-referrer" />
-                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#0e0e10]" />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-semibold text-zinc-100">{currentUser?.name || "You"}</p>
-                    <div className="flex items-center gap-1 text-[11px] text-zinc-500 mt-0.5">
-                      <MapPin className="w-3 h-3" /><span>{address || "Location"}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 rounded-full border border-[#262629] bg-[#161619] px-2.5 py-1 text-[11px] text-zinc-400">
-                  <Users className="w-3 h-3 text-zinc-500" /><span>0</span>
-                </div>
+                <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-zinc-600">
+                  {activeStep.label}
+                </span>
               </div>
 
-              <div className="space-y-1.5">
-                <h3 className="text-[15px] font-bold text-zinc-100 leading-snug">
-                  {previewTitle || <span className="text-zinc-600 italic font-normal text-sm">Your title will appear here…</span>}
-                </h3>
-                <p className="text-[12px] text-zinc-500 leading-relaxed line-clamp-3">
-                  {description || <span className="italic text-zinc-700">Description will appear here…</span>}
-                </p>
-              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">
+                Create your post
+              </h1>
 
-              {imagePreviews.length > 0 && (
-                <div className={`grid gap-1.5 ${imagePreviews.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
-                  {imagePreviews.map((src, i) => (
-                    <img key={i} src={src} alt="" className={`w-full object-cover rounded-xl border border-[#1e1e22] ${imagePreviews.length === 1 ? "max-h-48" : "h-28"}`} />
-                  ))}
-                </div>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-600 sm:text-sm">
+                Add the details people need to understand your post.
+              </p>
+            </div>
+
+            {/* Active step */}
+            <div className="min-h-0 flex-1">{renderCurrentStep()}</div>
+
+            {/* Navigation */}
+            <div className="mt-10 flex items-center justify-between border-t border-white/[0.06] pt-5">
+              <button
+                type="button"
+                onClick={goPrevious}
+                className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 text-[10px] font-semibold text-zinc-500 transition hover:border-white/[0.12] hover:text-zinc-300"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+
+                {isFirstStep ? "Back" : "Previous"}
+              </button>
+
+              {isLastStep ? (
+                <button
+                  type="button"
+                  disabled={!isStepValid}
+                  onClick={handleSubmit}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#FF3F3F] px-5 text-[10px] font-bold text-white transition hover:bg-[#e93636] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Publish Post
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={!isStepValid}
+                  onClick={goNext}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#FF3F3F] px-5 text-[10px] font-bold text-white transition hover:bg-[#e93636] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Continue
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
               )}
+            </div>
+          </div>
+        </main>
 
-              <div className="flex flex-wrap gap-1.5">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wide"
-                  style={{ color: accentColor, borderColor: `${accentColor}30`, backgroundColor: `${accentColor}12` }}>
-                  {category}
+        {/* ===================================================
+            RIGHT — LIVE PREVIEW
+        =================================================== */}
+        <aside className="hidden min-h-0 border-l border-white/[0.06] bg-[#0b0b0d] lg:block">
+          <div className="flex h-full flex-col">
+            {/* Preview header */}
+            <div className="shrink-0 border-b border-white/[0.06] px-6 py-5">
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#FF3F3F]" />
+
+                <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-zinc-600">
+                  Live Preview
                 </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#161619] border border-[#232328] rounded-full text-[10px] font-semibold text-zinc-400">
-                  <IndianRupee className="w-2.5 h-2.5" />{previewBudget}
-                </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-950/40 border border-emerald-900/40 rounded-full text-[10px] font-bold text-emerald-400 uppercase tracking-wide">
-                  <Clock className="w-2.5 h-2.5" />Expires in {expiryDays}d
-                </span>
-                {description.toLowerCase().includes("urgent") && (
-                  <span className="inline-flex items-center gap-0.5 text-[9px] font-black tracking-widest bg-[#FF3F3F]/15 text-[#FF3F3F] border border-[#FF3F3F]/30 px-1.5 py-0.5 rounded-full uppercase">
-                    <Zap className="w-2.5 h-2.5" /> Urgent
-                  </span>
-                )}
+              </div>
+
+              <h2 className="mt-1.5 text-sm font-semibold text-zinc-200">
+                How your post will look
+              </h2>
+            </div>
+
+            {/* Preview */}
+            <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide px-6 py-6">
+              <div className="rounded-2xl border border-white/[0.06] bg-[#101014] p-4">
+                <PostPreview
+                  category={category}
+                  description={description}
+                  address={address}
+                  budget={budget}
+                  timeline={timeline}
+                  expiryDays={expiryDays}
+                  imagePreviews={imagePreviews}
+                  user={currentUser}
+                />
+              </div>
+
+              {/* Tips */}
+              <div className="mt-4 rounded-2xl border border-white/[0.05] bg-white/[0.015] p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#FF3F3F]/10">
+                    <Sparkles className="h-3.5 w-3.5 text-[#FF3F3F]" />
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-semibold text-zinc-300">
+                      Tips for better responses
+                    </p>
+
+                    <ul className="mt-2 space-y-1.5 text-[9px] leading-relaxed text-zinc-600">
+                      <li>• Be clear and specific</li>
+                      <li>• Add a realistic budget</li>
+                      <li>• Mention your expected timeline</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <p className="text-[11px] text-zinc-700 mt-4 text-center">This is exactly how your post will appear in the feed.</p>
-        </div>
+        </aside>
       </div>
     </div>
   );

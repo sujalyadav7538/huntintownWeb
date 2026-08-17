@@ -23,7 +23,7 @@ export default function Header({
   );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#242428] bg-[#121214]/90 backdrop-blur-xl">
+    <header className="fixed top-0 left-0 right-0 z-100 border-b border-[#242428] bg-[#121214]/90 backdrop-blur-xl">
       {/* Mobile */}
       <div className="md:hidden">
         <MobileNavigation

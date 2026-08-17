@@ -62,8 +62,6 @@ export default function ReviewHelpersModal({
   const [submitted, setSubmitted] = useState<Set<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const token = localStorage.getItem("access_token");
-
   const handleSubmit = async (helper: Helper) => {
     const rating = ratings[helper.helperId];
     if (!rating) {
@@ -80,10 +78,7 @@ export default function ReviewHelpersModal({
     try {
       const res = await apiFetch("/api/rating", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           postId,
           hunter: hunterId,

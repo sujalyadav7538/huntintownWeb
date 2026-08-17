@@ -52,11 +52,11 @@ export interface UserMetric {
     score: number;
   };
   helperMetrics: {
-    offersSubmitted: number;
-    offersAccepted: number;
+    responsesSubmitted: number;
+    responsesAccepted: number;
     acceptanceScore: number;
-    completedOffers: number;
-    cancelledOffers: number;
+    completedResponses: number;
+    cancelledResponses: number;
     completionScore: number;
   };
   hunterMetrics: {
@@ -64,8 +64,8 @@ export interface UserMetric {
     postsCompleted: number;
     postsCancelled: number;
     completionScore: number;
-    offersReceived: number;
-    offersAccepted: number;
+    responsesReceived: number;
+    responsesAccepted: number;
     acceptanceScore: number;
   };
   responseMetrics: {
@@ -106,11 +106,11 @@ export interface Comment {
   answers?: { question: string; answer: string }[];
 }
 
-/** Matches offerSchema in backend */
-export interface Offer {
+/** Matches responseSchema in backend */
+export interface Response {
   _id: string;
   postId: string;
-  offeredBy: User;
+  respondedBy: User;
   message: string;
   answers: { question: string; answer: string }[];
   status: "pending" | "accepted" | "rejected" | "completed" | "cancelled";
@@ -150,7 +150,7 @@ export interface Post {
   /** Raw backend status values */
   status: "live" | "in_progress" | "completed" | "expired" | "cancelled";
   comments: Comment[];
-  offersCount: number;
+  responsesCount: number;
 }
 
 export interface Message {
@@ -192,6 +192,7 @@ export interface Conversation {
     status?: string;
   };
   offerId?: string;
+  responseId?: string;
   participants: User[];
   status: string;
   lastMessage?: string;
@@ -210,4 +211,30 @@ export interface ChatPost {
   status: string;
   conversationCount: number;
   lastMessageAt?: string;
+}
+
+
+
+export interface ActivityPost {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  address?: string;
+  budget?: string;
+  timeline?: string;
+  status: string;
+  expiresAt: string;
+  questions?: string[];
+  author: { _id?: string; name: string; avatar: string };
+}
+
+export interface ActivityResponse {
+  _id: string;
+  postId: ActivityPost;
+  message: string;
+  answers: { question: string; answer: string }[];
+  status: "pending" | "accepted" | "rejected" | "completed" | "cancelled";
+  createdAt: string;
+  updatedAt: string;
 }

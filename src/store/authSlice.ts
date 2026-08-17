@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { User } from "../types";
 import { socket } from "../lib/socket";
-import { AUTH_REDIRECT_LOCK_KEY, clearAuthStorage } from "../lib/authStorage";
+import { AUTH_REDIRECT_LOCK_KEY } from "../lib/authStorage";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -28,30 +28,21 @@ export const authSlice = createSlice({
       state.isAuthenticated = true;
       state.currentUser = action.payload.user;
       state.token = action.payload.token;
-      localStorage.setItem("neighbourly_auth", "true");
-      localStorage.setItem(
-        "neighbourly_user",
-        JSON.stringify(action.payload.user),
-      );
-      localStorage.setItem("access_token", action.payload.token);
-      socket.auth = {
-        token: action.payload.token,
-      };
+      // store subscriber persists to localStorage via persistAuthStorage
+      socket.auth = { token: action.payload.token };
       sessionStorage.removeItem(AUTH_REDIRECT_LOCK_KEY);
-      socket.connect();
     },
     logout: (state) => {
       state.isAuthenticated = false;
       state.currentUser = null;
       state.token = null;
-      clearAuthStorage();
-      sessionStorage.removeItem(AUTH_REDIRECT_LOCK_KEY);
+      // store subscriber calls persistAuthStorage which clears localStorage
       socket.auth = { token: "" };
       socket.disconnect();
     },
     updateProfile: (state, action: PayloadAction<User>) => {
       state.currentUser = action.payload;
-      localStorage.setItem("neighbourly_user", JSON.stringify(action.payload));
+      // store subscriber persists the updated user via persistAuthStorage
     },
   },
 });

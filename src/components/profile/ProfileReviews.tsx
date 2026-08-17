@@ -30,10 +30,7 @@ export default function ProfileReviews({ userId, metric, metricLoading }: Profil
     const fetchReviews = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('access_token');
-        const res = await apiFetch(`/api/rating/user/${userId}`, {
-          headers: token ? { Authorization: token } : {},
-        });
+        const res = await apiFetch(`/api/rating/user/${userId}`);
         if (!res.ok) throw new Error('Failed to load reviews');
         const data = await res.json();
         setReviews(data.reviews ?? []);
