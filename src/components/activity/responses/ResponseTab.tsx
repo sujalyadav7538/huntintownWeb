@@ -155,9 +155,10 @@ export default function ResponsesTab({
         <div
           className="
           grid
-          grid-cols-2
+          grid-cols-1
           gap-x-3
-          gap-y-6
+          gap-y-2
+          lg:gap-y-4
           sm:grid-cols-3
           lg:grid-cols-4
         "

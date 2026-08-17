@@ -164,7 +164,7 @@ function LeftPanel({
     : "Just now";
 
   return (
-    <main className="min-h-0 overflow-y-auto scrollbar-hide py-4 sm:py-6 lg:pr-7">
+<main className="min-h-0 overflow-y-auto scrollbar-hide md:scrollbar-default py-4 sm:py-6 lg:pr-7">
       {/* Back + Mobile Apply */}
       <div className="flex items-center justify-between lg:justify-start">
         <button
@@ -186,10 +186,7 @@ function LeftPanel({
           Apply
         </button>
       </div>
-
-      {/* =================================================
-                REQUIREMENT CONTENT
-            ================================================= */}
+      {/* Requirement */}
       <section className="mt-3 max-w-4xl">
         <article className="overflow-hidden rounded-2xl border border-white/8 bg-linear-to-br from-[#15161a] via-[#111217] to-[#0e0f13] shadow-[0_12px_44px_rgba(0,0,0,0.45)]">
           <div className="px-4 py-4 sm:px-6 sm:py-5">
@@ -200,7 +197,10 @@ function LeftPanel({
                 className="group flex min-w-0 items-center gap-2.5 text-left"
               >
                 <img
-                  src={getAvatarUrl(post.author.name, post.author.avatar ?? undefined)}
+                  src={getAvatarUrl(
+                    post.author.name,
+                    post.author.avatar ?? undefined,
+                  )}
                   alt={post.author.name}
                   className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover"
                   onError={(e) => handleAvatarError(e, post.author.name)}
@@ -250,21 +250,22 @@ function LeftPanel({
                   color: STATUS_COLORS[post.status] ?? "#71717a",
                 }}
               >
-                <span className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[post.status] ?? "bg-zinc-600"}`} />
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${STATUS_DOT[post.status] ?? "bg-zinc-600"}`}
+                />
                 {post.status?.replace("_", " ")}
               </span>
 
               {isUrgent && !expired && (
                 <span className="inline-flex items-center gap-1 rounded-lg border border-[#FF3F3F]/20 bg-[#FF3F3F]/8 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#ff6565]">
-                  <Zap className="h-3 w-3" />
-                  I need help
+                  <Zap className="h-3 w-3" />I need help
                 </span>
               )}
 
               {expired && (
                 <span className="rounded-lg bg-white/4 px-2.5 py-1 text-[10px] text-zinc-500">
                   Expired
-                </span> 
+                </span>
               )}
             </div>
 
@@ -335,7 +336,8 @@ function LeftPanel({
                     Attachments
                   </p>
                   <span className="text-[10px] text-zinc-600">
-                    {post.images.length} {post.images.length === 1 ? "image" : "images"}
+                    {post.images.length}{" "}
+                    {post.images.length === 1 ? "image" : "images"}
                   </span>
                 </div>
                 <PostImageGallery images={post.images} />
