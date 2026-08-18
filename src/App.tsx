@@ -8,7 +8,6 @@ import { socket, setSocketAuth } from "./lib/socket";
 import { fetchPosts, clearPosts } from "./store/postsSlice";
 import { resetReputation } from "./store/reputationSlice";
 import {
-  openCreatePost,
   closeCreatePost,
   setSearchTerm,
 } from "./store/uiSlice";
@@ -136,7 +135,7 @@ export default function App() {
       navigate("/login", { replace: true });
       return;
     }
-    dispatch(openCreatePost());
+    navigate("/create-post");
   };
 
   const renderActiveView = () => {
@@ -158,7 +157,7 @@ export default function App() {
                 navigate("/login", { replace: true });
                 return;
               }
-              dispatch(openCreatePost());
+              navigate("/create-post");
             }}
             onExplorePost={(postId) => {
               const tgt = posts.find((p) => p.id === postId);

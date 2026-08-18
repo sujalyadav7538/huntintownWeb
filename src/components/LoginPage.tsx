@@ -195,16 +195,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
          * ===================================================== */}
         <section className="flex min-h-dvh w-full items-center justify-center px-5 py-8 sm:px-8 sm:py-12 lg:px-10">
           <div className="w-full max-w-[390px]">
-            {/* =================================================
-             * Mobile Brand
-             * ================================================= */}
-            <div className="mb-9 lg:hidden">
-              {/* <img src="/name.png" alt="HuntInTown" className="h-8 w-auto" /> */}
-
-              <p className="mt-3 text-sm text-zinc-500">
-                Find help. Offer help. Connect locally.
-              </p>
-            </div>
+          
 
             {/* =================================================
              * Heading
