@@ -18,6 +18,7 @@ export default function MobileNavigation({
   setActiveTab,
   unreadMessagesCount,
   handleSidePanelOpen,
+  theme
 }: MobileNavigationProps) {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -34,7 +35,7 @@ export default function MobileNavigation({
         onClick={() => setActiveTab("mobile")}
         className="flex  items-center"
       >
-        <img src="/name.png" alt="HuntInTown" className="h-8 w-37.5" />
+        <img src={`${theme=="dark"?"/dark_logo.png":"/light_logo.png"}`} alt="HuntInTown" className="h-8 w-37.5" />
       </button>
 
       {/* Search */}

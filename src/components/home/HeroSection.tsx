@@ -79,7 +79,7 @@ function HeroContent({ onPostRequirement, onExplore }) {
       <div className="flex flex-row gap-4">
         <button
           onClick={onPostRequirement}
-          className="inline-flex  items-center gap-2 rounded-xl bg-[#FF3F3F] px-3 py-2.5 font-bold uppercase  text-white transition-all hover:bg-[#e23636] hover:shadow-lg hover:shadow-[#FF3F3F]/20 cursor-pointer"
+          className="inline-flex theme-btn-accent  items-center gap-2 rounded-xl  px-3 py-2.5 font-semibold uppercase transition-all  cursor-pointer"
         >
           Post Requirement
           <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />

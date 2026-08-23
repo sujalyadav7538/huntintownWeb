@@ -24,7 +24,8 @@ import ResponsesPanel from "./ResponsePanel";
 import { useState } from "react";
 import ApplyRequirementModal from "./ApplyRequirementModal";
 import { handleHideUpperNavigation } from "@/src/store/uiSlice";
-import { useAppDispatch } from "@/src/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
+import { useNavigate } from "react-router-dom";
 
 const STATUS_DOT: Record<string, string> = {
   live: "bg-emerald-500",
@@ -55,6 +56,8 @@ export default function PostDetail({
   onResponseSubmit,
 }: PostDetailProps) {
   const expired = post?.expiresAt ? isPostExpired(post.expiresAt) : false;
+  const navigate = useNavigate();
+  const {isAuthenticated} = useAppSelector((state) => state.auth);
 
   const expiryLabel = post?.expiresAt
     ? getPostExpiryLabel(post.expiresAt)
@@ -103,8 +106,12 @@ export default function PostDetail({
   };
 
   const handleResponseOpen = () => {
-    setIsApplyModalOpen(true);
-    dispatch(handleHideUpperNavigation(true));
+    if (isAuthenticated) {
+      setIsApplyModalOpen(true);
+      dispatch(handleHideUpperNavigation(true));
+    } else {
+      navigate("/login", { replace: true });
+    }
   };
 
   const handleResponseClose = () => {
@@ -113,7 +120,7 @@ export default function PostDetail({
   };
 
   return (
-    <div className="absolute inset-0 min-h-0 w-full  pt-16  backdrop-blur-sm theme-card">
+    <div className="absolute inset-0 min-h-0 w-full  pt-16  backdrop-blur-sm theme-page-shell">
       <div className="h-full min-h-0 overflow-hidden">
         <div className="mx-auto h-full w-full max-w-7xl px-4 sm:px-6">
           <div className="grid h-full min-h-0 lg:grid-cols-[minmax(0,1fr)_360px]">

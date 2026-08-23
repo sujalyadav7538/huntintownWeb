@@ -24,7 +24,7 @@ export default function HomePage({
   const activePosts = posts.filter((p) => p.status === "live");
 
   return (
-    <main className="min-h-screen bg-[#171717] text-white overflow-x-hidden">
+    <main className="min-h-screen   overflow-x-hidden">
       {/* Hero */}
       <HeroSection
         activePosts={activePosts}

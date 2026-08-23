@@ -206,13 +206,11 @@ html[data-theme="light"] ::placeholder {
 
 .theme-chip {
   background: var(--app-surface-soft);
-  border-color: color-mix(in srgb, var(--app-border) 85%, transparent);
   color: var(--app-text-muted);
 }
 
 .theme-chip:hover {
   background: color-mix(in srgb, var(--app-surface-soft) 82%, var(--app-surface));
-  border-color: color-mix(in srgb, var(--app-red) 14%, var(--app-border));
   color: var(--app-text);
 }
 
@@ -264,7 +262,7 @@ html[data-theme="light"] ::placeholder {
 }
 
 .theme-filter-bar {
-  background: var(--app-surface-2);
+  background: var(--app-surface-soft);
   border-color: var(--app-border);
 }
 
@@ -286,6 +284,12 @@ html[data-theme="light"] ::placeholder {
 
 .theme-btn-accent-soft:hover {
   background: color-mix(in srgb, var(--app-red) 18%, var(--app-surface)) !important;
+}
+
+.theme-filter-button {
+  background: var(--app-surface-2) !important;
+  border-color: var(--app-border) !important;
+  color: var(--app-text) !important;
 }
 
 .theme-badge-accent {

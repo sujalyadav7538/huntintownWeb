@@ -68,7 +68,13 @@ export default function DesktopNavigation({
         onClick={() => setActiveTab("mobile")}
         className="flex items-center shrink-0"
       >
-        <img src="/name.png" alt="HuntInTown" className="h-7 w-auto fill-black" />
+        <img
+          src={`${theme=="dark"?"/dark_logo.png":"/light_logo.png"}`}
+          alt="HuntInTown"
+          className="
+            h-7 w-auto            
+          "
+        />
       </button>
 
       {/* Search */}

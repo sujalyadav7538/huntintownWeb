@@ -14,6 +14,7 @@ import type { Post, User } from "../types";
 import ProtectedRoute from "./ProtectedRoute";
 import OwnerProfileView from "../components/OwnerProfileView";
 import UserProfileView from "../components/UserProfileView";
+import PublicRoutes from "./PublicRoutes";
 
 interface AppRoutesProps {
   isAuthenticated: boolean;
@@ -69,7 +70,14 @@ export default function AppRoutes({
         path="/mobile"
         element={<MobileHomePage setActiveTab={setActiveTab} />}
       />
-      <Route path="/login" element={<LoginPage onLogin={onLogin} />} />
+      <Route
+        path="/login"
+        element={
+          <PublicRoutes isAuthenticated={isAuthenticated}>
+            <LoginPage onLogin={onLogin} />
+          </PublicRoutes>
+        }
+      />
       <Route path="/explore" element={<ExplorePage />} />
       <Route
         path="/dashboard"
@@ -107,7 +115,7 @@ export default function AppRoutes({
           </ProtectedRoute>
         }
       />
-      
+
       <Route
         path="/activity"
         element={

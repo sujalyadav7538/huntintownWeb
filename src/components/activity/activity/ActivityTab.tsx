@@ -1,12 +1,5 @@
 import { apiFetch } from "@/src/lib/api";
-import {
-  Activity,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  RefreshCw,
-  XCircle,
-} from "lucide-react";
+import { Activity, AlertCircle, RefreshCw } from "lucide-react";
 import { ComponentType, useEffect, useState } from "react";
 import { ActivityResponse } from "@/src/types";
 import ActivityOfferDetail from "./ActivityOfferDetail";
@@ -132,21 +125,15 @@ export default function ActivityTab({
           </button>
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
-          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-zinc-900">
-            <Activity className="h-5 w-5 text-zinc-600" />
-          </div>
-
-          <p className="text-sm font-semibold text-zinc-300">
-            {filter === "all" ? "No activity yet" : `No ${filter} offers`}
-          </p>
-
-          <p className="mt-1.5 max-w-xs text-[11px] leading-relaxed text-zinc-600">
-            {filter === "all"
-              ? "Browse posts and submit an offer to see your activity here."
-              : "Offers with this status will appear here."}
-          </p>
-        </div>
+        <EmptyState
+          icon={Activity}
+          title={filter === "all" ? "No posts yet" : `No ${filter} posts`}
+          desc={
+            filter === "all"
+              ? "Once people respond to your requirements, their responses will appear here."
+              : `None of your posts are currently ${filter}.`
+          }
+        />
       ) : (
         <div className="grid gap-2 grid-cols-1 lg:grid-cols-2">
           {filteredItems.map((item) => (
@@ -179,7 +166,7 @@ function StatusFilters({
   ];
 
   return (
-    <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-zinc-800/70 bg-[#0c0c0f] p-1">
+    <div className="theme-filter-bar theme-divider flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border p-1">
       {filters.map((item) => {
         const active = value === item.id;
 
@@ -189,13 +176,9 @@ function StatusFilters({
             type="button"
             onClick={() => onChange(item.id)}
             className={`
-              whitespace-nowrap rounded-lg px-2.5 py-1.5
+              whitespace-nowrap rounded-lg  px-2.5 py-1.5
               text-[10px] font-semibold transition
-              ${
-                active
-                  ? "bg-zinc-800 text-white"
-                  : "text-zinc-600 hover:text-zinc-300"
-              }
+              ${active ? "theme-chip-active" : "theme-chip"}
             `}
           >
             {item.label}
@@ -223,6 +206,34 @@ function ActivitySkeleton() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function EmptyState({
+  icon: Icon,
+  title,
+  desc,
+  action,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  desc: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#1e1e22] bg-[#0e0e10]">
+        <Icon className="h-6 w-6 text-zinc-700" />
+      </div>
+
+      <div>
+        <p className="text-[15px] font-bold text-zinc-300">{title}</p>
+
+        <p className="mt-1 max-w-xs text-[12px] text-zinc-600">{desc}</p>
+      </div>
+
+      {action}
     </div>
   );
 }

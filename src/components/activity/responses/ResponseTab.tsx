@@ -261,6 +261,7 @@ export default function ResponsesTab({
               key={post._id}
               post={post}
               onSelect={() => handleSelectPost(post)}
+            
             />
           ))}
         </div>
@@ -284,7 +285,7 @@ function StatusFilters({
   ];
 
   return (
-    <div className="theme-filter-bar flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-zinc-800/70 p-1">
+    <div className="theme-filter-bar theme-divider flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border p-1">
       {filters.map((item) => {
         const active = value === item.id;
 
@@ -294,12 +295,12 @@ function StatusFilters({
             type="button"
             onClick={() => onChange(item.id)}
             className={`
-              whitespace-nowrap rounded-lg px-2.5 py-1.5
+              whitespace-nowrap rounded-lg  px-2.5 py-1.5
               text-[10px] font-semibold transition
               ${
                 active
-                  ? "bg-zinc-800 text-white"
-                  : "text-zinc-600 hover:text-zinc-300"
+                  ? "theme-chip-active"
+                  : "theme-chip"
               }
             `}
           >

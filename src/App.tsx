@@ -42,8 +42,16 @@ export default function App() {
   );
   const [theme, setTheme] = useState<AppTheme>(() => {
     if (typeof window === "undefined") return "light";
+
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return stored === "dark" || stored === "light" ? stored : "light";
+
+    if (stored === "dark" || stored === "light") {
+      return stored;
+    }
+
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   });
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const location = useLocation();
