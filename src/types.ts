@@ -5,37 +5,62 @@ export interface UserSocialLinks {
   website?: string;
 }
 
+export interface UserLocation {
+  type: "Point";
+  coordinates: [number, number]; // [longitude, latitude]
+}
+
 export interface User {
-  /** MongoDB ObjectId string — always present after fetch */
-  _id?: string;
-  /** Custom UUID stored as `id` in userSchema */
+  // Identity
+  _id: string;
   id: string;
+
+  // Authentication / basic profile
+  email: string;
   name: string;
-  email?: string;
-  avatar: string;
-  avatar_public_id?: string;
-  coverImage?: string;
+  bio: string;
+  about: string;
   role: string;
-  /** Human-readable address (maps to `address` in backend userSchema) */
-  address?: string;
-  /** GeoJSON coordinates — not for direct display */
-  location?: { type?: string; coordinates?: number[] };
-  bio?: string;
-  phone?: string;
-  website?: string;
-  skills?: string[];
+
+  // Images
+  avatar: string;
+  avatar_public_id: string;
+  coverImage: string;
+  coverImage_public_id: string;
+
+  // Contact
+  phone: string;
+  website: string;
+
+  // Skills
+  skills: string[];
+
+  // Address
+  address: string;
+  location?: UserLocation;
+
   // Verification
-  isEmailVerified?: boolean;
-  isGovernmentVerified?: boolean;
-  governmentVerificationStatus?: "none" | "pending" | "verified" | "rejected";
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
+  isGovernmentVerified: boolean;
+  governmentVerificationStatus: string;
+
   // Account
-  isActive?: boolean;
-  isOnline?: boolean;
-  lastSeen?: string;
-  // UI-only
-  joinedAt?: string;
-  socialLinks?: UserSocialLinks;
-  services?: string[];
+  isActive: boolean;
+  googleId?: string | null;
+  isOnline: boolean;
+  lastSeen: string;
+
+  // Relations
+  // showcase?: string | UserShowcase;
+
+  // Metrics
+  metric?: UserMetric;
+
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+  joinedAt: string;
 }
 
 // ── Reputation System ─────────────────────────────────────────────────────────
@@ -212,8 +237,6 @@ export interface ChatPost {
   conversationCount: number;
   lastMessageAt?: string;
 }
-
-
 
 export interface ActivityPost {
   _id: string;

@@ -8,6 +8,7 @@ import {
   User,
   Send,
   Compass,
+  MessageSquare,
 } from "lucide-react";
 import { getAvatarUrl, handleAvatarError } from "../../utils";
 
@@ -59,9 +60,9 @@ const NAV_ITEMS: NavItem[] = [
     auth: true,
   },
   {
-    id: "messaging",
-    label: "Chat",
-    icon: Send,
+    id: "profile",
+    label: "profile",
+    icon: MessageSquare,
     auth: true,
   },
 ];
@@ -74,7 +75,7 @@ export default function MobileBottomNavigation({
   currentUser,
 }: MobileBottomNavigationProps) {
   return (
-    <div className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-[#232327] bg-[#121214]/95 backdrop-blur-md shadow-xl">
+    <div className="theme-panel md:hidden fixed bottom-0 inset-x-0 z-40 border-t border-[#232327] bg-[#121214]/95 backdrop-blur-md shadow-xl">
       <div className="flex items-center justify-around px-2 pb-safe">
         {NAV_ITEMS.slice(0, 2).map((item) => {
           const Icon = item.icon;
@@ -88,7 +89,7 @@ export default function MobileBottomNavigation({
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`flex flex-col items-center gap-0.5 px-3 py-2.5 transition ${
-                active ? "text-[#FF3F3F]" : "text-zinc-500"
+                active ? "text-[#FF3F3F]" : "theme-text-muted"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -103,7 +104,7 @@ export default function MobileBottomNavigation({
         {/* Floating Action Button */}
         <button
           onClick={onCreatePost}
-          className="flex h-10 w-10  items-center justify-center rounded-full bg-[#FF3F3F] text-white"
+          className="theme-btn-accent flex h-10 w-10 items-center justify-center rounded-full"
         >
           <Plus className="h-5 w-5" />
         </button>
@@ -120,7 +121,7 @@ export default function MobileBottomNavigation({
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`flex flex-col items-center gap-0.5 px-3 py-2.5 transition ${
-                active ? "text-[#FF3F3F]" : "text-zinc-500"
+                active ? "text-[#FF3F3F]" : "theme-text-muted"
               }`}
             >
               <Icon className="h-4 w-4" />

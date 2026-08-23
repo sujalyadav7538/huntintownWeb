@@ -124,23 +124,21 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* =====================================================
          * LEFT — Desktop Brand / Context
          * ===================================================== */}
-        <section className="relative hidden overflow-hidden border-r border-white/6 lg:flex lg:min-h-dvh lg:flex-col lg:justify-between">
+        <section className="relative hidden overflow-hidden border-r border-white/6 lg:flex lg:min-h-dvh lg:flex-col ">
           {/* Background glow */}
-          <div className="pointer-events-none absolute -left-32 top-1/4 h-80 w-80 rounded-full bg-[#FF3F3F]/[0.06] blur-3xl" />
+          <div className="pointer-events-none absolute -left-32 top-1/4 h-80 w-80 rounded-full bg-[#FF3F3F]/6 blur-3xl" />
 
           <div className="relative p-12 xl:p-16">
             {/* Brand */}
-            <div className="flex items-center">
-              <img src="/name.png" alt="HuntInTown" className="h-9 w-auto" />
-            </div>
 
             {/* Main message */}
-            <div className="mt-28 max-w-lg xl:mt-36">
-              <div className="mb-5 flex items-center gap-2">
+            <div className="max-w-lg ">
+              <div className="mb-4 flex items-center gap-2">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#FF3F3F]" />
 
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-                  Your local community
+                  HuntIn<b className="text-red-600 text-xs">Town</b> Your local
+                  community
                 </span>
               </div>
 
@@ -150,14 +148,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 <span className="text-zinc-500">Offer help.</span>
               </h1>
 
-              <p className="mt-6 max-w-md text-base leading-relaxed text-zinc-500">
+              <p className="mt-4 max-w-md text-base leading-relaxed text-zinc-500">
                 Connect with people around you, share what you need, and
                 discover how you can help others.
               </p>
             </div>
 
             {/* Features */}
-            <div className="mt-14 flex items-center gap-7 xl:gap-8">
+            <div className="mt-10 flex items-center gap-7 xl:gap-8">
               <div>
                 <p className="text-sm font-semibold text-zinc-200">Local</p>
 
@@ -193,14 +191,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* =====================================================
          * RIGHT — Authentication
          * ===================================================== */}
-        <section className="flex min-h-dvh w-full items-center justify-center px-5 py-8 sm:px-8 sm:py-12 lg:px-10">
-          <div className="w-full max-w-[390px]">
-          
-
+        <section className="flex min-h-dvh w-full sm:items-center justify-center px-5 py-5 sm:px-8 ">
+          <div className="w-full max-w-97.5">
             {/* =================================================
              * Heading
              * ================================================= */}
-            <div className="mb-7">
+            <div className="mb-5">
               <h2 className="text-2xl font-bold tracking-tight text-white">
                 {isSignup ? "Create your account" : "Welcome back"}
               </h2>
@@ -215,7 +211,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             {/* =================================================
              * Auth Toggle
              * ================================================= */}
-            <div className="mb-7 flex border-b border-white/[0.08]">
+            <div className="mb-7 flex border-b border-white/8">
               <button
                 type="button"
                 onClick={() => {

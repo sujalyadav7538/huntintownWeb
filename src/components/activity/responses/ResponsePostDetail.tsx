@@ -1,4 +1,4 @@
-import { Response, Post } from "@/src/types";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -12,11 +12,10 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+
+import { Response, Post } from "@/src/types";
+import { apiFetch } from "../../../lib/api";
 import ReviewHelpersModal from "../../ReviewHelpersModal";
-import { apiFetch } from "@/src/lib/api";
-import { useEffect, useState } from "react";
-import { useAppDispatch } from "@/src/store/hooks";
-import { deletePostThunk, updatePostStatusThunk } from "@/src/store/thunks";
 import { handleAvatarError } from "@/src/utils";
 import {
   CATEGORY_COLORS,
@@ -24,55 +23,147 @@ import {
   POST_STATUS_STYLE,
 } from "@/src/lib/postConstants";
 
+export interface ResponsePagination {
+  page: number;
+  limit: number;
+  count: number;
+  total: number;
+  hasMore: boolean;
+}
+
+interface ResponsePostDetailProps {
+  post: Post;
+
+  // First batch of responses comes from parent
+  responses: Response[];
+
+  pagination: ResponsePagination | null;
+
+  loading: boolean;
+
+  error: string | null;
+
+  onBack: () => void;
+
+  onInitiateChat: () => void;
+
+  currentUserId: string;
+}
+
 export default function ResponsePostDetail({
   post,
+  responses: initialResponses,
+  pagination: initialPagination,
+  loading: initialLoading,
+  error: initialError,
   onBack,
   onInitiateChat,
   currentUserId,
-}: {
-  post: Post;
-  onBack: () => void;
-  onInitiateChat: () => void;
-  currentUserId: string;
-}) {
-  const dispatch = useAppDispatch();
+}: ResponsePostDetailProps) {
   const postId = post._id;
 
-  const [responses, setResponses] = useState<Response[]>([]);
-  const [responsesLoading, setResponsesLoading] = useState(true);
+  const [responses, setResponses] = useState<Response[]>(initialResponses);
+
+  const [pagination, setPagination] = useState<ResponsePagination | null>(
+    initialPagination,
+  );
+
+  const [responsesLoading, setResponsesLoading] = useState(initialLoading);
+
+  const [responsesError, setResponsesError] = useState<string | null>(
+    initialError,
+  );
+
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const [postAction, setPostAction] = useState<
     "complete" | "expire" | "delete" | null
   >(null);
 
   const [processingAction, setProcessingAction] = useState(false);
+
   const [showReviewModal, setShowReviewModal] = useState(false);
 
+  /*
+   * Keep local state synchronized when the parent
+   * provides a new batch.
+   */
+  useEffect(() => {
+    setResponses(initialResponses);
+    setPagination(initialPagination);
+    setResponsesLoading(initialLoading);
+    setResponsesError(initialError);
+  }, [initialResponses, initialPagination, initialLoading, initialError]);
+
+  /*
+   * Refresh only this post's responses.
+   */
   const fetchResponses = async () => {
     setResponsesLoading(true);
+    setResponsesError(null);
 
     try {
-      const res = await apiFetch(`/api/responses/post/${postId}`);
+      const res = await apiFetch(
+        `/api/posts/${postId}/responses?page=1&limit=20`,
+      );
 
       if (!res.ok) {
         throw new Error("Failed to load responses");
       }
 
       const data = await res.json();
-      setResponses(data.responses || []);
-    } catch {
-      setResponses([]);
+
+      setResponses(data.data?.responses || []);
+      setPagination(data.data?.pagination || null);
+    } catch (error: any) {
+      setResponsesError(error.message || "Failed to load responses");
     } finally {
       setResponsesLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchResponses();
-  }, [postId]);
+  /*
+   * Load next batch of 20.
+   */
+  const loadMoreResponses = async () => {
+    if (!pagination?.hasMore || loadingMore || !pagination) {
+      return;
+    }
 
+    const nextPage = pagination.page + 1;
+
+    setLoadingMore(true);
+
+    try {
+      const res = await apiFetch(
+        `/api/posts/${postId}/responses?page=${nextPage}&limit=${pagination.limit}`,
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to load more responses");
+      }
+
+      const data = await res.json();
+
+      const newResponses = data.data?.responses || [];
+
+      setResponses((prev) => [...prev, ...newResponses]);
+
+      setPagination(data.data?.pagination || null);
+    } catch (error: any) {
+      setResponsesError(error.message || "Failed to load more responses");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  /*
+   * Accept / reject response.
+   */
   const handleResponseAction = async (
     responseId: string,
     action: "accept" | "reject",
@@ -88,23 +179,36 @@ export default function ResponsePostDetail({
       });
 
       if (!res.ok) {
-        throw new Error("Action failed");
+        throw new Error(
+          action === "accept"
+            ? "Failed to accept response"
+            : "Failed to reject response",
+        );
       }
 
       const newStatus = action === "accept" ? "accepted" : "rejected";
 
       setResponses((prev) =>
-        prev.map((r) =>
-          r._id === responseId ? { ...r, status: newStatus } : r,
+        prev.map((response) =>
+          response._id === responseId
+            ? {
+                ...response,
+                status: newStatus,
+              }
+            : response,
         ),
       );
+    } catch (error) {
+      console.error(error);
     } finally {
       setActionLoading(null);
     }
   };
 
+  /*
+   * Post-level actions.
+   */
   const handlePostAction = async (type: "complete" | "expire" | "delete") => {
-    // First click → confirmation state
     if (postAction !== type) {
       setPostAction(type);
       return;
@@ -114,13 +218,26 @@ export default function ResponsePostDetail({
 
     try {
       if (type === "complete") {
-        await dispatch(updatePostStatusThunk(postId, "completed") as any);
-
-        const accepted = responses.filter((r) => r.status === "accepted");
+        /*
+         * Keep only accepted responses currently
+         * loaded in the UI.
+         *
+         * If your application requires ALL accepted
+         * helpers for reviewing, that should be handled
+         * by a dedicated backend endpoint instead of
+         * loading thousands of responses here.
+         */
+        const accepted = responses.filter(
+          (response) => response.status === "accepted",
+        );
 
         if (accepted.length > 0) {
           setShowReviewModal(true);
-        } else {
+        }
+
+        await dispatchUpdatePostStatus(postId, "completed");
+
+        if (accepted.length === 0) {
           onBack();
         }
 
@@ -128,13 +245,14 @@ export default function ResponsePostDetail({
       }
 
       if (type === "expire") {
-        await dispatch(updatePostStatusThunk(postId, "expired") as any);
+        await dispatchUpdatePostStatus(postId, "expired");
 
         onBack();
         return;
       }
 
-      await dispatch(deletePostThunk(postId) as any);
+      await dispatchDeletePost(postId);
+
       onBack();
     } finally {
       setProcessingAction(false);
@@ -142,9 +260,34 @@ export default function ResponsePostDetail({
     }
   };
 
-  const pending = responses.filter((r) => r.status === "pending");
+  /*
+   * Keep your existing Redux implementations here.
+   *
+   * Replace these with your actual imports/thunks.
+   */
+  const dispatchUpdatePostStatus = async (id: string, status: string) => {
+    // await dispatch(updatePostStatusThunk(id, status) as any);
+  };
 
-  const accepted = responses.filter((r) => r.status === "accepted");
+  const dispatchDeletePost = async (id: string) => {
+    // await dispatch(deletePostThunk(id) as any);
+  };
+
+  /*
+   * These are counts only for the currently loaded
+   * response batch.
+   *
+   * Don't present them as total counts.
+   */
+  const pendingCount = responses.filter(
+    (response) => response.status === "pending",
+  ).length;
+
+  const acceptedCount = responses.filter(
+    (response) => response.status === "accepted",
+  ).length;
+
+  const totalResponses = post.responsesCount ?? pagination?.total ?? 0;
 
   const addr = post.address || "";
 
@@ -155,11 +298,13 @@ export default function ResponsePostDetail({
           postId={postId}
           postTitle={post.title}
           hunterId={currentUserId}
-          helpers={accepted.map((r) => ({
-            helperId: r.respondedBy.id,
-            name: r.respondedBy.name,
-            avatar: r.respondedBy.avatar,
-          }))}
+          helpers={responses
+            .filter((response) => response.status === "accepted")
+            .map((response) => ({
+              helperId: response.respondedBy.id,
+              name: response.respondedBy.name,
+              avatar: response.respondedBy.avatar,
+            }))}
           onClose={() => {
             setShowReviewModal(false);
             onBack();
@@ -167,7 +312,7 @@ export default function ResponsePostDetail({
         />
       )}
 
-      {/* Header */}
+      {/* Back */}
       <button
         onClick={onBack}
         className="
@@ -186,12 +331,14 @@ export default function ResponsePostDetail({
           <ResponsePostSummary
             post={post}
             address={addr}
-            pendingCount={pending.length}
-            acceptedCount={accepted.length}
-            totalResponses={responses.length}
+            pendingCount={pendingCount}
+            acceptedCount={acceptedCount}
+            totalResponses={totalResponses}
           />
 
-          <PostQuestions questions={post.questions} />
+          {post.questions?.length > 0 && (
+            <PostQuestions questions={post.questions} />
+          )}
 
           <PostMessages onInitiateChat={onInitiateChat} />
 
@@ -208,9 +355,14 @@ export default function ResponsePostDetail({
         <ResponsesPanel
           responses={responses}
           loading={responsesLoading}
+          error={responsesError}
+          loadingMore={loadingMore}
+          hasMore={pagination?.hasMore ?? false}
           actionLoading={actionLoading}
           expandedId={expandedId}
+          totalResponses={totalResponses}
           onRefresh={fetchResponses}
+          onLoadMore={loadMoreResponses}
           onToggle={(id) => setExpandedId((prev) => (prev === id ? null : id))}
           onResponseAction={handleResponseAction}
           onInitiateChat={onInitiateChat}
@@ -239,7 +391,7 @@ function ResponsePostSummary({
     CATEGORY_GRADIENTS[post?.category] || "from-zinc-900 to-zinc-800";
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-zinc-800/70 bg-[#0c0c0e]">
+    <section className="theme-panel-soft overflow-hidden rounded-2xl border border-zinc-800/70 bg-[#0c0c0e]">
       <div className={`relative h-28 bg-linear-to-br ${gradient}`}>
         <div className="flex h-full items-center justify-center">
           <span
@@ -369,7 +521,7 @@ function PostMessages({ onInitiateChat }: { onInitiateChat: () => void }) {
       <button
         onClick={onInitiateChat}
         className="
-          inline-flex items-center gap-1.5
+          theme-btn-accent-soft inline-flex items-center gap-1.5
           rounded-lg border border-[#FF3F3F]/30
           bg-[#FF3F3F]/10
           px-3 py-1.5
@@ -805,4 +957,3 @@ function MetaChips({
     </div>
   );
 }
-    

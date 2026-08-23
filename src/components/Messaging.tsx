@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { useAppSelector, useAppDispatch } from "../store/hooks";
@@ -18,7 +18,10 @@ import { apiFetch } from "../lib/api";
 import MessageSidebar from "./messaging/MessageSidebar";
 import ChatList from "./messaging/ChatList";
 
-import { handleHideMobileBottomNav } from "../store/uiSlice";
+import {
+  handleHideMobileBottomNav,
+  handleHideUpperNavigation,
+} from "../store/uiSlice";
 import ChatPanel from "./messaging/ChatPanel";
 
 type ChatMode = "posts" | "chats";
@@ -60,8 +63,6 @@ export default function Messaging() {
   const [postsLoading, setPostsLoading] = useState(false);
   const [chatsLoading, setChatsLoading] = useState(false);
   const [convsLoading, setConvsLoading] = useState(false);
-
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const loadConversationsByPost = async (postId: string) => {
     if (!token || !postId) return;
@@ -227,17 +228,19 @@ export default function Messaging() {
     dispatch(setActiveConversationId(activeConversationFromUrl));
   }, [activeConversationFromUrl, dispatch]);
 
-  /*
-   * ---------------------------------------------------------
-   * AUTO SCROLL CHAT
-   * ---------------------------------------------------------
-   */
+  useEffect(() => {
+    // Show bottom nav when no conversation is currently open.
+    dispatch(handleHideMobileBottomNav(Boolean(activeConversationId)));
+    dispatch(handleHideUpperNavigation(Boolean(activeConversationId)));
+  }, [activeConversationId, dispatch]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, [activeConversationId, activeMessages.length]);
+    // Reset global UI state if the component is left via direct navigation.
+    return () => {
+      dispatch(handleHideMobileBottomNav(false));
+      dispatch(handleHideUpperNavigation(false));
+    };
+  }, [dispatch]);
 
   /*
    * ---------------------------------------------------------
@@ -353,6 +356,7 @@ export default function Messaging() {
 
     dispatch(setActiveConversationId(null));
     dispatch(setConversations([]));
+    dispatch(handleHideMobileBottomNav(false));
 
     /*
      * Clear selected post/conversation from URL.
@@ -371,6 +375,7 @@ export default function Messaging() {
   const handleSelectPost = (postId: string) => {
     setMode("posts");
     dispatch(setActiveConversationId(null));
+    dispatch(handleHideMobileBottomNav(false));
     loadConversationsByPost(postId);
 
     navigate(`/messaging?postId=${postId}`, {
@@ -397,8 +402,6 @@ export default function Messaging() {
     /*
      * Keep postId as well because the chat belongs to a post.
      */
-    const postId = chat.post?._id ?? chat.postId ?? null;
-
     const messages = await fetch(`/api/chat/${conversationId}/messages`, {
       method: "GET",
       headers: {

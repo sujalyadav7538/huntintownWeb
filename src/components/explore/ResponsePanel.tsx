@@ -111,7 +111,7 @@ export default function ResponsesPanel({
         <div className="mt-3 flex items-center gap-2">
           <Filter className="h-3 w-3 shrink-0 text-zinc-600" />
 
-          <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto scrollbar-hide">
+          <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto scrollbar-hide ">
             <FilterButton
               active={filter === "trust"}
               onClick={() => setFilter("trust")}
@@ -182,7 +182,7 @@ export default function ResponsesPanel({
           type="button"
           onClick={onApply}
           disabled={expired}
-          className="h-11 w-full cursor-pointer rounded-full bg-red-800 text-xs font-bold text-white transition hover:bg-[#ef1616] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+          className="h-11 w-full cursor-pointer rounded-full theme-btn-accent text-xs font-bold  transition  active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {expired ? "Requirement Expired" : "Apply for Requirement"}
         </button>
@@ -202,7 +202,7 @@ function FilterButton({ active, onClick, children }: FilterButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-medium transition ${active ? "border-white/[0.12] bg-white/[0.08] text-zinc-200" : "border-transparent text-zinc-600 hover:bg-white/[0.04] hover:text-zinc-400"}`}
+      className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-medium cursor-pointer transition ${active ? "border-white/12 bg-white/8 text-zinc-200" : "border-transparent text-zinc-600 hover:bg-white/4 hover:text-zinc-400"}`}
     >
       {children}
     </button>

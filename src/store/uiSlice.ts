@@ -3,13 +3,15 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 interface UIState {
   isCreatePostOpen: boolean;
   searchTerm: string;
-  hideMobileBottomNav?: boolean;
+  hideMobileBottomNav: boolean;
+  hideUpperNavigation: boolean;
 }
 
 const initialState: UIState = {
   isCreatePostOpen: false,
   searchTerm: '',
   hideMobileBottomNav: false,
+  hideUpperNavigation: false,
 };
 
 export const uiSlice = createSlice({
@@ -23,6 +25,9 @@ export const uiSlice = createSlice({
     },
     handleHideMobileBottomNav: (state, action: PayloadAction<boolean>) => {
       state.hideMobileBottomNav = action.payload;
+    },
+    handleHideUpperNavigation: (state, action: PayloadAction<boolean>) => {
+      state.hideUpperNavigation = action.payload;
     }
   },
 });
@@ -32,5 +37,6 @@ export const {
   closeCreatePost,
   setSearchTerm,
   handleHideMobileBottomNav,
+  handleHideUpperNavigation,
 } = uiSlice.actions;
 export default uiSlice.reducer;

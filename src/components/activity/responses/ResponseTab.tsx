@@ -12,19 +12,47 @@ interface ResponsesTabProps {
   hideTabs: (value: boolean) => void;
 }
 
-type PostWithResponses = Post & { responses: Response[] };
+interface ResponsePagination {
+  page: number;
+  limit: number;
+  count: number;
+  total: number;
+  hasMore: boolean;
+}
+
+interface ResponsesResponse {
+  success: boolean;
+  data: {
+    post: Post;
+    responses: Response[];
+    pagination: ResponsePagination;
+  };
+}
 
 export default function ResponsesTab({
   onInitiateChat,
   currentUserId,
   hideTabs,
 }: ResponsesTabProps) {
-  const [items, setItems] = useState<PostWithResponses[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState("all");
-  const [selected, setSelected] = useState<PostWithResponses | null>(null);
 
+  const [filter, setFilter] = useState("all");
+
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedResponses, setSelectedResponses] = useState<Response[]>([]);
+
+  const [responsesLoading, setResponsesLoading] = useState(false);
+  const [responsesError, setResponsesError] = useState<string | null>(null);
+
+  const [pagination, setPagination] = useState<ResponsePagination | null>(null);
+
+  /*
+   * Fetch only user's posts.
+   *
+   * This endpoint should NOT fetch responses.
+   */
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -33,18 +61,12 @@ export default function ResponsesTab({
       const res = await apiFetch("/api/responses/received");
 
       if (!res.ok) {
-        throw new Error("Failed to load responses");
+        throw new Error("Failed to load posts");
       }
 
       const data = await res.json();
-      setItems(
-        (data.data || []).map(
-          ({ post, responses }: { post: Post; responses: Response[] }) => ({
-            ...post,
-            responses,
-          }),
-        ),
-      );
+
+      setPosts(data.data || []);
     } catch (error: any) {
       setError(error.message || "Something went wrong");
     } finally {
@@ -56,17 +78,94 @@ export default function ResponsesTab({
     fetchData();
   }, []);
 
-  const filteredItems = useMemo(() => {
-    if (filter === "all") return items;
+  /*
+   * Fetch responses only when a specific post is opened.
+   *
+   * First request gets only 20 responses.
+   */
+  const fetchResponses = async (post: Post) => {
+    setResponsesLoading(true);
+    setResponsesError(null);
 
-    return items.filter((item) => item?.status === filter);
-  }, [items, filter]);
+    try {
+      const res = await apiFetch(
+        `/api/posts/${post._id}/responses?page=1&limit=20`,
+      );
 
-  if (selected) {
+      if (!res.ok) {
+        throw new Error("Failed to load responses");
+      }
+
+      const data: ResponsesResponse = await res.json();
+
+      setSelectedResponses(data.data.responses || []);
+      setPagination(data.data.pagination || null);
+
+      /*
+       * Update the post information returned by backend.
+       * This is useful if responsesCount/status changed.
+       */
+      if (data.data.post) {
+        setSelectedPost(data.data.post);
+      }
+    } catch (error: any) {
+      setResponsesError(error.message || "Failed to load responses");
+    } finally {
+      setResponsesLoading(false);
+    }
+  };
+
+  /*
+   * Open a post and then fetch its responses.
+   */
+  const handleSelectPost = async (post: Post) => {
+    setSelectedPost(post);
+    setSelectedResponses([]);
+    setPagination(null);
+    setResponsesError(null);
+
+    hideTabs(false);
+
+    await fetchResponses(post);
+  };
+
+  /*
+   * Go back from response detail to post list.
+   */
+  const handleBack = () => {
+    setSelectedPost(null);
+    setSelectedResponses([]);
+    setPagination(null);
+    setResponsesError(null);
+
+    hideTabs(true);
+  };
+
+  /*
+   * Filter posts locally.
+   *
+   * We don't need responses to perform this filter.
+   */
+  const filteredPosts = useMemo(() => {
+    if (filter === "all") {
+      return posts;
+    }
+
+    return posts.filter((post) => post.status === filter);
+  }, [posts, filter]);
+
+  /*
+   * If a post is selected, show its responses.
+   */
+  if (selectedPost) {
     return (
       <ResponsePostDetail
-        post={selected}
-        onBack={() => (setSelected(null), hideTabs(true))}
+        post={selectedPost}
+        responses={selectedResponses}
+        pagination={pagination}
+        loading={responsesLoading}
+        error={responsesError}
+        onBack={handleBack}
         onInitiateChat={onInitiateChat}
         currentUserId={currentUserId}
       />
@@ -74,7 +173,7 @@ export default function ResponsesTab({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="theme-page-shell space-y-5">
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3">
         <StatusFilters value={filter} onChange={setFilter} />
@@ -83,17 +182,17 @@ export default function ResponsesTab({
           type="button"
           onClick={fetchData}
           disabled={loading}
-          aria-label="Refresh responses"
+          aria-label="Refresh posts"
           className="
-          flex h-8 w-8 shrink-0
-          items-center justify-center
-          rounded-full
-          text-zinc-600
-          transition
-          hover:bg-zinc-900
-          hover:text-zinc-300
-          disabled:opacity-40
-        "
+            flex h-8 w-8 shrink-0
+            items-center justify-center
+            rounded-full
+            text-zinc-600
+            transition
+            hover:bg-zinc-900
+            hover:text-zinc-300
+            disabled:opacity-40
+          "
         >
           <RefreshCw
             className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
@@ -101,17 +200,17 @@ export default function ResponsesTab({
         </button>
       </div>
 
-      {/* Content */}
+      {/* Loading */}
       {loading ? (
         <ResponseGridSkeleton />
       ) : error ? (
-        <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
+        <div className="flex min-h-80 flex-col items-center justify-center text-center">
           <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-red-500/10">
             <AlertCircle className="h-5 w-5 text-red-400" />
           </div>
 
           <p className="text-sm font-semibold text-zinc-300">
-            Couldn't load responses
+            Couldn't load posts
           </p>
 
           <p className="mt-1.5 max-w-xs text-[11px] leading-relaxed text-zinc-600">
@@ -121,116 +220,49 @@ export default function ResponsesTab({
           <button
             onClick={fetchData}
             className="
-            mt-4
-            rounded-full
-            bg-[#FF3F3F]
-            px-4 py-2
-            text-[10px]
-            font-bold
-            text-white
-            transition
-            hover:bg-[#e53535]
-          "
+              mt-4
+              rounded-full
+              bg-[#FF3F3F]
+              px-4 py-2
+              text-[10px]
+              font-bold
+              text-white
+              transition
+              hover:bg-[#e53535]
+            "
           >
             Try again
           </button>
         </div>
-      ) : filteredItems.length === 0 ? (
-        <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
-          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-zinc-900">
-            <Inbox className="h-5 w-5 text-zinc-600" />
-          </div>
-
-          <p className="text-sm font-semibold text-zinc-300">
-            {filter === "all" ? "No responses yet" : `No ${filter} posts`}
-          </p>
-
-          <p className="mt-1.5 max-w-xs text-[11px] leading-relaxed text-zinc-600">
-            {filter === "all"
-              ? "Once people respond to your requirements, their offers will appear here."
-              : `None of your posts are currently ${filter}.`}
-          </p>
-        </div>
+      ) : filteredPosts.length === 0 ? (
+        <EmptyState
+          icon={Inbox}
+          title={filter === "all" ? "No posts yet" : `No ${filter} posts`}
+          desc={
+            filter === "all"
+              ? "Once people respond to your requirements, their responses will appear here."
+              : `None of your posts are currently ${filter}.`
+          }
+        />
       ) : (
         <div
           className="
-          grid
-          grid-cols-1
-          gap-x-3
-          gap-y-2
-          lg:gap-y-4
-          sm:grid-cols-3
-          lg:grid-cols-4
-        "
+            grid
+            grid-cols-1
+            gap-x-3
+            gap-y-2
+            sm:grid-cols-3
+            lg:grid-cols-4
+            lg:gap-y-4
+          "
         >
-          {filteredItems.map((item) => {
-            const pendingCount = item.responses.filter(
-              (offer) => offer.status === "pending",
-            ).length;
-
-            const acceptedCount = item.responses.filter(
-              (offer) => offer.status === "accepted",
-            ).length;
-
-            return (
-              <PostGridCard
-                key={item._id}
-                post={item}
-                onSelect={() => {
-                  setSelected(item);
-                  hideTabs(false);
-                }}
-                badge={
-                  pendingCount > 0 ? (
-                    <span
-                      className="
-                      inline-flex
-                      items-center
-                      gap-1
-                      rounded-full
-                      bg-[#FF3F3F]
-                      px-2 py-1
-                      text-[9px]
-                      font-bold
-                      text-white
-                    "
-                    >
-                      <span className="h-1 w-1 rounded-full bg-white" />
-                      {pendingCount} new
-                    </span>
-                  ) : undefined
-                }
-                meta={
-                  <div className="flex items-center gap-2 text-[10px]">
-                    <span className="text-zinc-500">
-                      {item.responses.length}{" "}
-                      {item.responses.length === 1 ? "offer" : "offers"}
-                    </span>
-
-                    {acceptedCount > 0 && (
-                      <>
-                        <span className="h-1 w-1 rounded-full bg-zinc-700" />
-
-                        <span className="font-medium text-emerald-500">
-                          {acceptedCount} accepted
-                        </span>
-                      </>
-                    )}
-
-                    {pendingCount > 0 && (
-                      <>
-                        <span className="h-1 w-1 rounded-full bg-zinc-700" />
-
-                        <span className="font-medium text-[#FF3F3F]">
-                          {pendingCount} awaiting
-                        </span>
-                      </>
-                    )}
-                  </div>
-                }
-              />
-            );
-          })}
+          {filteredPosts.map((post) => (
+            <PostGridCard
+              key={post._id}
+              post={post}
+              onSelect={() => handleSelectPost(post)}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -252,7 +284,7 @@ function StatusFilters({
   ];
 
   return (
-    <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-zinc-800/70 bg-[#0c0c0f] p-1">
+    <div className="theme-filter-bar flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-zinc-800/70 p-1">
       {filters.map((item) => {
         const active = value === item.id;
 
@@ -312,14 +344,17 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-[#0e0e10] border border-[#1e1e22] flex items-center justify-center">
-        <Icon className="w-6 h-6 text-zinc-700" />
+    <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#1e1e22] bg-[#0e0e10]">
+        <Icon className="h-6 w-6 text-zinc-700" />
       </div>
+
       <div>
         <p className="text-[15px] font-bold text-zinc-300">{title}</p>
-        <p className="text-[12px] text-zinc-600 mt-1 max-w-xs">{desc}</p>
+
+        <p className="mt-1 max-w-xs text-[12px] text-zinc-600">{desc}</p>
       </div>
+
       {action}
     </div>
   );

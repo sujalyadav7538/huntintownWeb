@@ -1,40 +1,33 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { User } from "./types";
+import { Post, User } from "./types";
 
 import { useAppDispatch, useAppSelector } from "./store/hooks";
-import { login, logout, updateProfile } from "./store/authSlice";
+import { login, logout } from "./store/authSlice";
 import { socket, setSocketAuth } from "./lib/socket";
 import { fetchPosts, clearPosts } from "./store/postsSlice";
 import { resetReputation } from "./store/reputationSlice";
 import {
   closeCreatePost,
+  handleHideMobileBottomNav,
+  handleHideUpperNavigation,
   setSearchTerm,
 } from "./store/uiSlice";
 import { deletePostThunk, updatePostStatusThunk } from "./store/thunks";
+import AppRoutes from "./routes/AppRoutes";
+import {
+  getActiveTabFromPath,
+  getPathFromTab,
+  isProtectedTab,
+} from "./routes/tabs";
 
 import Header from "./components/Header";
-import LandingPage from "./components/LandingPage";
-import CreatePost from "./components/CreatePost";
-import Dashboard from "./components/Dashboard";
-import Messaging from "./components/Messaging";
-import ProfileView from "./components/ProfileView";
-import LoginPage from "./components/LoginPage";
-import MyActivity from "./components/MyActivity";
-import ExplorePage from "./components/ExplorePage";
-
 import SidePanel from "./components/sidepan/SidePan";
 import MobileBottomNavigation from "./components/footer/MobileBottomNavigation";
-import MobileHomePage from "./components/MobileHomePage";
 
-const PROTECTED_TABS = [
-  "feed",
-  "dashboard",
-  "messaging",
-  "profile",
-  "activity",
-  "responses",
-] as const;
+type AppTheme = "dark" | "light";
+
+const THEME_STORAGE_KEY = "huntintown-theme";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -44,45 +37,46 @@ export default function App() {
     token: authToken,
   } = useAppSelector((s) => s.auth);
   const posts = useAppSelector((s) => s.posts);
-  const { conversations, activeConversationId } = useAppSelector(
-    (s) => s.conversations,
+  const { hideMobileBottomNav, hideUpperNavigation } = useAppSelector(
+    (s) => s.ui,
   );
-  const { hideMobileBottomNav } = useAppSelector((s) => s.ui);
+  const [theme, setTheme] = useState<AppTheme>(() => {
+    if (typeof window === "undefined") return "light";
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return stored === "dark" || stored === "light" ? stored : "light";
+  });
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const activeTab = (() => {
-    const clean = location.pathname.replace(/^\//, "");
-    return clean || "landing";
-  })();
+  const activeTab = useMemo(
+    () => getActiveTabFromPath(location.pathname),
+    [location.pathname],
+  );
 
-  const setActiveTab = (tab: string) => {
-    if (PROTECTED_TABS.includes(tab) && !isAuthenticated) {
-      navigate("/login", { replace: true });
-      return;
-    }
-    navigate(tab === "landing" ? "/" : `/${tab}`);
-  };
-
-  useEffect(() => {
-    if (PROTECTED_TABS.includes(activeTab) && !isAuthenticated) {
-      navigate("/login", { replace: true });
-    }
-  }, [activeTab, isAuthenticated]);
-
-  const unreadMessagesCount = conversations.reduce(
-    (sum, c) => sum + (c.unreadCount ?? 0),
-    0,
+  const setActiveTab = useCallback(
+    (tab: string) => {
+      if (isProtectedTab(tab) && !isAuthenticated) {
+        navigate("/login", { replace: true });
+        return;
+      }
+      navigate(getPathFromTab(tab));
+    },
+    [isAuthenticated, navigate],
   );
 
   // Load posts on first authentication — condition in thunk prevents duplicate calls
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
   useEffect(() => {
     if (isAuthenticated) {
       setSidePanelOpen(false);
       dispatch(fetchPosts() as any);
     }
-  }, [isAuthenticated]);
+  }, [dispatch, isAuthenticated]);
 
   // Initialize socket connection if user is authenticated
   useEffect(() => {
@@ -108,19 +102,22 @@ export default function App() {
     } else if (!isAuthenticated && !token) {
       console.log("[App] No token available, socket remains disconnected");
     }
-  }, [isAuthenticated]);
+  }, [authToken, isAuthenticated]);
 
-  const handleLogin = (user: User, token: string) => {
-    console.log("[App.handleLogin] Logging in, setting socket auth");
-    setSocketAuth(token);
-    console.log("[App.handleLogin] Connecting socket...");
-    socket.connect();
-    dispatch(login({ user, token }));
-    setSidePanelOpen(false);
-    navigate("/explore", { replace: true });
-  };
+  const handleLogin = useCallback(
+    (user: User, token: string) => {
+      console.log("[App.handleLogin] Logging in, setting socket auth");
+      setSocketAuth(token);
+      console.log("[App.handleLogin] Connecting socket...");
+      socket.connect();
+      dispatch(login({ user, token }));
+      setSidePanelOpen(false);
+      navigate("/explore", { replace: true });
+    },
+    [dispatch, navigate],
+  );
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setSocketAuth("");
     socket.disconnect();
     dispatch(clearPosts()); // reset fetch lock for next login
@@ -128,113 +125,105 @@ export default function App() {
     dispatch(logout());
     setSidePanelOpen(false);
     navigate("/login", { replace: true });
-  };
+  }, [dispatch, navigate]);
 
-  const guardedOpenCreatePost = () => {
+  const guardedOpenCreatePost = useCallback(() => {
     if (!isAuthenticated) {
       navigate("/login", { replace: true });
       return;
     }
     navigate("/create-post");
-  };
+  }, [isAuthenticated, navigate]);
 
-  const renderActiveView = () => {
-    // Synchronous guard: never render a protected view for unauthenticated users.
-    // The useEffect above handles the redirect; this prevents any render flash.
-    if (PROTECTED_TABS.includes(activeTab) && !isAuthenticated) {
-      return null;
+  const handleExplorePost = useCallback(
+    (postId: string) => {
+      const targetPost = posts.find((p) => p.id === postId);
+      dispatch(setSearchTerm(targetPost ? targetPost.title : ""));
+      setActiveTab("explore");
+    },
+    [dispatch, posts, setActiveTab],
+  );
+
+  const handlePostCreated = useCallback(
+    (postId: string) => {
+      dispatch(closeCreatePost());
+      navigate("/explore", { state: { openPostId: postId } });
+    },
+    [dispatch, navigate],
+  );
+
+  const handleUpdateStatus = useCallback(
+    (postId: string, status: Post["status"]) => {
+      dispatch(updatePostStatusThunk(postId, status) as any);
+    },
+    [dispatch],
+  );
+
+  const handleDeleteListing = useCallback(
+    (postId: string) => {
+      dispatch(deletePostThunk(postId) as any);
+    },
+    [dispatch],
+  );
+
+  const handleProfileUpdated = useCallback((_updated: User) => {
+    // ProfileView already dispatches updateProfile after successful save.
+    // Keep this callback for interface compatibility without duplicate dispatch.
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((current) => (current === "dark" ? "light" : "dark"));
+  }, []);
+
+  // Keep mobile bottom nav state deterministic across direct route/tab operations.
+  useEffect(() => {
+    const isMessagingRoute = location.pathname === "/messaging";
+    const hasConversationInUrl = Boolean(
+      new URLSearchParams(location.search).get("conversationId"),
+    );
+
+    if (!isMessagingRoute || !hasConversationInUrl) {
+      dispatch(handleHideMobileBottomNav(false));
+      dispatch(handleHideUpperNavigation(false));
     }
-
-    switch (activeTab) {
-      case "mobile":
-        return <MobileHomePage setActiveTab={setActiveTab} />;
-      case "landing":
-        return (
-          <LandingPage
-            onExplore={() => setActiveTab("explore")}
-            onPostRequirement={() => {
-              if (!isAuthenticated) {
-                navigate("/login", { replace: true });
-                return;
-              }
-              navigate("/create-post");
-            }}
-            onExplorePost={(postId) => {
-              const tgt = posts.find((p) => p.id === postId);
-              dispatch(setSearchTerm(tgt ? tgt.title : ""));
-              setActiveTab("explore");
-            }}
-            onInitiateChat={() => setActiveTab("messaging")}
-          />
-        );
-
-      case "dashboard":
-        return (
-          <Dashboard
-            onUpdateStatus={(postId, status) =>
-              dispatch(updatePostStatusThunk(postId, status) as any)
-            }
-            onDeleteListing={(id) => dispatch(deletePostThunk(id) as any)}
-            onSelectPost={() => setActiveTab("explore")}
-            setActiveTab={setActiveTab}
-            onInitiateChat={(postId) => navigate(`/messaging?postId=${postId}`)}
-          />
-        );
-      case "messaging":
-        return <Messaging />;
-      case "profile":
-        return (
-          <ProfileView
-            onUpdateProfile={(updated) => dispatch(updateProfile(updated))}
-            onLogout={handleLogout}
-          />
-        );
-      case "activity":
-        return <MyActivity onInitiateChat={() => setActiveTab("messaging")} />;
-      case "responses":
-        return (
-          <MyActivity
-            initialTab="responses"
-            onInitiateChat={() => setActiveTab("messaging")}
-          />
-        );
-      case "login":
-        return <LoginPage onLogin={handleLogin} />;
-      case "explore":
-        return <ExplorePage />;
-      case "create-post":
-        return (
-          <CreatePost
-            onPostCreated={(postId) => {
-              dispatch(closeCreatePost());
-              navigate("/explore", { state: { openPostId: postId } });
-            }}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  }, [dispatch, location.pathname, location.search]);
 
   return (
-    <div className="absolute inset-0 bg-[#171717]  flex flex-col antialiased select-text text-zinc-100 overflow-x-hidden">
-      <div className="flex-1 flex flex-col min-h-screen">
+    <div className="fixed inset-0 flex flex-col  overflow-hidden theme-page-shell antialiased select-text text-zinc-100">
+      <div className="flex h-full min-h-0 flex-1 flex-col">
         <Header
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           openCreatePost={guardedOpenCreatePost}
           onLogoutSimulate={handleLogout}
           handleSidePanelOpen={() => setSidePanelOpen(true)}
+          hideOnMobile={hideUpperNavigation}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
 
         <main
-          className={`flex-1 w-full mx-auto pt-14 md:pt-16 ${
+          className={`min-h-0 flex-1 w-full mx-auto ${
+            hideUpperNavigation ? "pt-0 md:pt-16" : "pt-14 md:pt-16"
+          } ${
             activeTab === "messaging"
               ? "flex flex-col overflow-hidden"
-              : "sm:px-6 lg:px-4  pb-24 md:pb-8 p-2"
+              : "overflow-y-auto p-1 pb-24 sm:px-6 md:pb-8 lg:px-4"
           }`}
         >
-          {renderActiveView()}
+          <AppRoutes
+            isAuthenticated={isAuthenticated}
+            posts={posts}
+            setActiveTab={setActiveTab}
+            onLogin={handleLogin}
+            onLogout={handleLogout}
+            onPostRequirement={guardedOpenCreatePost}
+            onExplorePost={handleExplorePost}
+            onUpdateStatus={handleUpdateStatus}
+            onDeleteListing={handleDeleteListing}
+            onPostCreated={handlePostCreated}
+            onUpdateProfile={handleProfileUpdated}
+          />
         </main>
 
         {/* ── Mobile bottom nav ── */}
@@ -254,6 +243,8 @@ export default function App() {
           open={sidePanelOpen}
           onClose={() => setSidePanelOpen(false)}
           onLogout={handleLogout}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
       )}
     </div>

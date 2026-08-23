@@ -181,9 +181,9 @@ export default function ChatList({
                       {otherUser?.name || "User"}
                     </p>
 
-                    <p className="mt-0.5 truncate text-[10px] text-zinc-600">
+                    {/* <p className="mt-0.5 truncate text-[10px] text-zinc-600">
                       {conv?.post?.title || "Post conversation"}
-                    </p>
+                    </p> */}
 
                     {otherUser?.isOnline ? (
                       <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-500/70">

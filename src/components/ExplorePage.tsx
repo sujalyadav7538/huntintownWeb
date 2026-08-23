@@ -7,20 +7,20 @@ import PostGridCard from "./explore/PostGridCard";
 import PostDetailView from "./explore/PostDetailView";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { Post } from "../types";
-import { fetchPosts, fetchPostsPage } from "../store/postsSlice";
+import { deletePost, fetchPosts, fetchPostsPage } from "../store/postsSlice";
 import ExploreSearch from "./explore/ExploreSearch";
 import { handleHideMobileBottomNav } from "../store/uiSlice";
 
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-zinc-800/60 bg-[#0e0e10] overflow-hidden animate-pulse">
-      <div className="h-36 bg-zinc-900" />
+    <div className="theme-explore-skeleton overflow-hidden rounded-xl border animate-pulse">
+      <div className="theme-explore-skeleton-block h-36" />
       <div className="p-3 space-y-2">
-        <div className="h-3 w-3/4 rounded-full bg-zinc-800" />
-        <div className="h-3 w-1/2 rounded-full bg-zinc-800/70" />
+        <div className="theme-explore-skeleton-block h-3 w-3/4 rounded-full" />
+        <div className="theme-explore-skeleton-block h-3 w-1/2 rounded-full opacity-80" />
         <div className="flex gap-2 items-center mt-2">
-          <div className="h-6 w-6 rounded-full bg-zinc-800" />
-          <div className="h-2.5 w-20 rounded-full bg-zinc-800/70" />
+          <div className="theme-explore-skeleton-block h-6 w-6 rounded-full" />
+          <div className="theme-explore-skeleton-block h-2.5 w-20 rounded-full opacity-80" />
         </div>
       </div>
     </div>
@@ -159,20 +159,29 @@ export default function ExplorePage() {
     setSelectedPost(null);
   };
 
+  const handleResponseSubmit = (postId: string) => {
+    handleClosePost();
+
+    dispatch(deletePost(postId));
+  };
+
   // ── Render post detail inline ──
   if (selectedPost) {
     return (
       <PostDetailView
         post={selectedPost}
         onBack={handleClosePost}
-        onViewProfile={() => {}}
+        onViewProfile={() => {
+          navigate(`/profile/${selectedPost.author.id}`);
+        }}
+        onResponseSubmit={handleResponseSubmit}
       />
     );
   }
 
   // ── Render grid ──
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 pt-3 lg:pt-4">
+    <div className="theme-page-shell mx-auto w-full max-w-7xl space-y-6 pt-3 lg:pt-4">
       {/* Guest notice */}
       {!isAuthenticated && (
         <div className="flex items-center gap-3 border-b border-zinc-800/70 pb-4">
@@ -219,7 +228,7 @@ export default function ExplorePage() {
           ))}
         </div>
       ) : filteredPosts.length === 0 ? (
-        <div className="flex min-h-[360px] flex-col items-center justify-center text-center">
+        <div className="flex min-h-90 flex-col items-center justify-center text-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900">
             <SlidersHorizontal className="h-5 w-5 text-zinc-600" />
           </div>

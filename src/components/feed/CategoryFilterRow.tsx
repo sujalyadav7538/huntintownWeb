@@ -38,8 +38,8 @@ export default function CategoryFilterRow({
                 transition-all duration-200
                 ${
                   isActive
-                    ? "border-[#FF3F3F]/30 bg-[#FF3F3F]/10 text-zinc-100"
-                    : "border-[#1e1e22] bg-[#111113] text-zinc-500 hover:border-[#29292e] hover:bg-[#151518] hover:text-zinc-300"
+                    ? "theme-chip-active"
+                    : "theme-chip"
                 }
               `}
             >
@@ -49,7 +49,7 @@ export default function CategoryFilterRow({
                   ${
                     isActive
                       ? "text-[#FF3F3F]"
-                      : "text-zinc-600 group-hover:text-zinc-400"
+                      : "theme-icon-muted"
                   }
                 `}
               />
@@ -61,11 +61,11 @@ export default function CategoryFilterRow({
       </div>
 
       {/* Active count */}
-      <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-[#1e1e22] bg-[#111113] px-3 py-1.5">
+      <div className="theme-chip-count flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5">
         <Flame className="h-3 w-3 text-[#FF3F3F]" />
 
-        <span className="text-[10px] font-medium text-zinc-600">
-          <span className="font-bold text-zinc-300">{resultCount}</span> active
+        <span className="theme-text-muted text-[10px] font-medium">
+          <span className="theme-text-primary font-bold">{resultCount}</span> active
         </span>
       </div>
     </div>

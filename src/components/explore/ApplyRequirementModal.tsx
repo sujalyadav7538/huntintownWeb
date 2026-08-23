@@ -98,7 +98,7 @@ export default function ApplyRequirementModal({
   return (
     <div
       className="
-      fixed inset-0 z-[100]
+      fixed inset-0 z-9999
       bg-black/75
       backdrop-blur-sm
     "
@@ -146,7 +146,7 @@ export default function ApplyRequirementModal({
               className="
               ml-3 shrink-0 rounded-full p-1.5
               text-zinc-500 transition
-              hover:bg-white/[0.05]
+              hover:bg-white/5
               hover:text-zinc-200
               disabled:opacity-40
             "
@@ -436,7 +436,7 @@ function ApplyFormContent({
             font-semibold
             text-zinc-500
             transition
-            hover:bg-white/[0.04]
+            hover:bg-white/4
             hover:text-zinc-300
             disabled:opacity-40
           "

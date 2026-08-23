@@ -1,6 +1,6 @@
 import { Post } from "@/src/types";
 import { ArrowUpRight, LucideIcon, Radio } from "lucide-react";
-import ProfileMetricCard from "../profile/ProfileMetricCard";
+// import ProfileMetricCard from "../profile/ProfileMetricCard";
 import { heroSectionStats } from "@/src/data";
 
 interface HeroSectionProps {
@@ -143,7 +143,7 @@ function HeroStats({ activePosts }: { activePosts: number }) {
   return (
     <div className="xl:col-span-5">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {heroSectionStats.map((stat) => (
+        {/* {heroSectionStats.map((stat) => (
           <ProfileMetricCard
             key={stat.title}
             title={stat.title}
@@ -158,7 +158,7 @@ function HeroStats({ activePosts }: { activePosts: number }) {
             size="md"
             className={stat?.className ?? ""}
           />
-        ))}
+        ))} */}
       </div>
     </div>
   );

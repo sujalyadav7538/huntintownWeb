@@ -27,7 +27,7 @@ export default function MyActivity({
     setSelected(value);
   };
   return (
-    <div className="mx-auto w-full max-w-7xl pt-3 lg:pt-4">
+    <div className="theme-page-shell mx-auto w-full max-w-7xl pt-3 lg:pt-4">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between gap-4">
@@ -70,7 +70,7 @@ export default function MyActivity({
 
         {/* Mobile tabs */}
         {isSelected && (
-          <nav className="mt-5 flex items-center gap-5 border-b border-zinc-800/70 sm:hidden">
+          <nav className="theme-divider mt-5 flex items-center gap-5 border-b border-zinc-800/70 sm:hidden">
             <HubTabButton
               active={tab === "activity"}
               icon={Activity}

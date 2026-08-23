@@ -13,9 +13,7 @@ export default function ExploreSearch({
     <div className="relative w-full max-w-2xl">
       <Search
         className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${
-          searchTerm
-            ? "text-[#FF3F3F]"
-            : "text-zinc-600"
+          searchTerm ? "text-[#FF3F3F]" : "theme-icon-muted"
         }`}
       />
 
@@ -25,6 +23,7 @@ export default function ExploreSearch({
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder="Search requirements, skills, people..."
         className="
+          theme-input
           h-10 w-full
           rounded-full
           border border-zinc-800
@@ -47,6 +46,7 @@ export default function ExploreSearch({
           onClick={() => setSearchTerm("")}
           aria-label="Clear search"
           className="
+            theme-text-muted theme-hover-soft
             absolute right-3.5 top-1/2
             flex h-5 w-5
             -translate-y-1/2

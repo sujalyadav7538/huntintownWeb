@@ -23,6 +23,8 @@ import PostImageGallery from "./PostImageGallery";
 import ResponsesPanel from "./ResponsePanel";
 import { useState } from "react";
 import ApplyRequirementModal from "./ApplyRequirementModal";
+import { handleHideUpperNavigation } from "@/src/store/uiSlice";
+import { useAppDispatch } from "@/src/store/hooks";
 
 const STATUS_DOT: Record<string, string> = {
   live: "bg-emerald-500",
@@ -43,18 +45,22 @@ interface PostDetailProps {
   post: Post;
   onBack: () => void;
   onViewProfile?: (author: Post["author"]) => void;
+  onResponseSubmit: (postId: string) => void;
 }
 
 export default function PostDetail({
   post,
   onBack,
   onViewProfile,
+  onResponseSubmit,
 }: PostDetailProps) {
   const expired = post?.expiresAt ? isPostExpired(post.expiresAt) : false;
 
   const expiryLabel = post?.expiresAt
     ? getPostExpiryLabel(post.expiresAt)
     : null;
+
+  const dispatch = useAppDispatch();
 
   const accent = CATEGORY_COLORS[post?.category?.toLowerCase()] ?? "#FF3F3F";
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -86,7 +92,7 @@ export default function PostDetail({
       });
 
       setIsApplyModalOpen(false);
-      onBack(); // Close the modal and navigate back to the post detail view
+      onResponseSubmit(postId); // Close the modal and navigate back to the post detail view
 
       // Optional: refresh responses
       // fetchResponses();
@@ -96,8 +102,18 @@ export default function PostDetail({
     }
   };
 
+  const handleResponseOpen = () => {
+    setIsApplyModalOpen(true);
+    dispatch(handleHideUpperNavigation(true));
+  };
+
+  const handleResponseClose = () => {
+    setIsApplyModalOpen(false);
+    dispatch(handleHideUpperNavigation(false));
+  };
+
   return (
-    <div className="absolute inset-0 min-h-0 w-full bg-[#0c0c0e] pt-16 text-zinc-100">
+    <div className="absolute inset-0 min-h-0 w-full  pt-16  backdrop-blur-sm theme-card">
       <div className="h-full min-h-0 overflow-hidden">
         <div className="mx-auto h-full w-full max-w-7xl px-4 sm:px-6">
           <div className="grid h-full min-h-0 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -106,7 +122,7 @@ export default function PostDetail({
               post={post}
               onBack={onBack}
               onViewProfile={onViewProfile}
-              onApply={() => setIsApplyModalOpen(true)}
+              onApply={handleResponseOpen}
               expired={expired}
               isUrgent={isUrgent}
               accent={accent}
@@ -118,7 +134,7 @@ export default function PostDetail({
               <ResponsesPanel
                 post={post}
                 onViewProfile={onViewProfile}
-                onApply={() => setIsApplyModalOpen(true)}
+                onApply={handleResponseOpen}
               />
             </aside>
           </div>
@@ -128,7 +144,7 @@ export default function PostDetail({
         <ApplyRequirementModal
           isOpen={isApplyModalOpen}
           post={post}
-          onClose={() => setIsApplyModalOpen(false)}
+          onClose={handleResponseClose}
           onSubmit={handleSubmitResponse}
         />
       </div>
@@ -164,15 +180,15 @@ function LeftPanel({
     : "Just now";
 
   return (
-<main className="min-h-0 overflow-y-auto scrollbar-hide md:scrollbar-default py-4 sm:py-6 lg:pr-7">
+    <main className="min-h-0 overflow-y-auto scrollbar-hide md:scrollbar-default py-4 sm:py-6 lg:pr-7">
       {/* Back + Mobile Apply */}
       <div className="flex items-center justify-between lg:justify-start">
         <button
           type="button"
           onClick={onBack}
-          className="group inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 transition-colors hover:text-zinc-200"
+          className="group inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 transition-colors hover:text-zinc-200 hover:-translate-x-0.5 cursor-pointer"
         >
-          <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+          <ArrowLeft className="h-3.5 w-3.5 transition-transform " />
           Requirements
         </button>
 
@@ -186,15 +202,16 @@ function LeftPanel({
           Apply
         </button>
       </div>
+
       {/* Requirement */}
       <section className="mt-3 max-w-4xl">
-        <article className="overflow-hidden rounded-2xl border border-white/8 bg-linear-to-br from-[#15161a] via-[#111217] to-[#0e0f13] shadow-[0_12px_44px_rgba(0,0,0,0.45)]">
+        <article className="overflow-hidden rounded-2xl ">
           <div className="px-4 py-4 sm:px-6 sm:py-5">
             <div className="flex items-start justify-between gap-3">
               <button
                 type="button"
                 onClick={() => onViewProfile?.(post.author)}
-                className="group flex min-w-0 items-center gap-2.5 text-left"
+                className="group flex min-w-0 items-center gap-2.5 text-left cursor-pointer"
               >
                 <img
                   src={getAvatarUrl(

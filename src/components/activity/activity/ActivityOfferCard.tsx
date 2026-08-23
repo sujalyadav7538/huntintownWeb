@@ -13,6 +13,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { getAvatarUrl, handleAvatarError } from "@/src/utils";
+import { useNavigate } from "react-router-dom";
 
 interface ActivityOfferCardProps {
   offer: ActivityResponse;
@@ -56,7 +57,8 @@ export default function ActivityOfferCard({
 }: ActivityOfferCardProps) {
   const post = offer.postId;
   const owner = post?.author;
-
+  const navigate=useNavigate();
+  console.log(owner)
   const cfg =
     STATUS_CONFIG[offer.status as keyof typeof STATUS_CONFIG] ??
     STATUS_CONFIG.pending;
@@ -111,7 +113,8 @@ export default function ActivityOfferCard({
       {owner && (
         <button
           type="button"
-          className="mt-4 flex items-center gap-2.5 text-left"
+          className="mt-4 flex items-center gap-2.5 text-left cursor-pointer"
+          onClick={()=>navigate(`/profile/${owner.id}`)}
         >
           <img
             src={getAvatarUrl(owner.name, owner.avatar ?? undefined)}

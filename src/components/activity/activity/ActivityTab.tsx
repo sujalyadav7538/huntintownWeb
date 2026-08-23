@@ -176,7 +176,6 @@ function StatusFilters({
     { id: "pending", label: "Awaiting" },
     { id: "accepted", label: "Accepted" },
     { id: "rejected", label: "Rejected" },
-    { id: "completed", label: "Completed" },
   ];
 
   return (
@@ -203,31 +202,6 @@ function StatusFilters({
           </button>
         );
       })}
-    </div>
-  );
-}
-
-function EmptyState({
-  icon: Icon,
-  title,
-  desc,
-  action,
-}: {
-  icon: ComponentType<{ className?: string }>;
-  title: string;
-  desc: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-[#0e0e10] border border-[#1e1e22] flex items-center justify-center">
-        <Icon className="w-6 h-6 text-zinc-700" />
-      </div>
-      <div>
-        <p className="text-[15px] font-bold text-zinc-300">{title}</p>
-        <p className="text-[12px] text-zinc-600 mt-1 max-w-xs">{desc}</p>
-      </div>
-      {action}
     </div>
   );
 }

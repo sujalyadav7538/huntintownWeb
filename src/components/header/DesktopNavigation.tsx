@@ -5,7 +5,8 @@ import {
   MessageSquare,
   Search,
   PlusCircle,
-  Plus,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 import UserProfileIndicator from "./UserProfileIndicator";
@@ -18,6 +19,8 @@ interface DesktopNavigationProps {
   isAuthenticated: boolean;
   openCreatePost: () => void;
   onLogoutSimulate: () => void;
+  theme: "dark" | "light";
+  onToggleTheme: () => void;
 }
 
 const NAV_ITEMS = [
@@ -52,18 +55,20 @@ export default function DesktopNavigation({
   isAuthenticated,
   openCreatePost,
   onLogoutSimulate,
+  theme,
+  onToggleTheme,
 }: DesktopNavigationProps) {
   const dispatch = useAppDispatch();
   const { searchTerm } = useAppSelector((s) => s.ui);
 
   return (
-    <div className="hidden md:flex h-16 items-center justify-between px-6">
+    <div className="hidden h-full items-center justify-between px-6 md:flex">
       {/* Left */}
       <button
         onClick={() => setActiveTab("mobile")}
         className="flex items-center shrink-0"
       >
-        <img src="/name.png" alt="HuntInTown" className="h-7 w-auto" />
+        <img src="/name.png" alt="HuntInTown" className="h-7 w-auto fill-black" />
       </button>
 
       {/* Search */}
@@ -121,7 +126,7 @@ export default function DesktopNavigation({
               )}
 
               {active && (
-                <span className="absolute -bottom-[21px] left-0 h-[2px] w-full rounded-full bg-[#FF3F3F]" />
+                <span className="absolute -bottom-5.25 left-0 h-0.5 w-full rounded-full bg-[#FF3F3F]" />
               )}
             </button>
           );
@@ -130,14 +135,26 @@ export default function DesktopNavigation({
 
       {/* Right */}
       <div className="ml-8 flex items-center gap-3 shrink-0">
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-xl cursor-pointer text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+        >
+          {theme === "dark" ? (
+            <Sun className="h-4 w-4 text-white" />
+          ) : (
+            <Moon className="h-4 w-4 text-[#FF3F3F]" />
+          )}
+        </button>
+
         {isAuthenticated && (
           <button
             onClick={openCreatePost}
             className="
                   inline-flex items-center gap-1.5
-                  h-9 px-3.5
+                  h-8 px-3
                   rounded-xl
-                  bg-zinc-900
                   border border-zinc-800
                   text-zinc-200 text-sm font-medium
                   hover:border-[#FF3F3F]/40
