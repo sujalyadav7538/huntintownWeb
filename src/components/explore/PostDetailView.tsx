@@ -213,7 +213,7 @@ function LeftPanel({
       {/* Requirement */}
       <section className="mt-3 max-w-4xl">
         <article className="overflow-hidden rounded-2xl ">
-          <div className="px-4 py-4 sm:px-6 sm:py-5">
+          <div className=" py-4  sm:py-5">
             <div className="flex items-start justify-between gap-3">
               <button
                 type="button"
