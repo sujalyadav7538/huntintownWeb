@@ -128,7 +128,7 @@ export default function UserProfileView({
   };
 
   const onViewAll = () => {
-    navigate("/activity");
+    navigate("/dashboard/responses");
   };
 
   if (mode === "edit" && currentUser) {
@@ -214,6 +214,9 @@ export default function UserProfileView({
                 <div className="hidden sm:block">
                   <ProfileBadges badges={badges} loading={repLoading} compact />
                 </div>
+                <div className="hidden sm:block">
+                <ProfileAnalytics metric={metric ?? currentUser?.metric ?? null} />
+                </div>
               </div>
 
               <div className="flex flex-col gap-4 sm:col-span-5">
@@ -235,6 +238,7 @@ export default function UserProfileView({
               <div className="sm:hidden">
                 <ProfileBadges badges={badges} loading={repLoading} compact />
               </div>
+              
             </div>
           )}
 

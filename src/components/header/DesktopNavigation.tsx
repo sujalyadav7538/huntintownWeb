@@ -35,7 +35,7 @@ const NAV_ITEMS = [
     icon: Compass,
   },
   {
-    id: "activity",
+    id: "dashboard/activity",
     label: "Activity",
     icon: Activity,
     auth: true,

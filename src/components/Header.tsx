@@ -1,4 +1,4 @@
-import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { useAppSelector } from "../store/hooks";
 import DesktopNavigation from "./header/DesktopNavigation";
 
 import MobileNavigation from "./header/MobileNavigation";

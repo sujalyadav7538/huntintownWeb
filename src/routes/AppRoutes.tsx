@@ -103,7 +103,6 @@ export default function AppRoutes({
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/profile/:id?"
         element={
@@ -115,12 +114,22 @@ export default function AppRoutes({
           </ProtectedRoute>
         }
       />
-
       <Route
-        path="/activity"
+        path="/dashBoard/activity"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <MyActivity onInitiateChat={() => setActiveTab("messaging")} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashBoard/responses"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <MyActivity
+              onInitiateChat={() => setActiveTab("messaging")}
+              initialTab="responses"
+            />
           </ProtectedRoute>
         }
       />
@@ -145,6 +154,14 @@ export default function AppRoutes({
       />
       <Route
         path="/feed"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <Navigate to="/explore" replace />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/post/:id"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <Navigate to="/explore" replace />

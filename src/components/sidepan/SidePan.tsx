@@ -105,7 +105,7 @@ export default function SidePanel({
             {
               label: "Activity",
               icon: Activity,
-              path: "/activity",
+              path: "/dashboard/activity",
             },
             {
               label: "Responses",

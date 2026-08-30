@@ -216,7 +216,7 @@ export default function App() {
           } ${
             activeTab === "messaging"
               ? "flex flex-col overflow-hidden"
-              : "overflow-y-auto p-1 pb-24 sm:px-6 md:pb-8 lg:px-4"
+              : "overflow-y-auto p-1 pb-8 lg:pb-0  sm:px-6  lg:px-4"
           }`}
         >
           <AppRoutes

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useAppSelector } from "../store/hooks";
 import ResponsesTab from "./activity/responses/ResponseTab";
 import ActivityTab from "./activity/activity/ActivityTab";
@@ -18,14 +18,29 @@ export default function MyActivity({
   const { currentUser } = useAppSelector((s) => s.auth);
 
   const [tab, setTab] = useState<HubTab>(initialTab);
+  const [isSelected, setSelected] = useState(true);
+
+  /*
+   * If parent changes initialTab while this component
+   * is already mounted, update the active tab.
+   *
+   * Example:
+   * initialTab="responses"
+   * -> opens Responses
+   *
+   * initialTab="activity"
+   * -> opens Activity
+   */
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
 
   const currentUserId = (currentUser as any)?._id || currentUser?.id || "";
-
-  const [isSelected, setSelected] = useState(true);
 
   const hideTabs = (value: boolean) => {
     setSelected(value);
   };
+
   return (
     <div className="theme-page-shell mx-auto w-full max-w-7xl pt-3 lg:pt-4">
       {/* Header */}
@@ -48,7 +63,7 @@ export default function MyActivity({
             </p>
           </div>
 
-          {/* Tabs */}
+          {/* Desktop Tabs */}
           {isSelected && (
             <nav className="hidden items-center gap-5 sm:flex">
               <HubTabButton
@@ -68,7 +83,7 @@ export default function MyActivity({
           )}
         </div>
 
-        {/* Mobile tabs */}
+        {/* Mobile Tabs */}
         {isSelected && (
           <nav className="theme-divider mt-5 flex items-center gap-5 border-b border-zinc-800/70 sm:hidden">
             <HubTabButton
