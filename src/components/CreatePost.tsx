@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 
 import CategoryStep from "./post/CategoryStep";
@@ -7,6 +7,8 @@ import ExtraDetailsStep from "./post/ExtraDetailsStep";
 import LocationStep from "./post/LocationStep";
 import { apiFetch } from "../lib/api";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { handleHideMobileBottomNav } from "../store/uiSlice";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -76,6 +78,15 @@ export default function CreatePost() {
 
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+
+  useEffect(() => {
+    dispatch(handleHideMobileBottomNav(true));
+    return () => {
+      dispatch(handleHideMobileBottomNav(false));
+    }
+  }, []);
 
   /* ============================================================
      FORM UPDATE

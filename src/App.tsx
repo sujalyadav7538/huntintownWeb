@@ -214,7 +214,7 @@ export default function App() {
           className={`min-h-0 flex-1 w-full mx-auto ${
             hideUpperNavigation ? "pt-0 md:pt-16" : "pt-14 md:pt-16"
           } ${
-            activeTab === "messaging"
+            ["messaging","create-post"].includes(activeTab)
               ? "flex flex-col overflow-hidden"
               : "overflow-y-auto p-1 pb-8 lg:pb-0  sm:px-6  lg:px-4"
           }`}
