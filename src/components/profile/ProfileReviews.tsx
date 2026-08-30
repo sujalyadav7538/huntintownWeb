@@ -17,9 +17,10 @@ interface ProfileReviewsProps {
   metric: UserMetric | null;
   metricLoading?: boolean;
   compact?: boolean; // shows only summary + 1 review
+  defaultExpanded?: boolean; // defaultExpanded=true hides the component if there are no reviews and not loading
 }
 
-export default function ProfileReviews({ userId, metric, metricLoading, compact = false }: ProfileReviewsProps) {
+export default function ProfileReviews({ userId, metric, metricLoading, compact = false, defaultExpanded = false }: ProfileReviewsProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,7 @@ export default function ProfileReviews({ userId, metric, metricLoading, compact 
   const totalReviews = metric?.reviewMetrics.totalReviews ?? 0;
   const displayedReviews = compact ? reviews.slice(0, 1) : reviews.slice(0, shown);
 
-  if (!metricLoading && totalReviews === 0 && reviews.length === 0 && !loading) return null;
+  if (defaultExpanded && !metricLoading && totalReviews === 0 && reviews.length === 0 && !loading) return null;
 
   return (
     <div className="theme-card rounded-xl border p-4 sm:p-5">

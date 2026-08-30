@@ -13,6 +13,7 @@ import { UserMetric } from "../../types";
 
 interface ProfileAnalyticsProps {
   metric: UserMetric | null;
+  defaultExpanded?: boolean; // defaultExpanded=true hides the component when there is no meaningful metric data
 }
 
 function pct(value: number) {
@@ -86,7 +87,7 @@ function ProgressRow({
   );
 }
 
-export default function ProfileAnalytics({ metric }: ProfileAnalyticsProps) {
+export default function ProfileAnalytics({ metric, defaultExpanded = false }: ProfileAnalyticsProps) {
   const trust = metric?.trustScore ?? 0;
   const profileCompletion = metric?.profileMetrics?.completion ?? 0;
 
@@ -102,6 +103,18 @@ export default function ProfileAnalytics({ metric }: ProfileAnalyticsProps) {
   const responsesReceived = metric?.hunterMetrics?.responsesReceived ?? 0;
 
   const activeDays = metric?.activityMetrics?.activeDays ?? 0;
+
+  if (
+    defaultExpanded &&
+    !metric &&
+    trust === 0 &&
+    totalReviews === 0 &&
+    responsesSubmitted === 0 &&
+    postsCreated === 0 &&
+    activeDays === 0
+  ) {
+    return null;
+  }
 
   const acceptanceRate =
     responsesSubmitted > 0 ? (responsesAccepted / responsesSubmitted) * 100 : 0;

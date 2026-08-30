@@ -20,9 +20,11 @@ interface ProfileBadgesProps {
   badges: UserBadgeItem[];
   loading?: boolean;
   compact?: boolean; // compact=true shows icon row (used in right sidebar)
+  defaultExpanded?: boolean; // defaultExpanded=true hides the component if there are no badges and not loading
 }
 
-export default function ProfileBadges({ badges, loading, compact = false }: ProfileBadgesProps) {
+export default function ProfileBadges({ badges, loading, compact = false,defaultExpanded=false }: ProfileBadgesProps) {
+  if(defaultExpanded && badges.length === 0 && !loading) return null;
   return (
     <div className="rounded-xl border border-[#1e1e22] bg-[#111113] p-4 sm:p-5">
       <div className="mb-3 flex items-center justify-between">

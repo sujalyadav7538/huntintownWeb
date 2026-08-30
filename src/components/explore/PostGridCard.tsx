@@ -1,13 +1,6 @@
-﻿import {
-  MapPin,
-  Clock,
-  IndianRupee,
-  ArrowRight,
-  MessageSquare,
-} from "lucide-react";
+﻿import { MapPin, Clock, IndianRupee, ArrowRight } from "lucide-react";
 
 import { getPostExpiryLabel, isPostExpired } from "../../utils";
-
 import { CATEGORY_COLORS } from "../../lib/postConstants";
 
 export interface PostCardData {
@@ -28,9 +21,25 @@ export interface PostCardData {
 
 interface PostGridCardProps {
   post: PostCardData;
+
+  /** Main card click */
   onSelect: () => void;
+
+  /** Optional content shown between details and footer */
   badge?: React.ReactNode;
   meta?: React.ReactNode;
+
+  /** View button configuration */
+  showViewButton?: boolean;
+  viewButtonLabel?: string;
+  expiredButtonLabel?: string;
+  showViewArrow?: boolean;
+
+  /** Footer configuration */
+  showFooter?: boolean;
+  footerTitle?: string;
+  activeFooterText?: string;
+  expiredFooterText?: string;
 }
 
 export default function PostGridCard({
@@ -38,13 +47,22 @@ export default function PostGridCard({
   onSelect,
   badge,
   meta,
+
+  showViewButton = true,
+  viewButtonLabel = "View",
+  expiredButtonLabel = "Expired",
+  showViewArrow = true,
+
+  showFooter = true,
+  footerTitle = "Requirement",
+  activeFooterText = "Open for responses",
+  expiredFooterText = "No longer accepting responses",
 }: PostGridCardProps) {
   const expired = post?.expiresAt ? isPostExpired(post.expiresAt) : false;
 
   const timeLabel = post?.expiresAt ? getPostExpiryLabel(post.expiresAt) : null;
 
   const accent = CATEGORY_COLORS[post?.category?.toLowerCase()] ?? "#FF3F3F";
-
 
   return (
     <article
@@ -75,24 +93,27 @@ export default function PostGridCard({
       {/* Header */}
       <header className="flex items-center justify-between gap-3">
         {/* Response Count */}
-        {post.responsesCount > 0 ? (
+        {post.responsesCount && post.responsesCount > 0 ? (
           <span
             className="
-                      theme-badge-accent
-                      inline-flex
-                      items-center
-                      gap-1
-                      rounded-full
-                      px-2 py-1
-                      text-[9px]
-                      font-bold
-                    "
+              theme-badge-accent
+              inline-flex
+              items-center
+              gap-1
+              rounded-full
+              px-2 py-1
+              text-[9px]
+              font-bold
+            "
           >
             <span className="h-1 w-1 rounded-full bg-white" />
             {post.responsesCount}{" "}
             {post.responsesCount === 1 ? "response" : "responses"}
           </span>
-        ) : undefined}
+        ) : (
+          <span />
+        )}
+
         {/* Category */}
         {post?.category && (
           <span
@@ -197,48 +218,68 @@ export default function PostGridCard({
       )}
 
       {/* Footer */}
+      {showFooter && (
+        <div
+          className="
+            mt-4 flex items-center justify-between gap-3
+            border-t border-white/5.5
+            pt-3
+          "
+        >
+          <div className="min-w-0">
+            <p className="text-[8px] uppercase tracking-[0.14em] text-zinc-700">
+              {footerTitle}
+            </p>
+
+            <p className="mt-0.5 text-[9px] text-zinc-600">
+              {expired ? expiredFooterText : activeFooterText}
+            </p>
+          </div>
+
+          {/* Configurable View Button */}
+          {showViewButton && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect();
+              }}
+              className="
+                theme-btn-accent
+                inline-flex h-8 shrink-0
+                cursor-pointer
+                items-center gap-1.5
+                rounded-lg
+                px-3
+                text-[9px] font-semibold
+                transition-all duration-200
+                active:scale-[0.98]
+                disabled:cursor-not-allowed
+              "
+              disabled={expired}
+            >
+              {expired ? expiredButtonLabel : viewButtonLabel}
+
+              {!expired && showViewArrow && <ArrowRight className="h-3 w-3" />}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Hover accent */}
       <div
         className="
-          mt-4 flex items-center justify-between gap-3
-          border-t border-white/5.5
-          pt-3
+          pointer-events-none absolute inset-x-0 bottom-0
+          h-px
+          bg-linear-to-r
+          from-transparent
+          via-[#FF3F3F]/60
+          to-transparent
+          opacity-0
+          transition-opacity
+          group-hover:opacity-100
         "
-      >
-        <div className="min-w-0">
-          <p className="text-[8px] uppercase tracking-[0.14em] text-zinc-700">
-            Requirement
-          </p>
-
-          <p className="mt-0.5 text-[9px] text-zinc-600">
-            {expired ? "No longer accepting responses" : "Open for responses"}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect();
-          }}
-          className="
-            theme-btn-accent
-            inline-flex h-8 shrink-0
-            cursor-pointer
-            items-center gap-1.5
-            rounded-lg
-            px-3
-            text-[9px] font-semibold
-            transition-all duration-200
-            active:scale-[0.98]
-            disabled:cursor-not-allowed
-          "
-          disabled={expired}
-        >
-          {expired ? "Expired" : "View"}
-
-          {!expired && <ArrowRight className="h-3 w-3" />}
-        </button>
-      </div>
+      />
     </article>
   );
 }

@@ -61,7 +61,7 @@ export default function UserProfileView({
           }
           const data = await res.json();
           setCurrentUser(data.user);
-          setPosts(data?.posts ?? []);
+          setPosts(data?.user?.posts ?? []);
 
           setIsOwner(id === authUser?.id);
         } else {
@@ -71,7 +71,7 @@ export default function UserProfileView({
           }
           const data = await res.json();
           setCurrentUser(data.user);
-          setPosts(data?.posts ?? []);
+          setPosts(data?.user?.posts ?? []);
           setIsOwner(true);
         }
       } catch (error) {
@@ -127,10 +127,6 @@ export default function UserProfileView({
     }
   };
 
-  const onViewAll = () => {
-    navigate("/dashboard/responses");
-  };
-
   if (mode === "edit" && currentUser) {
     return (
       <ProfileEditLayout
@@ -171,7 +167,7 @@ export default function UserProfileView({
       {/* Main Content */}
       <section className="theme-panel-soft overflow-hidden rounded-2xl border border-[#1e1e22] bg-[#0e0e10] shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
         {/* ── Tab bar (desktop) ── */}
-        <div className="theme-divider hidden overflow-x-auto border-b border-[#1e1e22] px-2 sm:block">
+        <div className="theme-divider  overflow-x-auto border-b border-[#1e1e22] px-2 sm:block">
           <nav className="flex gap-1">
             {visibleTabs.map((tab) => (
               <button
@@ -210,13 +206,10 @@ export default function UserProfileView({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-12">
               <div className="flex flex-col gap-4 sm:col-span-7">
                 <ProfileAbout user={currentUser} />
-                <ProfileSkills user={currentUser} />
-                <div className="hidden sm:block">
-                  <ProfileBadges badges={badges} loading={repLoading} compact />
-                </div>
-                <div className="hidden sm:block">
-                <ProfileAnalytics metric={metric ?? currentUser?.metric ?? null} />
-                </div>
+                <ProfileAnalytics
+                  metric={metric ?? currentUser?.metric ?? null}
+                  defaultExpanded
+                />
               </div>
 
               <div className="flex flex-col gap-4 sm:col-span-5">
@@ -225,20 +218,25 @@ export default function UserProfileView({
                   metric={metric}
                   metricLoading={repLoading}
                   compact
+                  defaultExpanded
                 />
+                <ProfileSkills user={currentUser} />
                 <ProfileRecentPosts
                   posts={posts}
                   total={posts.length}
-                  onViewAll={onViewAll}
                   isOwner={isOwner}
                   compact
+                  defaultExpanded
+                  userId={currentUser._id ?? currentUser.id}
                 />
               </div>
 
-              <div className="sm:hidden">
-                <ProfileBadges badges={badges} loading={repLoading} compact />
-              </div>
-              
+              <ProfileBadges
+                badges={badges}
+                loading={repLoading}
+                compact
+                defaultExpanded
+              />
             </div>
           )}
 
@@ -258,8 +256,8 @@ export default function UserProfileView({
             <ProfileRecentPosts
               posts={posts}
               total={posts.length}
-              onViewAll={onViewAll}
               isOwner={isOwner}
+              userId={currentUser._id ?? currentUser.id}
             />
           )}
 

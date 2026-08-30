@@ -261,6 +261,7 @@ export default function ResponsesTab({
               key={post._id}
               post={post}
               onSelect={() => handleSelectPost(post)}
+              viewButtonLabel="Explore"
             
             />
           ))}

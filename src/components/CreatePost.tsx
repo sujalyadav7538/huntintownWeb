@@ -81,12 +81,12 @@ export default function CreatePost() {
   const dispatch = useDispatch();
 
 
-  useEffect(() => {
-    dispatch(handleHideMobileBottomNav(true));
-    return () => {
-      dispatch(handleHideMobileBottomNav(false));
-    }
-  }, []);
+  // useEffect(() => {
+  //   dispatch(handleHideMobileBottomNav(true));
+  //   return () => {
+  //     dispatch(handleHideMobileBottomNav(false));
+  //   }
+  // }, []);
 
   /* ============================================================
      FORM UPDATE
@@ -420,7 +420,7 @@ export default function CreatePost() {
             STICKY BOTTOM ACTION BAR
         ====================================================== */}
 
-        <div className="sticky bottom-0 z-20 -mx-4  px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
+        <div className="sticky bottom-0 z-20 -mx-4  px-4 pt-3 backdrop-blur-md sm:-mx-6 sm:px-6">
           <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
             {/* BACK */}
 

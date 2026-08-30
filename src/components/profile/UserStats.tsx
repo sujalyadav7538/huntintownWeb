@@ -170,8 +170,8 @@ const UserStats = ({
                 index > 0 ? "sm:border-l" : ""
               }`}
             >
-              <div className="theme-chip flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border sm:h-9 sm:w-9">
-                <Icon className={`h-4 w-4 ${stat.iconClass}`} />
+              <div className=" flex h-8 w-8 shrink-0 items-center justify-center sm:h-9 sm:w-9">
+                <Icon className={`h-6 w-6 ${stat.iconClass}`} />
               </div>
 
               <div className="min-w-0 flex flex-col">
