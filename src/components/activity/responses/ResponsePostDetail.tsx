@@ -292,7 +292,7 @@ export default function ResponsePostDetail({
   const addr = post.address || "";
 
   return (
-    <div className="space-y-5 pb-8">
+    <div className="space-y-5">
       {showReviewModal && (
         <ReviewHelpersModal
           postId={postId}
