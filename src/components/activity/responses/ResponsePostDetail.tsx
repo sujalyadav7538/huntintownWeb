@@ -60,7 +60,7 @@ export default function ResponsePostDetail({
   onInitiateChat,
   currentUserId,
 }: ResponsePostDetailProps) {
-  const postId = post._id;
+  const postId = post._id || post.id;
 
   const [responses, setResponses] = useState<Response[]>(initialResponses);
 
@@ -107,9 +107,7 @@ export default function ResponsePostDetail({
     setResponsesError(null);
 
     try {
-      const res = await apiFetch(
-        `/api/posts/${postId}/responses?page=1&limit=20`,
-      );
+      const res = await apiFetch(`/api/responses/post/${postId}`);
 
       if (!res.ok) {
         throw new Error("Failed to load responses");
@@ -117,8 +115,8 @@ export default function ResponsePostDetail({
 
       const data = await res.json();
 
-      setResponses(data.data?.responses || []);
-      setPagination(data.data?.pagination || null);
+      setResponses(data.responses ?? data.data?.responses ?? []);
+      setPagination(data.data?.pagination ?? null);
     } catch (error: any) {
       setResponsesError(error.message || "Failed to load responses");
     } finally {
@@ -139,9 +137,7 @@ export default function ResponsePostDetail({
     setLoadingMore(true);
 
     try {
-      const res = await apiFetch(
-        `/api/posts/${postId}/responses?page=${nextPage}&limit=${pagination.limit}`,
-      );
+      const res = await apiFetch(`/api/responses/post/${postId}`);
 
       if (!res.ok) {
         throw new Error("Failed to load more responses");
@@ -149,11 +145,11 @@ export default function ResponsePostDetail({
 
       const data = await res.json();
 
-      const newResponses = data.data?.responses || [];
+      const newResponses = data.responses ?? data.data?.responses ?? [];
 
       setResponses((prev) => [...prev, ...newResponses]);
 
-      setPagination(data.data?.pagination || null);
+      setPagination(data.data?.pagination ?? null);
     } catch (error: any) {
       setResponsesError(error.message || "Failed to load more responses");
     } finally {

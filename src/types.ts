@@ -22,6 +22,9 @@ export interface User {
   about: string;
   role: string;
 
+  // ShowCase
+  showcase:ShowCase
+
   // Images
   avatar: string;
   avatar_public_id: string;
@@ -261,3 +264,60 @@ export interface ActivityResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ShowcaseLink {
+  label: string;
+  url: string;
+}
+
+export interface ShowcaseMedia {
+  url: string;
+  public_id?: string;
+}
+
+export interface ShowcaseItem {
+  id: string;
+  type: ShowcaseType;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  organization?: string;
+  role?: string;
+  location?: string;
+  currentlyActive?: boolean;
+  startDate?: string | Date | null;
+  endDate?: string | Date | null;
+  coverImage?: string;
+  coverImage_public_id?: string;
+  gallery?: ShowcaseMedia[];
+  skills?: string[];
+  tags?: string[];
+  links?: ShowcaseLink[];
+  metadata?: {
+    client?: string;
+    credential?: string;
+    year?: string;
+    duration?: string;
+    result?: string;
+    category?: string;
+  };
+}
+
+export interface ShowCase{
+  id:string;
+  items:ShowcaseItem[]
+}
+
+
+
+export type ShowcaseType =
+  | "work"
+  | "project"
+  | "service"
+  | "business"
+  | "achievement"
+  | "skill"
+  | "experience"
+  | "product"
+  | "portfolio"
+  | "other";

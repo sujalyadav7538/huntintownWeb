@@ -100,7 +100,6 @@ export default function ProfileRecentPosts({
       className={`
         overflow-hidden
         border border-[#1e1e22]
-        bg-[#111113]
         ${compact ? "rounded-xl" : "rounded-2xl"}
       `}
     >
@@ -136,7 +135,6 @@ export default function ProfileRecentPosts({
             <span
               className={`
                 shrink-0 rounded-full
-                bg-[#1e1e22]
                 font-medium text-zinc-500
                 ${
                   compact
@@ -196,7 +194,6 @@ export default function ProfileRecentPosts({
               flex h-12 w-12 items-center justify-center
               rounded-2xl
               border border-[#1e1e22]
-              bg-[#0e0e10]
             "
           >
             <Briefcase className="h-5 w-5 text-zinc-700" />

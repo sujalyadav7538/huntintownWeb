@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { User, UserSocialLinks } from "../../types";
+
 import {
   User as UserIcon,
   FileText,
@@ -21,62 +21,31 @@ import {
   ChevronLeft,
   ArrowLeft,
 } from "lucide-react";
-import AvatarUploader from "./AvatarUploader";
-import ProfileFloatingSaveBar from "./ProfileFloatingSaveBar";
 
-// ──────────────────────────────────────────────────────
-// Draft state
-// ──────────────────────────────────────────────────────
-interface DraftState {
-  name: string;
-  role: string;
-  location: string;
-  bio: string;
-  skillsRaw: string; // comma-separated
-  servicesRaw: string; // comma-separated
-  avatar: string;
-  coverImage: string;
-  socialLinks: UserSocialLinks;
-}
+import { User } from "../../types";
 
-function buildDraft(user: User): DraftState {
-  return {
-    name: user.name,
-    role: user.role,
-    location: (user as any).address || "",
-    bio: user.bio ?? "",
-    skillsRaw: user.skills?.join(", ") ?? "",
-    servicesRaw: user.services?.join(", ") ?? "",
-    avatar: user.avatar,
-    coverImage: user.coverImage ?? "",
-    socialLinks: { ...user.socialLinks },
-  };
-}
+import AboutSection from "./editProfile/AboutSection";
+import BasicSection from "./editProfile/BasicSection";
+import LocationSection from "./editProfile/LocationSection";
+import PortfolioSection from "./editProfile/PortfolioSection";
+import PreferencesSection from "./editProfile/PreferencesSection";
+import ServicesSection from "./editProfile/ServicesSection";
+import SkillsSection from "./editProfile/SkillsSection";
+import SocialSection from "./editProfile/SocialSection";
+import VerificationSection from "./editProfile/VeificationSection";
+import {
+  handleHideMobileBottomNav,
+  handleHideUpperNavigation,
+} from "@/src/store/uiSlice";
+import { useDispatch } from "react-redux";
+import {
+  buildDraft,
+  calcCompletion,
+  DraftAction,
+  DraftState,
+  draftReducer,
+} from "./editProfile/profileEditTypes";
 
-type DraftAction =
-  | { type: "set"; field: keyof Omit<DraftState, "socialLinks">; value: string }
-  | { type: "setSocial"; field: keyof UserSocialLinks; value: string }
-  | { type: "reset"; payload: DraftState };
-
-function draftReducer(state: DraftState, action: DraftAction): DraftState {
-  switch (action.type) {
-    case "set":
-      return { ...state, [action.field]: action.value };
-    case "setSocial":
-      return {
-        ...state,
-        socialLinks: { ...state.socialLinks, [action.field]: action.value },
-      };
-    case "reset":
-      return action.payload;
-    default:
-      return state;
-  }
-}
-
-// ──────────────────────────────────────────────────────
-// Section definitions
-// ──────────────────────────────────────────────────────
 const SECTIONS = [
   { id: "basic", label: "Basic Info", icon: UserIcon },
   { id: "about", label: "About", icon: FileText },
@@ -92,440 +61,45 @@ const SECTIONS = [
 type SectionId = (typeof SECTIONS)[number]["id"];
 
 // ──────────────────────────────────────────────────────
-// Shared input / textarea styles
+// Shared Layout Props
 // ──────────────────────────────────────────────────────
-const inputCls =
-  "w-full bg-[#0a0a0c] border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#FF3F3F]/60 focus:ring-1 focus:ring-[#FF3F3F]/20 transition-all";
 
-const labelCls =
-  "block text-[11px] uppercase font-bold tracking-wider text-zinc-500 mb-2";
+interface ProfileLayoutProps {
+  sections: typeof SECTIONS;
+  activeSection: SectionId;
+  activeSectionIndex: number;
+  activeLabel: string;
 
-const textareaCls =
-  "w-full bg-[#0a0a0c] border border-white/8 rounded-xl px-4 py-3 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#FF3F3F]/60 focus:ring-1 focus:ring-[#FF3F3F]/20 transition-all resize-none min-h-[120px]";
+  canGoPrev: boolean;
+  canGoNext: boolean;
 
-// ──────────────────────────────────────────────────────
-// Completion calculator
-// ──────────────────────────────────────────────────────
-function calcCompletion(d: DraftState): number {
-  const checks = [
-    !!d.name,
-    !!d.role,
-    !!d.location,
-    !!d.bio,
-    !!d.avatar,
-    d.skillsRaw.trim().length > 0,
-    d.servicesRaw.trim().length > 0,
-    !!(d.socialLinks.linkedin || d.socialLinks.github || d.socialLinks.website),
-  ];
-  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  setActiveSection: (section: SectionId) => void;
+  goToPrev: () => void;
+  goToNext: () => void;
+
+  renderSection: () => React.ReactNode;
+
+  onCancel: () => void;
+  completionPct: number;
+  isDirty: boolean;
+  isSaving: boolean;
+  onSave: () => void;
 }
 
 // ──────────────────────────────────────────────────────
-// Section editors
+// Main Profile Edit Layout
 // ──────────────────────────────────────────────────────
-function SectionBasic({
-  draft,
-  dispatch,
-  onAvatarChange,
-  onCoverImageChange,
-}: {
-  draft: DraftState;
-  dispatch: React.Dispatch<DraftAction>;
-  onAvatarChange: (file: File) => void;
-  onCoverImageChange: (file: File) => void;
-}) {
-  return (
-    <div className="space-y-6">
-      {/* Avatar */}
-      <div>
-        <label className={labelCls}>Profile Photo</label>
-        <div className="flex items-center gap-5 p-4 rounded-xl bg-white/2.5 border border-white/6">
-          <AvatarUploader
-            avatar={draft.avatar}
-            name={draft.name}
-            onChange={onAvatarChange}
-            size="md"
-          />
-          <div>
-            <p className="text-sm font-semibold text-zinc-200">
-              Profile picture
-            </p>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              JPG, PNG · Recommended 400×400px
-            </p>
-          </div>
-        </div>
-      </div>
-      {/* Cover Image */}
-      <div>
-        <label className={labelCls}>Cover Image</label>
 
-        <div className="mt-2 rounded-xl overflow-hidden border border-white/6 bg-white/2.5">
-          <div className="relative h-40 sm:h-48 bg-zinc-900">
-            {draft.coverImage ? (
-              <img
-                src={draft.coverImage}
-                alt="Cover"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-zinc-500 text-sm">
-                No cover image selected
-              </div>
-            )}
-
-            <label className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 hover:opacity-100 transition cursor-pointer">
-              <div className="px-4 py-2 rounded-lg bg-[#FF3F3F] text-white text-sm font-semibold">
-                Change Cover
-              </div>
-
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) onCoverImageChange(file);
-                }}
-              />
-            </label>
-          </div>
-
-          <div className="p-3 border-t border-white/6">
-            <p className="text-sm font-semibold text-zinc-200">Cover photo</p>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              JPG, PNG · Recommended 1600 × 400px
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className={labelCls}>Full Name</label>
-          <input
-            className={inputCls}
-            value={draft.name}
-            onChange={(e) =>
-              dispatch({ type: "set", field: "name", value: e.target.value })
-            }
-            placeholder="Arjun Mehta"
-          />
-        </div>
-        <div>
-          <label className={labelCls}>Professional Title</label>
-          <input
-            className={inputCls}
-            value={draft.role}
-            onChange={(e) =>
-              dispatch({ type: "set", field: "role", value: e.target.value })
-            }
-            placeholder="Interior Designer · 5 yrs"
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SectionAbout({
-  draft,
-  dispatch,
-}: {
-  draft: DraftState;
-  dispatch: React.Dispatch<DraftAction>;
-}) {
-  const max = 500;
-  const count = draft.bio.length;
-  return (
-    <div>
-      <label className={labelCls}>Bio</label>
-      <div className="relative">
-        <textarea
-          className={textareaCls}
-          value={draft.bio}
-          maxLength={max}
-          onChange={(e) =>
-            dispatch({ type: "set", field: "bio", value: e.target.value })
-          }
-          placeholder="Describe yourself, your work style, and what makes you unique…"
-          rows={6}
-        />
-        <span
-          className={`absolute bottom-3 right-4 text-[11px] ${count > max * 0.85 ? "text-amber-400" : "text-zinc-600"}`}
-        >
-          {count}/{max}
-        </span>
-      </div>
-      <p className="mt-2 text-[11px] text-zinc-600">
-        A compelling bio increases response rates by up to 40%.
-      </p>
-    </div>
-  );
-}
-
-function SectionSkills({
-  draft,
-  dispatch,
-}: {
-  draft: DraftState;
-  dispatch: React.Dispatch<DraftAction>;
-}) {
-  const preview = draft.skillsRaw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className={labelCls}>Skills (comma-separated)</label>
-        <input
-          className={inputCls}
-          value={draft.skillsRaw}
-          onChange={(e) =>
-            dispatch({ type: "set", field: "skillsRaw", value: e.target.value })
-          }
-          placeholder="Interior Design, 3D Rendering, AutoCAD…"
-        />
-      </div>
-      {preview.length > 0 && (
-        <div>
-          <p className={labelCls}>Preview</p>
-          <div className="flex flex-wrap gap-2">
-            {preview.map((s) => (
-              <span
-                key={s}
-                className="px-3 py-1.5 rounded-lg bg-violet-400/10 border border-violet-400/20 text-xs text-violet-300 font-medium"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SectionLocation({
-  draft,
-  dispatch,
-}: {
-  draft: DraftState;
-  dispatch: React.Dispatch<DraftAction>;
-}) {
-  return (
-    <div>
-      <label className={labelCls}>Your Location</label>
-      <input
-        className={inputCls}
-        value={draft.location}
-        onChange={(e) =>
-          dispatch({ type: "set", field: "location", value: e.target.value })
-        }
-        placeholder="Noida, Sector 62"
-      />
-      <p className="mt-2 text-[11px] text-zinc-600">
-        Used to surface relevant local requests near you.
-      </p>
-    </div>
-  );
-}
-
-function SectionSocial({
-  draft,
-  dispatch,
-}: {
-  draft: DraftState;
-  dispatch: React.Dispatch<DraftAction>;
-}) {
-  const fields: {
-    key: keyof UserSocialLinks;
-    label: string;
-    placeholder: string;
-  }[] = [
-    {
-      key: "website",
-      label: "Personal Website",
-      placeholder: "https://yoursite.com",
-    },
-    {
-      key: "linkedin",
-      label: "LinkedIn",
-      placeholder: "https://linkedin.com/in/you",
-    },
-    { key: "github", label: "GitHub", placeholder: "https://github.com/you" },
-    { key: "twitter", label: "Twitter / X", placeholder: "https://x.com/you" },
-  ];
-  return (
-    <div className="space-y-4">
-      {fields.map((f) => (
-        <div key={f.key}>
-          <label className={labelCls}>{f.label}</label>
-          <input
-            className={inputCls}
-            value={draft.socialLinks[f.key] ?? ""}
-            onChange={(e) =>
-              dispatch({
-                type: "setSocial",
-                field: f.key,
-                value: e.target.value,
-              })
-            }
-            placeholder={f.placeholder}
-            type="url"
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function SectionServices({
-  draft,
-  dispatch,
-}: {
-  draft: DraftState;
-  dispatch: React.Dispatch<DraftAction>;
-}) {
-  const preview = draft.servicesRaw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return (
-    <div className="space-y-4">
-      <div>
-        <label className={labelCls}>Services Offered (comma-separated)</label>
-        <input
-          className={inputCls}
-          value={draft.servicesRaw}
-          onChange={(e) =>
-            dispatch({
-              type: "set",
-              field: "servicesRaw",
-              value: e.target.value,
-            })
-          }
-          placeholder="Interior Design Consultation, 3D Visualization, Space Planning…"
-        />
-      </div>
-      {preview.length > 0 && (
-        <div>
-          <p className={labelCls}>Preview</p>
-          <div className="flex flex-wrap gap-2">
-            {preview.map((s) => (
-              <span
-                key={s}
-                className="px-3 py-1.5 rounded-lg bg-[#FF3F3F]/10 border border-[#FF3F3F]/20 text-xs text-rose-300 font-medium"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SectionPortfolio() {
-  return (
-    <div className="py-6 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-white/4 border border-white/7 flex items-center justify-center mx-auto mb-4">
-        <LayoutGrid className="w-6 h-6 text-zinc-500" />
-      </div>
-      <p className="text-sm font-semibold text-zinc-300">
-        Portfolio coming soon
-      </p>
-      <p className="text-xs text-zinc-600 mt-1">
-        Showcase past projects and work samples to attract more clients.
-      </p>
-    </div>
-  );
-}
-
-function SectionVerification({ user }: { user: User }) {
-  const isEmailVerified = user.isEmailVerified === true;
-  const isGovVerified = user.isGovernmentVerified === true;
-  const isVerified = isEmailVerified || isGovVerified;
-  return (
-    <div className="py-2 space-y-4">
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-emerald-400/6 border border-emerald-400/20">
-        <Shield className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-semibold text-emerald-300">
-            {isVerified ? "Account verified" : "Verification not complete"}
-          </p>
-          <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">
-            {isVerified
-              ? "Your identity has been confirmed. Verified members receive 3× more responses."
-              : "Submit your ID to unlock the verified badge and increase trust."}
-          </p>
-        </div>
-      </div>
-      <p className="text-xs text-zinc-600">
-        Full verification management will be available in Settings → Identity.
-      </p>
-    </div>
-  );
-}
-
-function SectionPreferences() {
-  return (
-    <div className="space-y-4">
-      {[
-        {
-          label: "Profile visibility",
-          sub: "Make profile discoverable by other users",
-          defaultOn: true,
-        },
-        {
-          label: "Email notifications",
-          sub: "Receive updates on new messages and offers",
-          defaultOn: true,
-        },
-        {
-          label: "Request alerts",
-          sub: "Notify me when requests match my skills",
-          defaultOn: false,
-        },
-      ].map((pref) => (
-        <div
-          key={pref.label}
-          className="flex items-center justify-between p-4 rounded-xl bg-white/2.5 border border-white/6 hover:border-white/9 transition-colors"
-        >
-          <div>
-            <p className="text-sm font-semibold text-zinc-200">{pref.label}</p>
-            <p className="text-xs text-zinc-500 mt-0.5">{pref.sub}</p>
-          </div>
-          <button
-            className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 ${
-              pref.defaultOn ? "bg-[#FF3F3F]" : "bg-white/10"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
-                pref.defaultOn ? "translate-x-5" : "translate-x-0"
-              }`}
-            />
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ──────────────────────────────────────────────────────
-// Main edit layout
-// ──────────────────────────────────────────────────────
 interface ProfileEditLayoutProps {
   user: User;
   isSaving: boolean;
+
   onSave: (
     updated: User,
     avatarFile: File | null,
     coverImageFile: File | null,
   ) => void;
+
   onCancel: () => void;
 }
 
@@ -535,258 +109,456 @@ export default function ProfileEditLayout({
   onSave,
   onCancel,
 }: ProfileEditLayoutProps) {
+  // ──────────────────────────────────────────────────
+  // State
+  // ──────────────────────────────────────────────────
+
+  const [draft, dispatch] = useReducer(draftReducer, user, buildDraft);
+
+  const dispatcher = useDispatch();
+
   const originalDraft = useRef<DraftState>(buildDraft(user));
-  const [draft, dispatch] = useReducer(draftReducer, buildDraft(user));
+
+  const previousUserRef = useRef(user);
+
   const [activeSection, setActiveSection] = useState<SectionId>("basic");
+
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
-  const [pendingCoverImageFile, setPendingCoverImageFile] = useState<File | null>(
-    null,
+
+  const [pendingCoverImageFile, setPendingCoverImageFile] =
+    useState<File | null>(null);
+
+  const [showcaseItems, setShowcaseItems] = useState<any[]>(
+    user.showcase?.items ?? [],
   );
+
   const blobUrlRef = useRef<string | null>(null);
 
+  // ──────────────────────────────────────────────────
+  // Avatar
+  // ──────────────────────────────────────────────────
+
   const handleAvatarChange = useCallback((file: File) => {
-    // Revoke the previous preview blob URL to prevent memory leaks
     if (blobUrlRef.current) {
       URL.revokeObjectURL(blobUrlRef.current);
     }
-    const preview = URL.createObjectURL(file);
-    blobUrlRef.current = preview;
-    dispatch({ type: "set", field: "avatar", value: preview });
+
+    const previewUrl = URL.createObjectURL(file);
+
+    blobUrlRef.current = previewUrl;
+
+    dispatch({
+      type: "set",
+      field: "avatar",
+      value: previewUrl,
+    });
+
     setPendingAvatarFile(file);
   }, []);
 
+  // ──────────────────────────────────────────────────
+  // Cover Image
+  // ──────────────────────────────────────────────────
+
   const handleCoverImageChange = useCallback((file: File) => {
     const reader = new FileReader();
+
     reader.onload = () => {
-      if (typeof reader.result === "string") {
-        dispatch({ type: "set", field: "coverImage", value: reader.result });
+      if (typeof reader.result !== "string") {
+        return;
       }
+
+      dispatch({
+        type: "set",
+        field: "coverImage",
+        value: reader.result,
+      });
     };
+
     reader.readAsDataURL(file);
+
     setPendingCoverImageFile(file);
   }, []);
 
-  // Revoke blob URL when component unmounts
+  // ──────────────────────────────────────────────────
+  // Mobile Bottom Navigation
+  // ──────────────────────────────────────────────────
+
   useEffect(() => {
+    dispatcher(handleHideMobileBottomNav(true));
+    dispatcher(handleHideUpperNavigation(true));
+
     return () => {
-      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+      dispatcher(handleHideMobileBottomNav(false));
+      dispatcher(handleHideUpperNavigation(false));
+
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
     };
   }, []);
 
-  // When the user prop is updated (after a successful save from the parent),
-  // re-sync originalDraft so isDirty resets and the blob preview is cleared.
-  const prevUserRef = useRef(user);
+  // ──────────────────────────────────────────────────
+  // Sync After Save
+  // ──────────────────────────────────────────────────
+
   useEffect(() => {
-    if (user !== prevUserRef.current) {
-      prevUserRef.current = user;
-      const freshDraft = buildDraft(user);
-      originalDraft.current = freshDraft;
-      dispatch({ type: "reset", payload: freshDraft });
-      // The saved avatar is now the Cloudinary URL; clear any pending file
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-        blobUrlRef.current = null;
-      }
-      setPendingAvatarFile(null);
-      setPendingCoverImageFile(null);
+    if (user === previousUserRef.current) {
+      return;
     }
-  }, [user]);
 
-  const isDirty =
-    JSON.stringify(draft) !== JSON.stringify(originalDraft.current);
-  const completionPct = useMemo(() => calcCompletion(draft), [draft]);
+    previousUserRef.current = user;
 
-  // Warn on accidental navigation away
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      if (!isDirty) return;
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
+    const freshDraft = buildDraft(user);
 
-  const handleSave = () => {
-    const updated: User = {
-      ...user,
-      name: draft.name,
-      role: draft.role,
-      address: draft.location,
-      bio: draft.bio,
-      // Keep existing avatar URL until backend responds with Cloudinary URL
-      avatar: pendingAvatarFile ? draft.avatar : user.avatar,
-      coverImage: pendingCoverImageFile ? draft.coverImage : user.coverImage,
-      skills: draft.skillsRaw
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      services: draft.servicesRaw
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      socialLinks: draft.socialLinks,
-    };
-    onSave(updated, pendingAvatarFile, pendingCoverImageFile);
-  };
+    originalDraft.current = freshDraft;
 
-  const handleDiscard = () => {
-    // Revoke any pending blob URL and reset file
+    dispatch({
+      type: "reset",
+      payload: freshDraft,
+    });
+
     if (blobUrlRef.current) {
       URL.revokeObjectURL(blobUrlRef.current);
       blobUrlRef.current = null;
     }
+
     setPendingAvatarFile(null);
     setPendingCoverImageFile(null);
-    dispatch({ type: "reset", payload: originalDraft.current });
-  };
+    setShowcaseItems(user.showcase?.items ?? []);
+  }, [user]);
+
+  // ──────────────────────────────────────────────────
+  // Derived State
+  // ──────────────────────────────────────────────────
+
+  const isDirty =
+    JSON.stringify(draft) !== JSON.stringify(originalDraft.current);
+
+  const completionPct = useMemo(() => calcCompletion(draft), [draft]);
+
+  const activeSectionIndex = SECTIONS.findIndex(
+    (section) => section.id === activeSection,
+  );
+
+  const activeLabel = SECTIONS[activeSectionIndex]?.label ?? "";
+
+  const canGoPrev = activeSectionIndex > 0;
+
+  const canGoNext = activeSectionIndex < SECTIONS.length - 1;
+
+  // ──────────────────────────────────────────────────
+  // Navigation
+  // ──────────────────────────────────────────────────
+
+  const goToPrev = useCallback(() => {
+    if (!canGoPrev) return;
+
+    setActiveSection(SECTIONS[activeSectionIndex - 1].id);
+  }, [activeSectionIndex, canGoPrev]);
+
+  const goToNext = useCallback(() => {
+    if (!canGoNext) return;
+
+    setActiveSection(SECTIONS[activeSectionIndex + 1].id);
+  }, [activeSectionIndex, canGoNext]);
+
+  // ──────────────────────────────────────────────────
+  // Save
+  // ──────────────────────────────────────────────────
+
+  const handleSave = useCallback(() => {
+    const updated = {
+      ...user,
+
+      name: draft.name,
+      role: draft.role,
+      address: draft.location,
+      bio: draft.bio,
+      about: draft.about,
+
+      avatar: pendingAvatarFile ? draft.avatar : user.avatar,
+
+      coverImage: pendingCoverImageFile ? draft.coverImage : user.coverImage,
+
+      skills: draft.skillsRaw
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean),
+
+      services: draft.servicesRaw
+        .split(",")
+        .map((service) => service.trim())
+        .filter(Boolean),
+
+      socialLinks: draft.socialLinks,
+    } as User;
+    console.log(updated);
+    onSave(updated, pendingAvatarFile, pendingCoverImageFile);
+  }, [user, draft, pendingAvatarFile, pendingCoverImageFile, onSave]);
+
+  // ──────────────────────────────────────────────────
+  // Discard
+  // ──────────────────────────────────────────────────
+
+  const handleDiscard = useCallback(() => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+
+    setPendingAvatarFile(null);
+    setPendingCoverImageFile(null);
+
+    dispatch({
+      type: "reset",
+      payload: originalDraft.current,
+    });
+  }, []);
+
+  // ──────────────────────────────────────────────────
+  // Before Unload
+  // ──────────────────────────────────────────────────
+
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isDirty) return;
+
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty]);
+
+  // ──────────────────────────────────────────────────
+  // Section Renderer
+  // ──────────────────────────────────────────────────
 
   const renderSection = () => {
     switch (activeSection) {
       case "basic":
         return (
-          <SectionBasic
+          <BasicSection
             draft={draft}
             dispatch={dispatch}
             onAvatarChange={handleAvatarChange}
             onCoverImageChange={handleCoverImageChange}
           />
         );
+
       case "about":
-        return <SectionAbout draft={draft} dispatch={dispatch} />;
+        return <AboutSection draft={draft} dispatch={dispatch} />;
+
       case "skills":
-        return <SectionSkills draft={draft} dispatch={dispatch} />;
+        return <SkillsSection draft={draft} dispatch={dispatch} />;
+
       case "location":
-        return <SectionLocation draft={draft} dispatch={dispatch} />;
+        return <LocationSection draft={draft} dispatch={dispatch} />;
+
       case "social":
-        return <SectionSocial draft={draft} dispatch={dispatch} />;
+        return <SocialSection draft={draft} dispatch={dispatch} />;
+
       case "services":
-        return <SectionServices draft={draft} dispatch={dispatch} />;
+        return <ServicesSection draft={draft} dispatch={dispatch} />;
+
       case "portfolio":
-        return <SectionPortfolio />;
+        return (
+          <PortfolioSection
+            items={showcaseItems}
+            onChange={setShowcaseItems}
+          />
+        );
+
       case "verification":
-        return <SectionVerification user={user} />;
+        return <VerificationSection user={user} />;
+
       case "preferences":
-        return <SectionPreferences />;
+        return <PreferencesSection />;
+
+      default:
+        return null;
     }
   };
 
-  const activeSectionIndex = SECTIONS.findIndex((s) => s.id === activeSection);
-  const canGoPrev = activeSectionIndex > 0;
-  const canGoNext = activeSectionIndex < SECTIONS.length - 1;
+  // ──────────────────────────────────────────────────
+  // Layout Props
+  // ──────────────────────────────────────────────────
 
-  const goToPrev = () => {
-    if (canGoPrev)
-      setActiveSection(SECTIONS[activeSectionIndex - 1].id as SectionId);
-  };
-  const goToNext = () => {
-    if (canGoNext)
-      setActiveSection(SECTIONS[activeSectionIndex + 1].id as SectionId);
+  const layoutProps: ProfileLayoutProps = {
+    sections: SECTIONS,
+    activeSection,
+    activeSectionIndex,
+    activeLabel,
+    canGoPrev,
+    canGoNext,
+    setActiveSection,
+    goToPrev,
+    goToNext,
+    renderSection,
+    onCancel,
+    completionPct,
+    isDirty,
+    isSaving,
+    onSave: handleSave,
   };
 
-  const activeLabel = SECTIONS.find((s) => s.id === activeSection)?.label ?? "";
+  // ──────────────────────────────────────────────────
+  // Render
+  // ──────────────────────────────────────────────────
 
   return (
     <>
-      {/* ── Sticky top header bar (Airbnb/Instagram style) ── */}
-      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 mb-5 bg-[#171717]/90 backdrop-blur-md border-b border-white/5 flex items-center gap-3">
+      {/* Desktop */}
+      <div className="hidden md:block">
+        <DesktopProfileEditLayout {...layoutProps} />
+      </div>
+
+      {/* Mobile */}
+      <div className="block pb-24 md:hidden">
+        <MobileProfileEditLayout {...layoutProps} />
+      </div>
+
+      {/* Shared Save Bar */}
+      {/* <div className="md:hidden">
+        <ProfileFloatingSaveBar
+          isDirty={isDirty}
+          isSaving={isSaving}
+          completionPct={completionPct}
+          onSave={handleSave}
+          onDiscard={handleDiscard}
+        />
+      </div> */}
+    </>
+  );
+}
+
+// ══════════════════════════════════════════════════════
+// Desktop Profile Edit Layout
+// ══════════════════════════════════════════════════════
+
+function DesktopProfileEditLayout({
+  sections,
+  activeSection,
+  activeSectionIndex,
+  activeLabel,
+  canGoPrev,
+  canGoNext,
+  setActiveSection,
+  goToPrev,
+  goToNext,
+  renderSection,
+  onCancel,
+  completionPct,
+  isDirty,
+  isSaving,
+  onSave,
+}: ProfileLayoutProps) {
+  return (
+    <>
+      {/* Header */}
+      <div className="sticky top-0 z-30 -mx-6 px-6 py-3 mb-5 bg-[#171717]/90 backdrop-blur-md border-b border-white/5 flex items-center gap-4">
+        {/* Back */}
         <button
+          type="button"
           onClick={onCancel}
-          className="flex items-center gap-2 text-zinc-400 hover:text-zinc-100 transition-colors group cursor-pointer"
+          className="flex items-center gap-2 text-zinc-400 hover:text-zinc-100 transition-colors group cursor-pointer shrink-0"
         >
           <span className="w-8 h-8 rounded-full bg-white/5 border border-white/8 flex items-center justify-center group-hover:bg-white/10 transition-colors">
             <ArrowLeft className="w-4 h-4" />
           </span>
-          <span className="hidden sm:inline text-sm font-semibold">
-            Profile
-          </span>
         </button>
 
-        {/* Section breadcrumb */}
+        {/* Navigation */}
         <div className="flex items-center gap-2 text-xs text-zinc-600 min-w-0">
-          <span className="hidden sm:inline">Edit profile</span>
-          <ChevronRight className="hidden sm:inline w-3 h-3 text-zinc-700 shrink-0" />
+          <span className="font-semibold text-zinc-300">Navigation</span>
+
+          <ChevronRight className="w-3 h-3 text-zinc-700 shrink-0" />
+
           <span className="font-semibold text-zinc-300 truncate">
             {activeLabel}
           </span>
         </div>
 
-        {/* Step indicator — right side */}
-        <div className="ml-auto flex items-center gap-2 text-[11px] text-zinc-600 shrink-0">
-          <span className="font-mono tabular-nums">
-            {activeSectionIndex + 1} / {SECTIONS.length}
-          </span>
-          {/* Mini dot progress */}
-          <div className="hidden sm:flex items-center gap-1">
-            {SECTIONS.map((_, i) => (
-              <span
-                key={i}
-                className={`block rounded-full transition-all duration-300 ${
-                  i === activeSectionIndex
-                    ? "w-4 h-1.5 bg-[#FF3F3F]"
-                    : i < activeSectionIndex
-                      ? "w-1.5 h-1.5 bg-zinc-600"
-                      : "w-1.5 h-1.5 bg-zinc-800"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+        {/* Right side */}
+        <div className="ml-auto flex items-center gap-4 shrink-0">
+          {/* Profile Completion */}
+          <div className="hidden sm:flex items-center gap-2.5">
+            <div className="text-right">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-wider">
+                Profile
+              </p>
 
-      {/* ── Completion banner ── */}
-      <div className="rounded-2xl bg-white/2.5 border border-white/6 p-4 sm:p-5 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-sm font-bold text-white">Profile Completion</p>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              {completionPct < 80
-                ? "Add more details to build trust and get more responses."
-                : "Great profile! Keep it updated."}
-            </p>
+              <p
+                className={`text-xs font-bold tabular-nums ${
+                  completionPct >= 80 ? "text-emerald-400" : "text-[#FF3F3F]"
+                }`}
+              >
+                {completionPct}% complete
+              </p>
+            </div>
+
+            <div className="w-20 h-1.5 rounded-full bg-white/6 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  completionPct >= 80 ? "bg-emerald-400" : "bg-[#FF3F3F]"
+                }`}
+                style={{
+                  width: `${completionPct}%`,
+                }}
+              />
+            </div>
           </div>
-          <span
-            className={`text-xl font-black ${
-              completionPct >= 80 ? "text-emerald-400" : "text-[#FF3F3F]"
+
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!isDirty || isSaving}
+            className={`rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+              isDirty && !isSaving
+                ? "bg-[#FF3F3F] text-white hover:bg-[#ff5757] active:scale-[0.98]"
+                : "cursor-not-allowed bg-white/6 text-zinc-600"
             }`}
           >
-            {completionPct}%
-          </span>
-        </div>
-        <div className="h-1.5 bg-white/6 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              completionPct >= 80
-                ? "bg-linear-to-r from-emerald-400 to-teal-400"
-                : "bg-linear-to-r from-[#FF3F3F] to-rose-400"
-            }`}
-            style={{ width: `${completionPct}%` }}
-          />
+            {isSaving ? "Saving..." : "Save changes"}
+          </button>
         </div>
       </div>
 
-      {/* ── Main layout: sidebar + content ── */}
+      {/*Main Layout*/}
       <div className="flex gap-4 items-start">
-        {/* Sidebar navigation — hidden on mobile */}
-        <nav className="hidden md:flex flex-col gap-1 w-52 shrink-0 sticky top-20">
-          {SECTIONS.map((sec) => {
-            const Icon = sec.icon;
-            const isActive = activeSection === sec.id;
+        {/* Sidebar */}
+
+        <nav className="flex flex-col gap-1 w-52 shrink-0 sticky top-20">
+          {sections.map((section) => {
+            const Icon = section.icon;
+
+            const isActive = activeSection === section.id;
+
             return (
               <button
-                key={sec.id}
-                onClick={() => setActiveSection(sec.id as SectionId)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left w-full group
-                  ${
-                    isActive
-                      ? "bg-[#FF3F3F]/10 border border-[#FF3F3F]/20 text-[#FF3F3F]"
-                      : "text-zinc-500 hover:text-zinc-300 hover:bg-white/4 border border-transparent"
-                  }`}
+                key={section.id}
+                onClick={() => setActiveSection(section.id)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all text-left w-full group ${
+                  isActive
+                    ? "bg-[#FF3F3F]/10 border border-[#FF3F3F]/20 text-[#FF3F3F]"
+                    : "text-zinc-500 hover:text-zinc-300 hover:bg-white/4 border border-transparent"
+                }`}
               >
                 <Icon
-                  className={`w-4 h-4 shrink-0 ${isActive ? "text-[#FF3F3F]" : "text-zinc-600 group-hover:text-zinc-400"}`}
+                  className={`w-4 h-4 shrink-0 ${
+                    isActive
+                      ? "text-[#FF3F3F]"
+                      : "text-zinc-600 group-hover:text-zinc-400"
+                  }`}
                 />
-                <span className="truncate">{sec.label}</span>
+
+                <span className="truncate">{section.label}</span>
+
                 {isActive && (
                   <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0" />
                 )}
@@ -795,112 +567,192 @@ export default function ProfileEditLayout({
           })}
         </nav>
 
-        {/* Content area */}
-        <div className="flex-1 min-w-0">
-          {/* Mobile horizontal tabs */}
-          <div className="md:hidden flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-1 px-1">
-            {SECTIONS.map((sec) => {
-              const Icon = sec.icon;
-              const isActive = activeSection === sec.id;
-              return (
-                <button
-                  key={sec.id}
-                  onClick={() => setActiveSection(sec.id as SectionId)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all
-                    ${
-                      isActive
-                        ? "bg-[#FF3F3F]/10 border border-[#FF3F3F]/20 text-[#FF3F3F]"
-                        : "text-zinc-500 bg-white/4 border border-white/6 hover:text-zinc-300"
-                    }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  {sec.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Content */}
 
-          {/* Section card */}
+        <div className="flex-1 min-w-0">
           <div className="relative rounded-2xl bg-white/2.5 border border-white/6 overflow-hidden">
-            {/* top accent */}
             <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#FF3F3F]/40 to-transparent opacity-60" />
-            <div className="p-5 sm:p-7">
+
+            <div className="p-7">
               <h2 className="text-base font-bold text-white mb-6">
                 {activeLabel}
               </h2>
+
               {renderSection()}
             </div>
           </div>
 
-          {/* ── Prev / Next navigation ── */}
-          <div className="mt-4 flex items-center justify-between gap-3">
-            {/* Prev */}
+          {/* Navigation */}
+
+          <div className="mt-4 flex items-center justify-between gap-3 pb-4">
             <button
               onClick={goToPrev}
               disabled={!canGoPrev}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all
-                ${
-                  canGoPrev
-                    ? "text-zinc-300 border-white/8 bg-white/4 hover:bg-white/8 hover:border-white/12 cursor-pointer active:scale-[0.98]"
-                    : "text-zinc-700 border-white/4 bg-transparent cursor-not-allowed opacity-40"
-                }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                canGoPrev
+                  ? "text-zinc-300 border-white/8 bg-white/4 hover:bg-white/8 hover:border-white/12 cursor-pointer active:scale-[0.98]"
+                  : "text-zinc-700 border-white/4 bg-transparent cursor-not-allowed opacity-40"
+              }`}
             >
-              <ChevronLeft className="w-4 h-4 shrink-0" />
-              <span className="hidden xs:inline">
-                {canGoPrev
-                  ? SECTIONS[activeSectionIndex - 1].label
-                  : "Previous"}
-              </span>
-              <span className="xs:hidden">Prev</span>
+              <ChevronLeft className="w-4 h-4" />
+
+              {canGoPrev ? sections[activeSectionIndex - 1].label : "Previous"}
             </button>
 
-            {/* Section dots (mobile) */}
-            <div className="flex items-center gap-1.5 md:hidden">
-              {SECTIONS.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveSection(SECTIONS[i].id as SectionId)}
-                  className={`rounded-full transition-all duration-300 cursor-pointer ${
-                    i === activeSectionIndex
-                      ? "w-5 h-2 bg-[#FF3F3F]"
-                      : i < activeSectionIndex
-                        ? "w-2 h-2 bg-zinc-600 hover:bg-zinc-400"
-                        : "w-2 h-2 bg-zinc-800 hover:bg-zinc-600"
-                  }`}
-                  aria-label={SECTIONS[i].label}
-                />
-              ))}
-            </div>
-
-            {/* Next */}
             <button
               onClick={goToNext}
               disabled={!canGoNext}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all
-                ${
-                  canGoNext
-                    ? "text-white border-[#FF3F3F]/40 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 hover:border-[#FF3F3F]/60 cursor-pointer active:scale-[0.98]"
-                    : "text-zinc-700 border-white/4 bg-transparent cursor-not-allowed opacity-40"
-                }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                canGoNext
+                  ? "text-white border-[#FF3F3F]/40 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 hover:border-[#FF3F3F]/60 cursor-pointer active:scale-[0.98]"
+                  : "text-zinc-700 border-white/4 bg-transparent cursor-not-allowed opacity-40"
+              }`}
             >
-              <span className="hidden xs:inline">
-                {canGoNext ? SECTIONS[activeSectionIndex + 1].label : "Next"}
-              </span>
-              <span className="xs:hidden">Next</span>
-              <ChevronRight className="w-4 h-4 shrink-0" />
+              {canGoNext ? sections[activeSectionIndex + 1].label : "Next"}
+
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
+    </>
+  );
+}
 
-      {/* Floating save bar */}
-      <ProfileFloatingSaveBar
-        isDirty={isDirty}
-        isSaving={isSaving}
-        completionPct={completionPct}
-        onSave={handleSave}
-        onDiscard={handleDiscard}
-      />
+// ══════════════════════════════════════════════════════
+// Mobile Profile Edit Layout
+// ══════════════════════════════════════════════════════
+
+function MobileProfileEditLayout({
+  sections,
+  activeSection,
+  activeSectionIndex,
+  activeLabel,
+  canGoPrev,
+  canGoNext,
+  setActiveSection,
+  goToPrev,
+  goToNext,
+  renderSection,
+  onCancel,
+  completionPct,
+  isDirty,
+  isSaving,
+  onSave,
+}: ProfileLayoutProps) {
+  return (
+    <>
+      {/* Mobile Header*/}
+
+      <div className="sticky top-0 z-30 -mx-4 mb-4 flex items-center gap-3 border-b border-white/5 bg-[#171717]/90 px-4 py-3 backdrop-blur-md">
+        <button
+          type="button"
+          onClick={onCancel}
+          aria-label="Back to profile"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/8 bg-white/5 text-zinc-400 hover:text-zinc-100"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+
+        <div className="ml-auto flex items-center gap-3">
+          <span
+            className={`text-xs font-bold tabular-nums ${
+              completionPct >= 80 ? "text-emerald-400" : "text-[#FF3F3F]"
+            }`}
+          >
+            {completionPct}%
+          </span>
+
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!isDirty || isSaving}
+            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all ${
+              isDirty && !isSaving
+                ? "bg-[#FF3F3F] text-white hover:bg-[#ff5757] active:scale-[0.98]"
+                : "cursor-not-allowed bg-white/6 text-zinc-600"
+            }`}
+          >
+            {isSaving ? "Saving..." : "Save"}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Tabs*/}
+
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-1 px-1">
+        {sections.map((section) => {
+          const Icon = section.icon;
+
+          const isActive = activeSection === section.id;
+
+          return (
+            <button
+              key={section.id}
+              onClick={() => setActiveSection(section.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all ${
+                isActive
+                  ? "bg-[#FF3F3F]/10 border border-[#FF3F3F]/20 text-[#FF3F3F]"
+                  : "text-zinc-500 bg-white/4 border border-white/6 hover:text-zinc-300"
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+
+              {section.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/*Content */}
+
+      <div className="relative rounded-2xl bg-white/2.5 border border-white/6 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-[#FF3F3F]/40 to-transparent opacity-60" />
+
+        <div className="p-5">
+          <h2 className="text-base font-bold text-white mb-6">{activeLabel}</h2>
+
+          {renderSection()}
+        </div>
+      </div>
+
+      {/*Mobile Navigation*/}
+
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3  px-4 py-3  backdrop-blur-md">
+        <button
+          type="button"
+          onClick={goToPrev}
+          disabled={!canGoPrev}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+            canGoPrev
+              ? "text-zinc-300 border-white/8 bg-white/4 hover:bg-white/8 cursor-pointer"
+              : "text-zinc-700 border-white/4 bg-transparent cursor-not-allowed opacity-40"
+          }`}
+        >
+          <ChevronLeft className="w-4 h-4" />
+
+          <span>
+            {canGoPrev ? sections[activeSectionIndex - 1].label : "Previous"}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={goToNext}
+          disabled={!canGoNext}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+            canGoNext
+              ? "text-white border-[#FF3F3F]/40 bg-[#FF3F3F]/10 hover:bg-[#FF3F3F]/20 cursor-pointer"
+              : "text-zinc-700 border-white/4 bg-transparent cursor-not-allowed opacity-40"
+          }`}
+        >
+          <span>
+            {canGoNext ? sections[activeSectionIndex + 1].label : "Next"}
+          </span>
+
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
     </>
   );
 }

@@ -22,10 +22,12 @@ interface ResponsePagination {
 
 interface ResponsesResponse {
   success: boolean;
-  data: {
-    post: Post;
-    responses: Response[];
-    pagination: ResponsePagination;
+  responses?: Response[];
+  count?: number;
+  data?: {
+    post?: Post;
+    responses?: Response[];
+    pagination?: ResponsePagination;
   };
 }
 
@@ -89,7 +91,7 @@ export default function ResponsesTab({
 
     try {
       const res = await apiFetch(
-        `/api/posts/${post._id}/responses?page=1&limit=20`,
+        `/api/responses/post/${post._id}?page=1&limit=20`,
       );
 
       if (!res.ok) {
@@ -97,16 +99,17 @@ export default function ResponsesTab({
       }
 
       const data: ResponsesResponse = await res.json();
+      const responseData = data.data;
 
-      setSelectedResponses(data.data.responses || []);
-      setPagination(data.data.pagination || null);
+      setSelectedResponses(data.responses ?? responseData?.responses ?? []);
+      setPagination(responseData?.pagination ?? null);
 
       /*
        * Update the post information returned by backend.
        * This is useful if responsesCount/status changed.
        */
-      if (data.data.post) {
-        setSelectedPost(data.data.post);
+      if (responseData?.post) {
+        setSelectedPost(responseData.post);
       }
     } catch (error: any) {
       setResponsesError(error.message || "Failed to load responses");
@@ -258,7 +261,7 @@ export default function ResponsesTab({
         >
           {filteredPosts.map((post) => (
             <PostGridCard
-              key={post._id}
+              key={post._id || post.id}
               post={post}
               onSelect={() => handleSelectPost(post)}
               viewButtonLabel="Explore"

@@ -164,6 +164,9 @@ html[data-theme="light"] ::placeholder {
   color: var(--app-text);
 }
 
+.theme-text-image{
+  color: white;
+}
 .theme-text-secondary {
   color: color-mix(in srgb, var(--app-text) 82%, var(--app-text-muted));
 }
@@ -262,6 +265,13 @@ html[data-theme="light"] ::placeholder {
   color: #ffffff !important;
   border-color: color-mix(in srgb, var(--app-red) 70%, transparent) !important;
 }
+
+.theme-link-accent {
+  color: var(--app-red) !important;
+  border-color: color-mix(in srgb, var(--app-red) 70%, transparent) !important;
+}
+
+
 
 .theme-btn-accent:hover {
   background: color-mix(in srgb, var(--app-red) 88%, black) !important;
