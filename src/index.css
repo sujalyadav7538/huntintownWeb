@@ -41,6 +41,7 @@
   --app-text: #f4f4f5;
   --app-text-muted: #71717a;
   --app-red: #ff3f3f;
+  --app-header:#010101;
   --app-shadow: 0 4px 4px rgba(0, 0, 0, 0.35);
 }
 
@@ -56,6 +57,7 @@ html[data-theme="light"] {
   --app-text: #18181b;
   --app-text-muted: #6b7280;
   --app-red: #d81a1a;
+  --app-header:#ffffff;
   --app-shadow: 0 18px 40px rgba(190, 24, 24, 0.08);
 }
 
@@ -123,7 +125,9 @@ html[data-theme="light"] select {
 html[data-theme="light"] ::placeholder {
   color: #9ca3af;
 }
-
+.theme-header{
+  background:var(--app-header);
+}
 .theme-page-shell {
   background: var(--app-bg);
   color: var(--app-text);

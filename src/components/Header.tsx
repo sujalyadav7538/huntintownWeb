@@ -30,7 +30,7 @@ export default function Header({
 
   return (
     <header
-      className={`fixed top-0 left-0 pt-2 right-0 z-100 backdrop-blur-xl md:h-16 md:border-b md:border-[#242428] ${
+      className={`fixed top-0 left-0 pt-2 right-0 z-100 backdrop-blur-xl md:h-16 md:border-b md:border-[#242428]  theme-header ${
         hideOnMobile ? "h-0 border-b-0" : "h-14 border-b border-[#242428]"
       }`}
     >
