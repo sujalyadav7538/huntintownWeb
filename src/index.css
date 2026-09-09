@@ -39,8 +39,11 @@
   --app-border: #1e1e22;
   --app-border-strong: #242428;
   --app-text: #f4f4f5;
-  --app-text-muted: #71717a;
+  /* zinc-400: ~7.5:1 on --app-surface, meets WCAG AA (was #71717a at ~4.0:1) */
+  --app-text-muted: #a1a1aa;
   --app-red: #ff3f3f;
+  /* darker fill so white button/badge labels reach 4.5:1 (raw --app-red only gives ~3.5:1) */
+  --app-red-solid: #e02020;
   --app-header:#010101;
   --app-shadow: 0 4px 4px rgba(0, 0, 0, 0.35);
 }
@@ -57,6 +60,8 @@ html[data-theme="light"] {
   --app-text: #18181b;
   --app-text-muted: #6b7280;
   --app-red: #d81a1a;
+  /* already ~5.1:1 on white, safe to reuse for solid fills */
+  --app-red-solid: #d81a1a;
   --app-header:#ffffff;
   --app-shadow: 0 18px 40px rgba(190, 24, 24, 0.08);
 }
@@ -131,6 +136,57 @@ html[data-theme="light"] select {
 html[data-theme="light"] ::placeholder {
   color: #9ca3af;
 }
+
+/* text-zinc-500/600/700 are near-invisible on dark surfaces (down to ~2.5:1); realign to the muted token */
+[class*="text-zinc-500"],
+[class*="text-zinc-600"],
+[class*="text-zinc-700"] {
+  color: var(--app-text-muted) !important;
+}
+
+/* Tailwind's light status shades (red/amber/emerald/green-400/500) drop under 3:1 on white; use darker, AA-safe shades in light mode */
+html[data-theme="light"] [class*="text-red-400"],
+html[data-theme="light"] [class*="text-red-500"],
+html[data-theme="light"] [class~="text-[#ff6b6b]"],
+html[data-theme="light"] [class~="text-[#ff8585]"],
+html[data-theme="light"] [class~="text-[#FF3F3F]"],
+html[data-theme="light"] [class~="text-[#ff3f3f]"] {
+  color: var(--app-red) !important;
+}
+
+html[data-theme="light"] [class~="hover:text-[#ff6b6b]"]:hover,
+html[data-theme="light"] [class~="hover:text-[#ff8585]"]:hover {
+  color: var(--app-red) !important;
+}
+
+html[data-theme="light"] [class*="text-amber-400"],
+html[data-theme="light"] [class*="text-amber-500"] {
+  color: #b45309 !important; /* amber-700, ~5:1 on white */
+}
+
+html[data-theme="light"] [class*="text-emerald-400"],
+html[data-theme="light"] [class*="text-emerald-500"] {
+  color: #047857 !important; /* emerald-700, ~5.5:1 on white */
+}
+
+html[data-theme="light"] [class*="text-green-400"],
+html[data-theme="light"] [class*="text-green-500"] {
+  color: #15803d !important; /* green-700, ~5:1 on white */
+}
+
+/* Solid brand-red fills with white labels fail AA at the raw --app-red lightness in both themes; force the darker solid token */
+[class~="bg-[#FF3F3F]"],
+[class~="bg-[#ff3f3f]"] {
+  background-color: var(--app-red-solid) !important;
+}
+
+[class~="bg-[#E53535]"],
+[class~="bg-[#e53535]"],
+[class~="hover:bg-[#E53535]"]:hover,
+[class~="hover:bg-[#e53535]"]:hover {
+  background-color: color-mix(in srgb, var(--app-red-solid) 85%, black) !important;
+}
+
 .theme-header{
   background:var(--app-header);
 }
@@ -271,9 +327,9 @@ html[data-theme="light"] ::placeholder {
 }
 
 .theme-btn-accent {
-  background: var(--app-red) !important;
+  background: var(--app-red-solid) !important;
   color: #ffffff !important;
-  border-color: color-mix(in srgb, var(--app-red) 70%, transparent) !important;
+  border-color: color-mix(in srgb, var(--app-red-solid) 70%, transparent) !important;
 }
 
 .theme-link-accent {
@@ -284,7 +340,7 @@ html[data-theme="light"] ::placeholder {
 
 
 .theme-btn-accent:hover {
-  background: color-mix(in srgb, var(--app-red) 88%, black) !important;
+  background: color-mix(in srgb, var(--app-red-solid) 88%, black) !important;
 }
 
 .theme-btn-accent-soft {
@@ -304,7 +360,7 @@ html[data-theme="light"] ::placeholder {
 }
 
 .theme-badge-accent {
-  background: var(--app-red) !important;
+  background: var(--app-red-solid) !important;
   color: #ffffff !important;
 }
 

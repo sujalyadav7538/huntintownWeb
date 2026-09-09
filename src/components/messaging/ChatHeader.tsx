@@ -16,7 +16,7 @@ export default function ChatHeader({
   const { currentUser } = useAppSelector((s) => s.auth);
 
   const otherParticipant = activeConv.participants.find(
-    (p) => p.id !== currentUser?.id,
+    (p) => p._id !== currentUser?._id,
   );
 
   return (

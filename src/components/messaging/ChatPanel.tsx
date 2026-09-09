@@ -14,12 +14,29 @@ interface ChatPanelProps {
   activeMessages: any[];
   currentUserId?: string;
   mode: "posts" | "chats";
-
   onBack?: () => void;
-  onSetActiveConversation: (id: string | null) => void;
+  onSetActiveConversation: (_id: string | null) => void;
 }
 
-export default function ChatPanel({
+export default function ChatPanel(props: ChatPanelProps) {
+  return (
+    <>
+      <div className="hidden min-h-0 flex-1 md:flex">
+        <ChatPanelDesktop {...props} />
+      </div>
+
+      <div className="flex min-h-0 flex-1 md:hidden">
+        <ChatPanelMobile {...props} />
+      </div>
+    </>
+  );
+}
+
+/* =============================================================
+   DESKTOP
+============================================================= */
+
+function ChatPanelDesktop({
   activeConversation,
   activeMessages,
   currentUserId,
@@ -34,56 +51,113 @@ export default function ChatPanel({
     dispatch(handleHideMobileBottomNav(false));
   };
 
-  /*
-   * Scroll to bottom whenever:
-   * - conversation changes
-   * - new message arrives
-   */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
-  }, [activeConversation?.id, activeMessages.length]);
+  }, [activeConversation?._id, activeMessages.length]);
 
-  /*
-   * No conversation selected
-   */
   if (!activeConversation) {
     return (
-      <div className="hidden min-h-0 flex-1 bg-[#171717] md:flex">
+      <div className="flex min-h-0 flex-1 bg-[#171717]">
         <EmptyChatState mode={mode} />
       </div>
     );
   }
 
   const participant =
-    activeConversation.participants?.find((p: any) => p.id !== currentUserId) ??
-    activeConversation.participants?.[0];
+    activeConversation.participants?.find(
+      (p: any) => p._id !== currentUserId,
+    ) ?? activeConversation.participants?.[0];
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#171717]">
-      {/* =====================================================
-          HEADER
-      ===================================================== */}
+      {/* Desktop Header */}
       <ChatHeader
         activeConv={activeConversation}
         handleBack={handleBackClick}
       />
 
-      {/* =====================================================
-          MESSAGES
-      ===================================================== */}
+      {/* Desktop Messages */}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
-        {/* Start marker */}
-        <div className="flex select-none justify-center pb-5">
-          <span className="inline-flex items-center rounded-full border border-[#1e1e22] bg-[#0d0d10] px-3 py-1 text-[10px] tracking-wide text-zinc-600">
+        <StartConversation />
+
+        {activeMessages.length > 0 ? (
+          <MessageList
+            messages={activeMessages}
+            currentUserId={currentUserId}
+          />
+        ) : (
+          <EmptyMessagesState />
+        )}
+
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Desktop Input */}
+      <MessageInput participantName={participant?.name ?? ""} />
+    </div>
+  );
+}
+
+/* =============================================================
+   MOBILE
+============================================================= */
+
+function ChatPanelMobile({
+  activeConversation,
+  activeMessages,
+  currentUserId,
+  mode,
+  onSetActiveConversation,
+}: ChatPanelProps) {
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const dispatch = useAppDispatch();
+
+  const handleBackClick = () => {
+    onSetActiveConversation(null);
+    dispatch(handleHideMobileBottomNav(false));
+  };
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [activeConversation?._id, activeMessages.length]);
+
+  if (!activeConversation) {
+    return (
+      <div className="flex min-h-0 flex-1 bg-[#171717]">
+        <EmptyChatState mode={mode} />
+      </div>
+    );
+  }
+
+  const participant =
+    activeConversation.participants?.find(
+      (p: any) => p._id !== currentUserId,
+    ) ?? activeConversation.participants?.[0];
+
+  return (
+    <div className="relative flex h-dvh min-h-0 flex-1 flex-col bg-[#171717]">
+      {/* Fixed Mobile Header */}
+      <div className="fixed left-0 right-0 top-0 z-50 h-14 border-b border-white/[0.07] bg-[#171717]/95 backdrop-blur-md">
+        <ChatHeader
+          activeConv={activeConversation}
+          handleBack={handleBackClick}
+        />
+      </div>
+
+      {/* Scrollable Messages */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-24 pt-16">
+        <div className="flex select-none justify-center pb-4">
+          <span className="rounded-full border border-[#1e1e22] bg-[#0d0d10] px-2.5 py-1 text-[9px] tracking-wide text-zinc-600">
             — start of conversation —
           </span>
         </div>
 
-        {/* Messages */}
         {activeMessages.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {activeMessages.map((message, index) => {
               const label = formatDateLabel(message.createdAt);
 
@@ -95,7 +169,7 @@ export default function ChatPanel({
               const showSeparator = label !== previousLabel;
 
               return (
-                <div key={message.id}>
+                <div key={message._id}>
                   {showSeparator && <DateSeparator label={label} />}
 
                   <MessageBubble msg={message} currentUserId={currentUserId} />
@@ -110,10 +184,56 @@ export default function ChatPanel({
         <div ref={chatEndRef} />
       </div>
 
-      {/* =====================================================
-          INPUT
-      ===================================================== */}
-      <MessageInput participantName={participant?.name ?? ""} />
+      {/* Fixed Mobile Input */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.07] bg-[#171717]/95  pb-[env(safe-area-inset-bottom)]  backdrop-blur-md">
+        <MessageInput participantName={participant?.name ?? ""} />
+      </div>
+    </div>
+  );
+}
+/* =============================================================
+   SHARED MESSAGE LIST
+============================================================= */
+
+function MessageList({
+  messages,
+  currentUserId,
+}: {
+  messages: any[];
+  currentUserId?: string;
+}) {
+  return (
+    <div className="space-y-3">
+      {messages.map((message, index) => {
+        const label = formatDateLabel(message.createdAt);
+
+        const previousLabel =
+          index > 0 ? formatDateLabel(messages[index - 1].createdAt) : null;
+
+        const showSeparator = label !== previousLabel;
+
+        return (
+          <div key={message._id}>
+            {showSeparator && <DateSeparator label={label} />}
+
+            <MessageBubble msg={message} currentUserId={currentUserId} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* =============================================================
+   START CONVERSATION
+============================================================= */
+
+function StartConversation() {
+  return (
+    <div className="flex select-none justify-center pb-5">
+      <span className="inline-flex items-center rounded-full border border-[#1e1e22] bg-[#0d0d10] px-3 py-1 text-[10px] tracking-wide text-zinc-600">
+        — start of conversation —
+      </span>
     </div>
   );
 }

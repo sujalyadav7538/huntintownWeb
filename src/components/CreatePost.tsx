@@ -8,7 +8,10 @@ import LocationStep from "./post/LocationStep";
 import { apiFetch } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { handleHideMobileBottomNav } from "../store/uiSlice";
+import {
+  handleHideMobileBottomNav,
+  handleHideUpperNavigation,
+} from "../store/uiSlice";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -84,12 +87,13 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-
   // useEffect(() => {
   //   dispatch(handleHideMobileBottomNav(true));
+  //   dispatch(handleHideUpperNavigation(true));
   //   return () => {
   //     dispatch(handleHideMobileBottomNav(false));
-  //   }
+  //     dispatch(handleHideUpperNavigation(false));
+  //   };
   // }, []);
 
   /* ============================================================

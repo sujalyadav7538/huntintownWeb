@@ -47,7 +47,7 @@ const MessageSidebar = ({
   const activeLoading = mode === "posts" ? loading : chatLoading;
 
   return (
-    <aside className="flex h-full min-h-0 w-full shrink-0 flex-col border-r border-[#1e1e22] bg-[#0c0c0e] md:w-72 lg:w-80">
+    <aside className=" pb-14 lg:pb-0 flex h-full min-h-0 w-full shrink-0 flex-col border-r border-[#1e1e22] bg-[#0c0c0e] md:w-72 lg:w-80">
       {/* Header */}
       <header className="shrink-0 border-b border-[#1e1e22] px-4 pt-4 pb-3">
         {/* Title */}
@@ -147,6 +147,7 @@ const MessageSidebar = ({
             selectedChatId={selectedChatId}
             onSelectChat={onSelectChat}
           />
+          
         )}
       </div>
     </aside>
@@ -185,101 +186,70 @@ const MyPostsList = ({ posts, selectedPostId, onSelectPost }) => {
   }
 
   return (
-    <div className="space-y-1 px-2 py-2">
+    <div className="divide-y divide-[var(--app-border)] px-2 py-2">
       {posts.map((post) => {
-        const accent =
-          CATEGORY_COLORS[post.category?.toLowerCase()] ??
-          CATEGORY_COLORS.default;
-
-        const selected = selectedPostId === post.id;
+        const selected = selectedPostId === post._id;
         const conversationCount = post.conversationCount ?? 0;
 
         return (
           <button
-            key={post.id}
+            key={post._id}
             type="button"
-            onClick={() => onSelectPost?.(post.id)}
-            className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-all duration-150 ${
+            onClick={() => onSelectPost?.(post._id)}
+            className={`group relative w-full rounded-lg px-3 py-3 text-left transition-colors ${
               selected ? "bg-white/[0.055]" : "hover:bg-white/[0.025]"
             }`}
           >
             {/* Active indicator */}
             {selected && (
-              <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full bg-[#FF3F3F]" />
+              <span className="absolute inset-y-2 left-0 w-0.5 rounded-r-full bg-[#FF3F3F]" />
             )}
 
-            {/* Category */}
-            <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
-              style={{
-                backgroundColor: `${accent}12`,
-                borderColor: `${accent}25`,
-              }}
-            >
-              <Tag className="h-4 w-4" style={{ color: accent }} />
-            </div>
+            {/* Top row */}
+            <div className="flex items-start justify-between gap-3">
+              <p
+                className={`min-w-0 flex-1 truncate text-[13px] font-medium leading-5 ${
+                  selected ? "text-zinc-100" : "text-zinc-300"
+                }`}
+              >
+                {post.title}
+              </p>
 
-            {/* Content */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p
-                  className={`min-w-0 flex-1 truncate text-[13px] font-semibold leading-tight ${
-                    selected ? "text-white" : "text-zinc-200"
-                  }`}
-                >
-                  {post.title}
-                </p>
-
-                {conversationCount > 0 && (
-                  <span
-                    className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
-                      selected
-                        ? "bg-[#FF3F3F]/10 text-[#FF3F3F]"
-                        : "bg-white/[0.04] text-zinc-600"
-                    }`}
-                  >
-                    {conversationCount}
-                  </span>
-                )}
-              </div>
-
-              <div className="mt-1.5 flex items-center gap-2">
-                <span className="text-[10px] text-zinc-500">
-                  {conversationCount === 0
-                    ? "No conversations"
-                    : conversationCount === 1
-                      ? "1 conversation"
-                      : `${conversationCount} conversations`}
+              {post.lastMessageAt && (
+                <span className="shrink-0 text-[9px] text-zinc-600">
+                  {formatDate(post.lastMessageAt)}
                 </span>
-
-                {post.lastMessageAt && (
-                  <>
-                    <span className="text-zinc-800">·</span>
-
-                    <span className="flex items-center gap-1 text-[10px] text-zinc-600">
-                      <Clock className="h-2.5 w-2.5" />
-                      {formatDate(post.lastMessageAt)}
-                    </span>
-                  </>
-                )}
-              </div>
+              )}
             </div>
 
-            {/* Arrow */}
-            <ChevronRight
-              className={`h-3.5 w-3.5 shrink-0 transition-all ${
-                selected
-                  ? "translate-x-0 text-zinc-400"
-                  : "text-zinc-700 group-hover:translate-x-0.5 group-hover:text-zinc-400"
-              }`}
-            />
+            {/* Bottom row */}
+            <div className="mt-1 flex items-center gap-2">
+              {post.category && (
+                <span className="text-[9px] font-medium uppercase tracking-wide text-zinc-600">
+                  {post.category}
+                </span>
+              )}
+
+              {post.category && <span className="text-zinc-800">·</span>}
+
+              <span
+                className={`text-[9px] ${
+                  conversationCount > 0 ? "text-zinc-500" : "text-zinc-700"
+                }`}
+              >
+                {conversationCount === 0
+                  ? "No conversations"
+                  : conversationCount === 1
+                    ? "1 conversation"
+                    : `${conversationCount} conversations`}
+              </span>
+            </div>
           </button>
         );
       })}
     </div>
   );
 };
-
 /* =============================================================
    MY CHATS
 ============================================================= */
@@ -296,13 +266,13 @@ const MyChatsList = ({ chats, selectedChatId, onSelectChat }) => {
   }
 
   return (
-    <div className="divide-y divide-[#141416]">
+    <div className="divide-y divide-[var(--app-border)]">
       {chats.map((chat) => {
-        const selected = selectedChatId === chat.id;
+        const selected = selectedChatId === chat._id;
 
         return (
           <button
-            key={chat.id}
+            key={chat._id}
             type="button"
             onClick={() => onSelectChat?.(chat)}
             className={`group relative flex w-full items-center gap-3 px-4 py-4 text-left transition-colors ${

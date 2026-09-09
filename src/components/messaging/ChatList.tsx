@@ -4,7 +4,6 @@ import { handleAvatarError } from "../../utils";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { apiFetch } from "@/src/lib/api";
 import { setConversationMessages } from "@/src/store/conversationsSlice";
-import { formatLastSeen } from "@/src/lib/presence";
 
 export default function ChatList({
   setActiveConversationId,
@@ -13,7 +12,7 @@ export default function ChatList({
   loading = false,
 }: {
   activeConversationId: string | null;
-  setActiveConversationId: (id: string | null) => void;
+  setActiveConversationId: (_id: string | null) => void;
   onBackToPosts?: () => void;
   postTitle?: string;
   loading?: boolean;
@@ -26,11 +25,11 @@ export default function ChatList({
     (s) => s.conversations,
   );
 
-  const myId = currentUser?.id;
+  const myId = currentUser?._id;
 
   const filteredConvs = conversations.filter((conv) => {
     const otherUser =
-      conv.participants.find((p) => p.id !== currentUser.id) ??
+      conv.participants.find((p) => p._id !== currentUser._id) ??
       conv.participants[0];
 
     return otherUser.name.toLowerCase().includes(channelsSearch.toLowerCase());
@@ -54,7 +53,7 @@ export default function ChatList({
   };
   return (
     <aside
-      className={`flex h-full min-h-0 w-full shrink-0 flex-col border-r border-[#1e1e22] bg-[#0c0c0e] font-sans md:w-72 lg:w-80 ${
+      className={` pb-14 lg:pb-0 flex h-full min-h-0 w-full shrink-0 flex-col border-r border-[#1e1e22] bg-[#0c0c0e] font-sans md:w-72 lg:w-80 ${
         activeConversationId ? "hidden md:flex" : "flex"
       }`}
     >
@@ -130,16 +129,16 @@ export default function ChatList({
           <div className="divide-y divide-[#141416]">
             {filteredConvs.map((conv) => {
               const otherUser =
-                conv.participants.find((p) => p.id !== myId) ??
+                conv.participants.find((p) => p._id !== myId) ??
                 conv.participants[0];
 
-              const isSelected = conv.id === activeConversationId;
+              const isSelected = conv._id === activeConversationId;
 
               return (
                 <button
-                  key={conv.id}
+                  key={conv._id}
                   type="button"
-                  onClick={() => handleActiveChatClick(conv.id)}
+                  onClick={() => handleActiveChatClick(conv._id)}
                   className={`group relative flex w-full items-center gap-3 px-4 py-4 text-left transition-colors ${
                     isSelected ? "bg-white/4.5" : "hover:bg-white/2.5"
                   }`}

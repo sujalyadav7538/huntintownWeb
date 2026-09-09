@@ -12,8 +12,7 @@ export interface UserLocation {
 
 export interface User {
   // Identity
-  id: string;
-  _id:string;
+  _id: string;
 
   // Authentication / basic profile
   email?: string;
@@ -123,7 +122,7 @@ export interface UserBadgeItem {
 }
 
 export interface Comment {
-  id: string;
+  _id: string;
   postId: string;
   author: User;
   content: string;
@@ -136,7 +135,7 @@ export interface Comment {
 
 /** Matches responseSchema in backend */
 export interface Response {
-  id: string;
+  _id: string;
   postId: string;
   respondedBy: User;
   message: string;
@@ -147,7 +146,7 @@ export interface Response {
 }
 
 export interface Post {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   category: string;
@@ -179,10 +178,10 @@ export interface Post {
 }
 
 export interface Message {
-  id: string;
+  _id: string;
   conversationId: string;
   sender: {
-    id: string;
+    _id: string;
     name: string;
     avatar: string;
   };
@@ -206,9 +205,9 @@ export interface Message {
 }
 
 export interface Conversation {
-  id: string;
+  _id: string;
   post?: {
-    id: string;
+    _id: string;
     title: string;
     category: string;
     budget?: string;
@@ -227,7 +226,7 @@ export interface Conversation {
 
 /** Aggregated post entry returned by GET /api/chat/posts — used in the messaging post picker */
 export interface ChatPost {
-  id: string;
+  _id: string;
   title: string;
   category: string;
   budget?: string;
@@ -238,7 +237,7 @@ export interface ChatPost {
 }
 
 export interface ActivityPost {
-  id: string;
+  _id: string;
   title: string;
   description: string;
   category: string;
@@ -249,7 +248,7 @@ export interface ActivityPost {
   expiresAt: string;
   questions?: string[];
   author: {
-    id: string;
+    _id: string;
     name: string;
     avatar: string;
     role?: string;
@@ -258,7 +257,7 @@ export interface ActivityPost {
 }
 
 export interface ActivityResponse {
-  id: string;
+  _id: string;
   postId: ActivityPost;
   message: string;
   answers: { question: string; answer: string }[];
@@ -282,7 +281,7 @@ export interface ShowcaseMedia {
 }
 
 export interface ShowcaseItem {
-  id: string;
+  _id: string;
   type: ShowcaseType;
   title: string;
   subtitle?: string;
@@ -310,7 +309,7 @@ export interface ShowcaseItem {
 }
 
 export interface ShowCase{
-  id:string;
+  _id:string;
   items:ShowcaseItem[]
 }
 

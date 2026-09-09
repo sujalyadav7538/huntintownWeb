@@ -216,7 +216,7 @@ export default function App() {
             hideUpperNavigation ? "pt-0 md:pt-16" : "pt-14 md:pt-16"
           } ${
             ["messaging"].includes(activeTab)
-              ? "flex flex-col overflow-hidden"
+              ? "flex flex-col overflow-hidden "
               : "overflow-y-auto px-2 pb-16 sm:pb-8 lg:pb-0  sm:px-6  lg:px-4"
           }`}
         >

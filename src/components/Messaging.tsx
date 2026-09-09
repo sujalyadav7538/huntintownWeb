@@ -149,7 +149,7 @@ export default function Messaging() {
    *
    * [
   *   {
-  *     id,
+  *     _id,
    *     post: {...},
    *     otherUser: {...},
    *     lastMessageAt,
@@ -287,7 +287,7 @@ export default function Messaging() {
     const handleNewMessage = (message: any) => {
       const conversationId = String(message.conversationId);
 
-      const incoming = message.sender?.id !== currentUser?.id;
+      const incoming = message.sender?._id !== currentUser?._id;
 
       dispatch(
         addMessageToConversation({
@@ -306,7 +306,7 @@ export default function Messaging() {
     return () => {
       socket.off("new-message", handleNewMessage);
     };
-  }, [dispatch, currentUser?.id]);
+  }, [dispatch, currentUser?._id]);
 
   /*
    * ---------------------------------------------------------
@@ -393,7 +393,7 @@ export default function Messaging() {
 
   const handleSelectChat = async (chat: any) => {
     setMode("chats");
-    const conversationId = chat.id;
+    const conversationId = chat._id;
     console.log(chat);
 
     dispatch(setActiveConversationId(conversationId));
@@ -456,8 +456,8 @@ export default function Messaging() {
 
   const activeConversation =
     conversations.find(
-      (conversation) => conversation.id === activeConversationId,
-    ) ?? myChats.find((chat) => chat.id === activeConversationId);
+      (conversation) => conversation._id === activeConversationId,
+    ) ?? myChats.find((chat) => chat._id === activeConversationId);
 
   /*
    * ---------------------------------------------------------
@@ -466,9 +466,9 @@ export default function Messaging() {
    */
 
   const activePost =
-    chatPosts.find((post) => post.id === activePostId) ??
+    chatPosts.find((post) => post._id === activePostId) ??
     myChats.find(
-      (chat) => chat.post?.id === activePostId || chat.postId === activePostId,
+      (chat) => chat.post?._id === activePostId || chat.postId === activePostId,
     )?.post;
 
   const activePostTitle = activePost?.title ?? "";
@@ -516,10 +516,10 @@ export default function Messaging() {
         <ChatPanel
           activeConversation={activeConversation}
           activeMessages={activeMessages}
-          currentUserId={currentUser?.id}
+          currentUserId={currentUser?._id}
           mode={mode}
-          onSetActiveConversation={(id) =>
-            dispatch(setActiveConversationId(id))
+          onSetActiveConversation={(_id) =>
+            dispatch(setActiveConversationId(_id))
           }
         />
       </div>
