@@ -7,6 +7,7 @@ import {
   PlusCircle,
   Moon,
   Sun,
+  Clock3,
 } from "lucide-react";
 
 import UserProfileIndicator from "./UserProfileIndicator";
@@ -32,12 +33,12 @@ const NAV_ITEMS = [
   {
     id: "explore",
     label: "Explore",
-    icon: Compass,
+    icon: Search,
   },
   {
     id: "activity",
     label: "Activity",
-    icon: Activity,
+    icon: Clock3,
     auth: true,
   },
   {

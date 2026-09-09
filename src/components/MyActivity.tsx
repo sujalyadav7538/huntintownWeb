@@ -2,7 +2,7 @@
 import { useAppSelector } from "../store/hooks";
 import ResponsesTab from "./activity/responses/ResponseTab";
 import ActivityTab from "./activity/activity/ActivityTab";
-import { Activity, Inbox } from "lucide-react";
+import { Activity, Clock3, Inbox } from "lucide-react";
 
 type HubTab = "activity" | "responses";
 
@@ -68,7 +68,7 @@ export default function MyActivity({
             <nav className="hidden items-center gap-5 sm:flex">
               <HubTabButton
                 active={tab === "activity"}
-                icon={Activity}
+                icon={Clock3}
                 label="Activity"
                 onClick={() => setTab("activity")}
               />
@@ -88,7 +88,7 @@ export default function MyActivity({
           <nav className="theme-divider mt-5 flex items-center gap-5 border-b border-zinc-800/70 sm:hidden">
             <HubTabButton
               active={tab === "activity"}
-              icon={Activity}
+              icon={Clock3}
               label="Activity"
               onClick={() => setTab("activity")}
             />

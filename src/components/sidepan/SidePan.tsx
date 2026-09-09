@@ -11,6 +11,9 @@ import {
   Sun,
   Moon,
   LogIn,
+  Search,
+  BookOpen,
+  Clock3,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -46,7 +49,7 @@ export default function SidePanel({
   const navigationItems = [
     {
       label: "Explore",
-      icon: Compass,
+      icon: Search,
       path: "/explore",
       authRequired: false,
     },
@@ -58,7 +61,7 @@ export default function SidePanel({
     },
     {
       label: "Activity",
-      icon: Activity,
+      icon: Clock3,
       path: "activity",
       authRequired: true,
     },
@@ -66,6 +69,12 @@ export default function SidePanel({
       label: "Responses",
       icon: Inbox,
       path: "/responses",
+      authRequired: true,
+    },
+    {
+      label: "About",
+      icon: BookOpen,
+      path: "about",
       authRequired: true,
     },
   ];

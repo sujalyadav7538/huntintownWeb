@@ -6,6 +6,8 @@ import {
   User,
   Compass,
   UserRound,
+  Search,
+  Clock3,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAvatarUrl, getUserId, handleAvatarError } from "../../utils";
@@ -50,12 +52,12 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: "explore",
     label: "Explore",
-    icon: Compass,
+    icon: Search,
   },
   {
     id: "activity",
     label: "Activity",
-    icon: Activity,
+    icon: Clock3,
     auth: true,
   },
   {

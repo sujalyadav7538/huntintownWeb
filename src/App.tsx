@@ -53,6 +53,7 @@ export default function App() {
       ? "dark"
       : "light";
   });
+  
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -231,6 +232,7 @@ export default function App() {
             onDeleteListing={handleDeleteListing}
             onPostCreated={handlePostCreated}
             onUpdateProfile={handleProfileUpdated}
+            theme={theme}
           />
         </main>
 

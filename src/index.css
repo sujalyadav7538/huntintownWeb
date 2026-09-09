@@ -31,7 +31,7 @@
 
 :root {
   color-scheme: dark;
-  --app-bg: #19191a;
+  --app-bg: #1e1e1f6b;
   --app-surface: #0e0e10;
   --app-surface-2: #111113;
   --app-surface-3: #17171b;
@@ -75,6 +75,12 @@ body {
   background-color: var(--app-bg);
   color: var(--app-text);
   font-family: var(--font-sans);
+}
+
+button:not(:disabled),
+a,
+[role="button"] {
+  cursor: pointer;
 }
 
 html[data-theme="light"] body,

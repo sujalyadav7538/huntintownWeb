@@ -17,6 +17,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import PublicRoutes from "./PublicRoutes";
 
 import type { Post, User } from "../types";
+import AboutPage from "../components/About";
 
 interface AppRoutesProps {
   isAuthenticated: boolean;
@@ -37,6 +38,7 @@ interface AppRoutesProps {
   onPostCreated: (postId: string) => void;
 
   onUpdateProfile: (updated: User) => void;
+  theme: "dark" | "light";
 }
 
 export default function AppRoutes({
@@ -51,6 +53,7 @@ export default function AppRoutes({
   onDeleteListing,
   onPostCreated,
   onUpdateProfile,
+  theme,
 }: AppRoutesProps) {
   const navigate = useNavigate();
 
@@ -251,6 +254,9 @@ export default function AppRoutes({
           </ProtectedRoute>
         }
       />
+
+      {/* About Page */}
+      <Route path="/about" element={<AboutPage theme={theme} />} />
 
       {/* =========================================================
           FALLBACK
