@@ -12,47 +12,48 @@ export interface UserLocation {
 
 export interface User {
   // Identity
-  _id: string;
   id: string;
+  _id:string;
 
   // Authentication / basic profile
-  email: string;
+  email?: string;
   name: string;
-  bio: string;
-  about: string;
-  role: string;
+  bio?: string;
+  about?: string;
+  role?: string;
 
   // ShowCase
-  showcase:ShowCase
+  showcase?: ShowCase;
 
   // Images
-  avatar: string;
-  avatar_public_id: string;
-  coverImage: string;
-  coverImage_public_id: string;
+  avatar?: string;
+  avatar_public_id?: string;
+  coverImage?: string;
+  coverImage_public_id?: string;
 
   // Contact
-  phone: string;
-  website: string;
+  phone?: string;
+  website?: string;
 
   // Skills
-  skills: string[];
+  skills?: string[];
+  services?: string[];
 
   // Address
-  address: string;
+  address?: string;
   location?: UserLocation;
 
   // Verification
-  isEmailVerified: boolean;
-  isPhoneVerified: boolean;
-  isGovernmentVerified: boolean;
-  governmentVerificationStatus: string;
+  isEmailVerified?: boolean;
+  isPhoneVerified?: boolean;
+  isGovernmentVerified?: boolean;
+  governmentVerificationStatus?: string;
 
   // Account
-  isActive: boolean;
+  isActive?: boolean;
   googleId?: string | null;
-  isOnline: boolean;
-  lastSeen: string;
+  isOnline?: boolean;
+  lastSeen?: string;
 
   // Relations
   // showcase?: string | UserShowcase;
@@ -61,9 +62,9 @@ export interface User {
   metric?: UserMetric;
 
   // Timestamps
-  createdAt: string;
-  updatedAt: string;
-  joinedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  joinedAt?: string;
 }
 
 // ── Reputation System ─────────────────────────────────────────────────────────
@@ -122,8 +123,7 @@ export interface UserBadgeItem {
 }
 
 export interface Comment {
-  _id?: string;
-  id?: string;
+  id: string;
   postId: string;
   author: User;
   content: string;
@@ -136,7 +136,7 @@ export interface Comment {
 
 /** Matches responseSchema in backend */
 export interface Response {
-  _id: string;
+  id: string;
   postId: string;
   respondedBy: User;
   message: string;
@@ -147,9 +147,6 @@ export interface Response {
 }
 
 export interface Post {
-  /** MongoDB ObjectId string */
-  _id?: string;
-  /** Mapped from _id for consistent frontend use */
   id: string;
   title: string;
   description: string;
@@ -182,11 +179,10 @@ export interface Post {
 }
 
 export interface Message {
-  _id: string;
+  id: string;
   conversationId: string;
   sender: {
-    _id?: string;
-    id?: string;
+    id: string;
     name: string;
     avatar: string;
   };
@@ -210,9 +206,9 @@ export interface Message {
 }
 
 export interface Conversation {
-  _id: string;
+  id: string;
   post?: {
-    _id: string;
+    id: string;
     title: string;
     category: string;
     budget?: string;
@@ -231,7 +227,7 @@ export interface Conversation {
 
 /** Aggregated post entry returned by GET /api/chat/posts — used in the messaging post picker */
 export interface ChatPost {
-  _id: string;
+  id: string;
   title: string;
   category: string;
   budget?: string;
@@ -242,7 +238,7 @@ export interface ChatPost {
 }
 
 export interface ActivityPost {
-  _id: string;
+  id: string;
   title: string;
   description: string;
   category: string;
@@ -252,17 +248,27 @@ export interface ActivityPost {
   status: string;
   expiresAt: string;
   questions?: string[];
-  author: { _id?: string; name: string; avatar: string };
+  author: {
+    id: string;
+    name: string;
+    avatar: string;
+    role?: string;
+    isGovernmentVerified?: boolean;
+  };
 }
 
 export interface ActivityResponse {
-  _id: string;
+  id: string;
   postId: ActivityPost;
   message: string;
   answers: { question: string; answer: string }[];
   status: "pending" | "accepted" | "rejected" | "completed" | "cancelled";
   createdAt: string;
   updatedAt: string;
+  acceptedAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
+  hasReviewedOwner?: boolean;
 }
 
 export interface ShowcaseLink {

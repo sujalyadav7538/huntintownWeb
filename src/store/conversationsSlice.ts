@@ -39,14 +39,14 @@ export const conversationsSlice = createSlice({
 
       // Deduplicate: socket room broadcasts to sender AND receiver
       const alreadyExists = state.conversationMessages[conversationId].some(
-        (m) => m._id === message._id,
+        (m) => m.id === message.id,
       );
       if (!alreadyExists) {
         state.conversationMessages[conversationId].push(message);
       }
 
       // Update conversation metadata only if it's loaded in the list
-      const conv = state.conversations.find((c) => c._id === conversationId);
+      const conv = state.conversations.find((c) => c.id === conversationId);
       if (conv) {
         conv.lastMessage = message.text || (message as any).content || "";
         conv.lastMessageAt = message.createdAt;
@@ -79,8 +79,8 @@ export const conversationsSlice = createSlice({
       const { conversationId, tempId, message } = action.payload;
       const msgs = state.conversationMessages[conversationId];
       if (!msgs) return;
-      const tempIdx = msgs.findIndex((m) => m._id === tempId);
-      const realIdx = msgs.findIndex((m) => m._id === message._id);
+      const tempIdx = msgs.findIndex((m) => m.id === tempId);
+      const realIdx = msgs.findIndex((m) => m.id === message.id);
       if (tempIdx >= 0) {
         if (realIdx >= 0 && realIdx !== tempIdx) {
           // Real message already arrived via new-message event before callback
@@ -104,7 +104,7 @@ export const conversationsSlice = createSlice({
     ) => {
       const { conversationId, messageId, status } = action.payload;
       const msg = state.conversationMessages[conversationId]?.find(
-        (m) => m._id === messageId,
+        (m) => m.id === messageId,
       );
       if (msg) msg.sendStatus = status;
     },

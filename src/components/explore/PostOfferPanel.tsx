@@ -11,7 +11,7 @@ import { isPostExpired } from "../../utils";
 import { handleAvatarError } from "../../utils";
 
 interface BackendResponse {
-  _id: string;
+  id: string;
   postId: string;
   message: string;
   answers: { question: string; answer: string }[];
@@ -67,7 +67,7 @@ interface Props {
 }
 
 export default function PostOfferPanel({ post, isAuthenticated, onNavigateToLogin }: Props) {
-  const postId = post._id || post.id;
+  const postId = post.id;
   const expired = isPostExpired(post.expiresAt);
 
   const [answers, setAnswers] = useState<string[]>([]);
@@ -233,7 +233,7 @@ export default function PostOfferPanel({ post, isAuthenticated, onNavigateToLogi
               No responses yet. Be the first!
             </p>
           ) : (
-            responses.map((r) => <OfferCard key={r._id} offer={r} />)
+            responses.map((r) => <OfferCard key={r.id} offer={r} />)
           )}
         </div>
       )}

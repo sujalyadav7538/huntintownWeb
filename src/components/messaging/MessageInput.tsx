@@ -41,7 +41,7 @@ export default function MessageInput({ participantName }: MessageInputProps) {
     const tempId = `_temp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
     const optimistic: Message = {
-      _id: tempId,
+      id: tempId,
       conversationId,
       sender: {
         id: currentUser.id,
@@ -123,7 +123,7 @@ export default function MessageInput({ participantName }: MessageInputProps) {
           : "document";
 
     const optimistic: Message = {
-      _id: tempId,
+      id: tempId,
       conversationId,
       sender: {
         id: currentUser.id,

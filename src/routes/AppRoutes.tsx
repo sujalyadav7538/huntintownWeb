@@ -145,7 +145,7 @@ export default function AppRoutes({
       ========================================================== */}
 
       <Route
-        path="/dashboard/activity"
+        path="/activity"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <MyActivity
@@ -162,7 +162,7 @@ export default function AppRoutes({
 
       {/* All responses */}
       <Route
-        path="/dashboard/responses/:id?"
+        path="/responses"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <MyActivity
@@ -178,7 +178,7 @@ export default function AppRoutes({
         path="/responses"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Navigate to="/dashboard/responses" replace />
+            <Navigate to="/responses" replace />
           </ProtectedRoute>
         }
       />
@@ -189,7 +189,7 @@ export default function AppRoutes({
 
       {/* Owner clicks "Explore" on My Posts */}
       <Route
-        path="/dashboard/response/:postId"
+        path="/response/:postId"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <PostResponsesRoute />

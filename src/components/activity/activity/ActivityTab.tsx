@@ -138,10 +138,10 @@ export default function ActivityTab({
         <div className="grid gap-2 grid-cols-1 lg:grid-cols-2">
           {filteredItems.map((item) => (
             <ActivityOfferCard
-              key={item._id}
+              key={item.id}
               offer={item}
               hasReviewed={item.hasReviewedOwner}
-              onOpenConversation={() => onInitiateChat(item)}
+              onOpenConversation={() => onInitiateChat()}
               onReview={() => handleReview(item)}
             />
           ))}

@@ -6,7 +6,7 @@ import {
 import { getAvatarUrl, handleAvatarError } from "@/src/utils";
 import { MapPin } from "lucide-react";
 interface ActivityPost {
-  _id: string;
+  id: string;
   title: string;
   description: string;
   category: string;
@@ -16,17 +16,18 @@ interface ActivityPost {
   status: string;
   expiresAt: string;
   questions?: string[];
-  author: { _id?: string; name: string; avatar: string };
+  author: { id: string; name: string; avatar: string };
 }
 
 interface ActivityResponse {
-  _id: string;
+  id: string;
   postId: ActivityPost;
   message: string;
   answers: { question: string; answer: string }[];
-  status: "pending" | "accepted" | "rejected";
+  status: "pending" | "accepted" | "rejected" | "completed" | "cancelled";
   createdAt: string;
   updatedAt: string;
+  completedAt?: string;
 }
 
 interface ActivityPostSummaryProps {

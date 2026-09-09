@@ -27,7 +27,7 @@ export default function PostsLayer({
         .map((post) => ({
           type: "Feature" as const,
           properties: {
-            id: post._id || post.id,
+            id: post.id,
             title: post.title,
           },
           geometry: {
@@ -137,7 +137,7 @@ export default function PostsLayer({
 
       const id = feature.properties?.id;
 
-      const post = posts.find((p) => (p._id || p.id) === id);
+  const post = posts.find((p) => p.id === id);
 
       if (post) {
         onPostClick?.(post);

@@ -57,7 +57,7 @@ export default function ExplorePage() {
     const state = location.state as { openPostId?: string } | null;
     if (state?.openPostId && posts.length) {
       const p = posts.find(
-        (p) => p._id === state.openPostId || p.id === state.openPostId,
+        (p) => p.id === state.openPostId,
       );
       if (p) setSelectedPost(p);
       navigate(location.pathname, { replace: true, state: {} });

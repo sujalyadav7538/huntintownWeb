@@ -289,46 +289,81 @@ function UserProfileDesktop({
         </div>
 
         <div className="p-4">
-          {activeTab === "about" && (
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-7 flex flex-col gap-4">
-                <ProfileAbout user={user} />
+          {activeTab === "about" &&
+            (isOwner ? (
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-7 flex flex-col gap-4">
+                  <ProfileAbout user={user} />
 
-                <ProfileAnalytics
-                  metric={metric ?? user?.metric ?? null}
-                  defaultExpanded
-                />
+                  <ProfileAnalytics
+                    metric={metric ?? user?.metric ?? null}
+                    defaultExpanded
+                  />
+                </div>
+
+                <div className="col-span-5 flex flex-col gap-4">
+                  <ProfileReviews
+                    userId={user.id}
+                    metric={metric}
+                    metricLoading={repLoading}
+                    compact
+                    defaultExpanded
+                  />
+
+                  <ProfileSkills user={user} />
+
+                  <ProfileBadges
+                    badges={badges}
+                    loading={repLoading}
+                    compact
+                    defaultExpanded
+                  />
+
+                  <ProfileRecentPosts
+                    posts={posts}
+                    total={posts.length}
+                    isOwner={isOwner}
+                    compact
+                    defaultExpanded
+                    userId={user.id}
+                  />
+                </div>
               </div>
+            ) : (
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-7 flex flex-col gap-4">
+                  <ProfileAbout user={user} />
 
-              <div className="col-span-5 flex flex-col gap-4">
-                <ProfileReviews
-                  userId={user._id ?? user.id}
-                  metric={metric}
-                  metricLoading={repLoading}
-                  compact
-                  defaultExpanded
-                />
+                  <ProfileRecentPosts
+                    posts={posts}
+                    total={posts.length}
+                    isOwner={isOwner}
+                    compact
+                    defaultExpanded
+                    userId={user.id}
+                  />
+                </div>
 
-                <ProfileSkills user={user} />
+                <div className="col-span-5 flex flex-col gap-4">
+                  <ProfileReviews
+                    userId={user.id}
+                    metric={metric}
+                    metricLoading={repLoading}
+                    compact
+                    defaultExpanded
+                  />
 
-                <ProfileBadges
-                  badges={badges}
-                  loading={repLoading}
-                  compact
-                  defaultExpanded
-                />
+                  <ProfileSkills user={user} />
 
-                <ProfileRecentPosts
-                  posts={posts}
-                  total={posts.length}
-                  isOwner={isOwner}
-                  compact
-                  defaultExpanded
-                  userId={user._id ?? user.id}
-                />
+                  <ProfileBadges
+                    badges={badges}
+                    loading={repLoading}
+                    compact
+                    defaultExpanded
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            ))}
 
           {activeTab === "badges" && (
             <ProfileBadges badges={badges} loading={repLoading} />
@@ -336,7 +371,7 @@ function UserProfileDesktop({
 
           {activeTab === "reviews" && (
             <ProfileReviews
-              userId={user._id ?? user.id}
+              userId={user.id}
               metric={metric}
               metricLoading={repLoading}
             />
@@ -347,7 +382,7 @@ function UserProfileDesktop({
               posts={posts}
               total={posts.length}
               isOwner={isOwner}
-              userId={user._id ?? user.id}
+              userId={user.id}
             />
           )}
 
@@ -355,7 +390,7 @@ function UserProfileDesktop({
             <ProfileAnalytics metric={metric ?? user?.metric ?? null} />
           )}
 
-          {activeTab === "showcase" && isOwner && (
+          {activeTab === "showcase"  && (
             <UserShowcase
               items={user.showcase?.items ?? []}
               isOwner={isOwner}
@@ -465,22 +500,7 @@ function UserProfileMobile({
             <div className="flex flex-col gap-3">
               <ProfileAbout user={user} />
 
-              {/* <ProfileReviews
-                userId={user._id ?? user.id}
-                metric={metric}
-                metricLoading={repLoading}
-                compact
-                defaultExpanded
-              /> */}
-
               <ProfileSkills user={user} />
-
-              {/* <ProfileBadges
-                badges={badges}
-                loading={repLoading}
-                compact
-                defaultExpanded
-              /> */}
 
               <ProfileRecentPosts
                 posts={posts}
@@ -488,13 +508,8 @@ function UserProfileMobile({
                 isOwner={isOwner}
                 compact
                 defaultExpanded
-                userId={user._id ?? user.id}
+                userId={user.id}
               />
-
-              {/* <ProfileAnalytics
-                metric={metric ?? user?.metric ?? null}
-                defaultExpanded
-              /> */}
             </div>
           )}
 
@@ -504,7 +519,7 @@ function UserProfileMobile({
 
           {activeTab === "reviews" && (
             <ProfileReviews
-              userId={user._id ?? user.id}
+              userId={user.id}
               metric={metric}
               metricLoading={repLoading}
             />
@@ -515,7 +530,7 @@ function UserProfileMobile({
               posts={posts}
               total={posts.length}
               isOwner={isOwner}
-              userId={user._id ?? user.id}
+              userId={user.id}
             />
           )}
 
@@ -523,7 +538,7 @@ function UserProfileMobile({
             <ProfileAnalytics metric={metric ?? user?.metric ?? null} />
           )}
 
-          {activeTab === "showcase" && isOwner && (
+          {activeTab === "showcase"  && (
             <UserShowcase
               items={user.showcase?.items ?? []}
               isOwner={isOwner}

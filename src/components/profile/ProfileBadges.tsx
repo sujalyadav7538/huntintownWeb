@@ -1,19 +1,49 @@
-import { Zap, CheckCircle2, Star, Shield, Users, Trophy, Loader2 } from "lucide-react";
+import {
+  Zap,
+  CheckCircle2,
+  Star,
+  Shield,
+  Users,
+  Trophy,
+  Loader2,
+} from "lucide-react";
 import { UserBadgeItem } from "../../types";
 
-const RARITY_STYLE: Record<string, { color: string; bg: string; border: string }> = {
-  common:    { color: "text-zinc-300",   bg: "bg-zinc-800/50",      border: "border-zinc-700/50" },
-  rare:      { color: "text-sky-400",    bg: "bg-sky-400/10",       border: "border-sky-400/20" },
-  epic:      { color: "text-violet-400", bg: "bg-violet-400/10",    border: "border-violet-400/20" },
-  legendary: { color: "text-amber-400",  bg: "bg-amber-400/10",     border: "border-amber-400/20" },
+const RARITY_STYLE: Record<
+  string,
+  { color: string; bg: string; border: string }
+> = {
+  common: {
+    color: "text-zinc-300",
+    bg: "bg-zinc-800/50",
+    border: "border-zinc-700/50",
+  },
+  rare: {
+    color: "text-sky-400",
+    bg: "bg-sky-400/10",
+    border: "border-sky-400/20",
+  },
+  epic: {
+    color: "text-violet-400",
+    bg: "bg-violet-400/10",
+    border: "border-violet-400/20",
+  },
+  legendary: {
+    color: "text-amber-400",
+    bg: "bg-amber-400/10",
+    border: "border-amber-400/20",
+  },
 };
 
-const BADGE_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+const BADGE_ICON_MAP: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   profile_complete: CheckCircle2,
-  top_rated:        Star,
-  trusted_helper:   Shield,
-  popular_helper:   Users,
-  elite_member:     Trophy,
+  top_rated: Star,
+  trusted_helper: Shield,
+  popular_helper: Users,
+  elite_member: Trophy,
 };
 
 interface ProfileBadgesProps {
@@ -23,14 +53,23 @@ interface ProfileBadgesProps {
   defaultExpanded?: boolean; // defaultExpanded=true hides the component if there are no badges and not loading
 }
 
-export default function ProfileBadges({ badges, loading, compact = false,defaultExpanded=false }: ProfileBadgesProps) {
-  if(defaultExpanded && badges.length === 0 && !loading) return null;
+export default function ProfileBadges({
+  badges,
+  loading,
+  compact = false,
+  defaultExpanded = false,
+}: ProfileBadgesProps) {
+  if (defaultExpanded && badges.length === 0 && !loading) return null;
   return (
     <div className="rounded-xl border border-[#1e1e22] bg-[#111113] p-4 sm:p-5">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Badges</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+          Badges
+        </h3>
         {badges.length > 0 && (
-          <button className="text-[10px] font-medium text-[#FF3F3F] hover:underline">View All</button>
+          <button className="text-[10px] font-medium text-[#FF3F3F] hover:underline">
+            View All
+          </button>
         )}
       </div>
 
@@ -56,10 +95,14 @@ export default function ProfileBadges({ badges, loading, compact = false,default
                 title={badge.name}
                 className={`flex flex-col items-center gap-1`}
               >
-                <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${style.border} ${style.bg}`}>
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl border ${style.border} ${style.bg}`}
+                >
                   <Icon className={`h-4 w-4 ${style.color}`} />
                 </div>
-                <span className={`text-[9px] font-semibold ${style.color} text-center leading-tight max-w-10`}>
+                <span
+                  className={`text-[9px] font-semibold ${style.color} text-center leading-tight max-w-10`}
+                >
                   {badge.name.split(" ").slice(-1)[0]}
                 </span>
               </div>
@@ -73,23 +116,40 @@ export default function ProfileBadges({ badges, loading, compact = false,default
             const style = RARITY_STYLE[badge.rarity] ?? RARITY_STYLE.common;
             const Icon = BADGE_ICON_MAP[badge.icon] ?? Zap;
             const earnedDate = badge.earnedAt
-              ? new Date(badge.earnedAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" })
+              ? new Date(badge.earnedAt).toLocaleDateString("en-IN", {
+                  month: "short",
+                  year: "numeric",
+                })
               : null;
             return (
               <div
                 key={`${badge.badgeId}-${badge.level}`}
                 className={`flex flex-col gap-2 rounded-xl border p-3 transition hover:brightness-110 ${style.border} ${style.bg}`}
               >
-                <div className={`flex h-8 w-8 items-center justify-center rounded-lg border ${style.border} ${style.bg}`}>
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg border ${style.border} ${style.bg}`}
+                >
                   <Icon className={`h-4 w-4 ${style.color}`} />
                 </div>
                 <div>
                   <div className="flex items-center gap-1">
-                    <p className={`text-xs font-bold ${style.color}`}>{badge.name}</p>
-                    <span className={`text-[8px] font-bold uppercase ${style.color} opacity-60`}>{badge.level}</span>
+                    <p className={`text-xs font-bold ${style.color}`}>
+                      {badge.name}
+                    </p>
+                    <span
+                      className={`text-[8px] font-bold uppercase ${style.color} opacity-60`}
+                    >
+                      {badge.level}
+                    </span>
                   </div>
-                  <p className="mt-0.5 text-[10px] leading-snug text-zinc-500">{badge.description}</p>
-                  {earnedDate && <p className="mt-1 text-[9px] text-zinc-700">Earned {earnedDate}</p>}
+                  <p className="mt-0.5 text-[10px] leading-snug text-zinc-500">
+                    {badge.description}
+                  </p>
+                  {earnedDate && (
+                    <p className="mt-1 text-[9px] text-zinc-700">
+                      Earned {earnedDate}
+                    </p>
+                  )}
                 </div>
               </div>
             );

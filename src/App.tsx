@@ -246,7 +246,7 @@ export default function App() {
         )}
       </div>
 
-      {isAuthenticated && (
+      
         <SidePanel
           open={sidePanelOpen}
           onClose={() => setSidePanelOpen(false)}
@@ -254,7 +254,7 @@ export default function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
         />
-      )}
+
     </div>
   );
 }

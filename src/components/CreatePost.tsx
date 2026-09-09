@@ -31,6 +31,10 @@ interface PostFormData {
   expiryDays: number;
 }
 
+interface CreatePostProps {
+  onPostCreated?: (postId: string) => void;
+}
+
 const INITIAL_FORM: PostFormData = {
   title: "",
   description: "",
@@ -69,7 +73,7 @@ const STEPS = [
   },
 ];
 
-export default function CreatePost() {
+export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const [step, setStep] = useState<Step>(1);
 
   const [form, setForm] = useState<PostFormData>(INITIAL_FORM);
@@ -106,11 +110,14 @@ export default function CreatePost() {
      IMAGE UPDATE
   ============================================================ */
 
-  const handleImagesChange = (files: File[], previews: string[]) => {
+  const handleImagesChange = (files: File[], previews?: string[]) => {
+    const nextPreviews =
+      previews ?? files.map((file) => URL.createObjectURL(file));
+
     setForm((prev) => ({
       ...prev,
       images: files,
-      imagePreviews: previews,
+      imagePreviews: nextPreviews,
     }));
   };
 
@@ -245,14 +252,10 @@ export default function CreatePost() {
 
       /*
        * Get the newly created post ID.
-       *
-       * Supports either:
-       * data.post.id
-       * data.post._id
        */
       const createdPost = data?.post;
 
-      const postId = createdPost?.id || createdPost?._id;
+      const postId = createdPost?.id;
 
       if (!postId) {
         throw new Error(

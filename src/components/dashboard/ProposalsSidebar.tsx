@@ -5,7 +5,7 @@ import { apiFetch } from '../../lib/api';
 import { Send, Loader2, CheckCircle2, XCircle, Clock, ChevronRight } from 'lucide-react';
 
 interface MyResponse {
-  _id: string;
+  id: string;
   postId: string;
   message: string;
   status: 'pending' | 'accepted' | 'rejected';
@@ -56,7 +56,7 @@ export default function ProposalsSidebar({
         post.comments
           .filter((c) => c.author.id === currentUser.id)
           .map((c) => ({
-            _id: c.id,
+            id: c.id,
             postId: post.id,
             message: c.content,
             status: 'pending' as const,
@@ -101,11 +101,11 @@ export default function ProposalsSidebar({
             const StatusIcon = cfg.icon;
             const linkedPostId = r.postId;
             const postTitle = r.post?.title
-              || postsUserCommentedOn.find((p) => p.id === r.postId || (p as any)._id === r.postId)?.title
+              || postsUserCommentedOn.find((p) => p.id === r.postId)?.title
               || 'View post';
 
             return (
-              <div key={r._id} className="px-4 py-3.5 hover:bg-[#111113] transition-colors">
+              <div key={r.id} className="px-4 py-3.5 hover:bg-[#111113] transition-colors">
                 {/* Post title link */}
                 <button
                   onClick={() => onSelectPost(linkedPostId)}

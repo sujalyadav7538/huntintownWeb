@@ -10,13 +10,13 @@ import {
   Compass,
   Sun,
   Moon,
+  LogIn,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface SidePanelProps {
   open: boolean;
   onClose: () => void;
-
   onLogout: () => void;
   theme: "dark" | "light";
   onToggleTheme: () => void;
@@ -27,40 +27,69 @@ export default function SidePanel({
   onClose,
   theme,
   onToggleTheme,
-
   onLogout,
 }: SidePanelProps) {
   const navigate = useNavigate();
   const currentUser = useAppSelector((s) => s.auth.currentUser);
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+
+  const handleProfileClick = () => {
+    if (isAuthenticated) {
+      navigate(`/profile/${currentUser?.id || currentUser?._id}`);
+    } else {
+      navigate("/login");
+    }
+
+    onClose();
+  };
+
+  const navigationItems = [
+    {
+      label: "Explore",
+      icon: Compass,
+      path: "/explore",
+      authRequired: false,
+    },
+    {
+      label: "Chat",
+      icon: Send,
+      path: "/messaging",
+      authRequired: true,
+    },
+    {
+      label: "Activity",
+      icon: Activity,
+      path: "activity",
+      authRequired: true,
+    },
+    {
+      label: "Responses",
+      icon: Inbox,
+      path: "/responses",
+      authRequired: true,
+    },
+  ];
+
   return (
     <>
       {/* Backdrop */}
       <div
         onClick={onClose}
-        className={`fixed inset-0 z-9998 block lg:hidden   backdrop-blur transition-opacity duration-300 ${
-          open
-            ? "visible opacity-100"
-            : "pointer-events-none invisible opacity-0"
-        }`}
+        className={`fixed inset-0 z-9998 block lg:hidden backdrop-blur transition-opacity duration-300 ${open ? "visible opacity-100" : "pointer-events-none invisible opacity-0"}`}
       />
 
       {/* Mobile Drawer */}
       <aside
-        className={`fixed left-0 top-0 z-[9999] flex lg:hidden h-dvh w-[78%] max-w-[300px] flex-col border-r border-white/[0.07] bg-[#111113] shadow-2xl shadow-black/40 transition-transform duration-300 ease-out ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed left-0 top-0 z-[9999] flex lg:hidden h-dvh w-[78%] max-w-[300px] flex-col border-r border-white/[0.07] bg-[#111113] shadow-2xl shadow-black/40 transition-transform duration-300 ease-out ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
-        {/* Profile */}
+        {/* Profile / Sign In */}
         <div className="shrink-0 border-b border-white/[0.07] px-5 py-6">
           <button
             type="button"
-            onClick={() => {
-              navigate("/profile");
-              onClose();
-            }}
+            onClick={handleProfileClick}
             className="flex w-full items-center gap-3 text-left"
           >
-            {currentUser ? (
+            {isAuthenticated && currentUser ? (
               <div className="relative shrink-0">
                 <img
                   src={getAvatarUrl(currentUser.name, currentUser.avatar)}
@@ -73,16 +102,20 @@ export default function SidePanel({
               </div>
             ) : (
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-zinc-800">
-                <User className="h-5 w-5 text-zinc-500" />
+                <LogIn className="h-5 w-5 text-zinc-500" />
               </div>
             )}
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-white">
-                {currentUser?.name || "Your Profile"}
+                {isAuthenticated
+                  ? currentUser?.name || "Your Profile"
+                  : "Sign In"}
               </p>
 
-              <p className="mt-0.5 text-[11px] text-zinc-500">View profile</p>
+              <p className="mt-0.5 text-[11px] text-zinc-500">
+                {isAuthenticated ? "View profile" : "Sign in to your account"}
+              </p>
             </div>
 
             <ChevronRight className="h-4 w-4 text-zinc-600" />
@@ -91,52 +124,36 @@ export default function SidePanel({
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {[
-            {
-              label: "Explore",
-              icon: Compass,
-              path: "/explore",
-            },
-            {
-              label: "Chat",
-              icon: Send,
-              path: "/messaging",
-            },
-            {
-              label: "Activity",
-              icon: Activity,
-              path: "/dashboard/activity",
-            },
-            {
-              label: "Responses",
-              icon: Inbox,
-              path: "/responses",
-            },
-          ].map((item) => {
-            const Icon = item.icon;
+          {navigationItems
+            .filter((item) => !item.authRequired || isAuthenticated)
+            .map((item) => {
+              const Icon = item.icon;
 
-            return (
-              <button
-                key={item.path}
-                type="button"
-                onClick={() => {
-                  navigate(item.path);
-                  onClose();
-                }}
-                className="group flex w-full items-center gap-4 rounded-lg px-3 py-3.5 text-left transition hover:bg-white/[0.05]"
-              >
-                <Icon className="h-[19px] w-[19px] text-zinc-500 transition group-hover:text-[#FF3F3F]" />
+              return (
+                <button
+                  key={item.path}
+                  type="button"
+                  onClick={() => {
+                    navigate(item.path);
+                    onClose();
+                  }}
+                  className="group flex w-full items-center gap-4 rounded-lg px-3 py-3.5 text-left transition hover:bg-white/[0.05]"
+                >
+                  <Icon className="h-[19px] w-[19px] text-zinc-500 transition group-hover:text-[#FF3F3F]" />
 
-                <span className="text-sm font-medium text-zinc-300 transition group-hover:text-white">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
+                  <span className="text-sm font-medium text-zinc-300 transition group-hover:text-white">
+                    {item.label}
+                  </span>
+                </button>
+              );
+            })}
         </nav>
-        <div className=" px-4 py-3 gap-2 flex flex-col">
+
+        {/* Bottom Actions */}
+        <div className="flex flex-col gap-2 px-4 py-3">
           <ThemeToggleButton theme={theme} onToggleTheme={onToggleTheme} />
-          <LogoutButton onLogout={onLogout} />
+
+          {isAuthenticated && <LogoutButton onLogout={onLogout} />}
         </div>
       </aside>
     </>

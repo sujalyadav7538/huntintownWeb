@@ -12,7 +12,7 @@ interface Helper {
 interface ReviewHelpersModalProps {
   postId: string;
   postTitle: string;
-  hunterId: string; // currentUser._id — passed as 'hunter' to rateUser
+  hunterId: string; // Current authenticated user id passed as 'hunter' to rateUser
   helpers: Helper[];
   onClose: () => void;
 }

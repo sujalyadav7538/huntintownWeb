@@ -35,7 +35,7 @@ export default function MobileLivePosts({
       {/* Horizontal Feed */}
       <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
         {posts.map((post) => (
-          <div key={post._id} className="snap-center shrink-0 w-[88%]">
+          <div key={post.id} className="snap-center shrink-0 w-[88%]">
             <LivePostCard post={post} />
           </div>
         ))}

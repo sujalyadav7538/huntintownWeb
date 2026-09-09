@@ -60,12 +60,12 @@ export default function ActivityOfferDetail({
     offer.status === "accepted" && post?.status === "completed";
 
   useEffect(() => {
-    if (!isCompletedAndAccepted || !post?._id) return;
-    apiFetch(`/api/rating/review-status/${post._id}`)
+    if (!isCompletedAndAccepted || !post?.id) return;
+    apiFetch(`/api/rating/review-status/${post.id}`)
       .then((res) => res.json())
       .then((data) => setReviewDone(data.hasReviewedOwner ?? false))
       .catch(() => setReviewDone(false));
-  }, [isCompletedAndAccepted, post?._id]);
+  }, [isCompletedAndAccepted, post?.id]);
 
   const handleReviewSubmit = async () => {
     if (rating === 0) return;
@@ -75,7 +75,7 @@ export default function ActivityOfferDetail({
       const res = await apiFetch("/api/rating/review-owner", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postId: post._id, rating, comment }),
+        body: JSON.stringify({ postId: post.id, rating, comment }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -346,7 +346,7 @@ function DetailItem({
 function OfferStatusBadge({
   status,
 }: {
-  status: "pending" | "accepted" | "rejected";
+  status: "pending" | "accepted" | "rejected" | "completed" | "cancelled";
 }) {
   const config = {
     pending: {
@@ -360,6 +360,14 @@ function OfferStatusBadge({
     rejected: {
       label: "Rejected",
       className: "bg-red-950/40 text-red-400 border-red-800/40",
+    },
+    completed: {
+      label: "Completed",
+      className: "bg-blue-950/40 text-blue-400 border-blue-800/40",
+    },
+    cancelled: {
+      label: "Cancelled",
+      className: "bg-zinc-900 text-zinc-500 border-zinc-800",
     },
   };
 

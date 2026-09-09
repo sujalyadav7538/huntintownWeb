@@ -8,7 +8,7 @@ import { Post, User } from '../../types';
 import { getAvatarUrl, handleAvatarError } from '../../utils';
 
 interface BackendResponse {
-  _id: string;
+  id: string;
   postId: string;
   message: string;
   answers: { question: string; answer: string }[];
@@ -41,7 +41,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const postId = (post as any)._id || post.id;
+  const postId = post.id;
 
   const fetchResponses = async () => {
     setLoading(true);
@@ -70,7 +70,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
       });
       if (!res.ok) throw new Error('Action failed');
       setResponses((prev) =>
-        prev.map((r) => (r._id === responseId ? { ...r, status: newStatus } : r))
+        prev.map((r) => (r.id === responseId ? { ...r, status: newStatus } : r))
       );
     } catch {
       // silently keep old status on error
@@ -162,12 +162,12 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
           ) : (
             <div className="divide-y divide-[#161619]">
               {responses.map((r) => {
-                const expanded = expandedId === r._id;
-                const isActioning = actionLoading === r._id;
+                const expanded = expandedId === r.id;
+                const isActioning = actionLoading === r.id;
                 const statusCfg = STATUS_CONFIG[r.status] || STATUS_CONFIG.pending;
 
                 return (
-                  <div key={r._id} className="p-4 sm:p-5 hover:bg-[#0e0e10] transition-colors">
+                  <div key={r.id} className="p-4 sm:p-5 hover:bg-[#0e0e10] transition-colors">
                     {/* ── Response header row ── */}
                     <div className="flex items-start gap-3">
                       <img
@@ -194,7 +194,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
 
                       {/* Expand toggle */}
                       <button
-                        onClick={() => setExpandedId(expanded ? null : r._id)}
+                        onClick={() => setExpandedId(expanded ? null : r.id)}
                         className="shrink-0 w-7 h-7 rounded-full bg-[#161619] border border-[#222226] flex items-center justify-center hover:bg-[#1e1e22] transition-colors cursor-pointer"
                       >
                         {expanded
@@ -231,7 +231,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                         {r.status === 'pending' && (
                           <div className="flex items-center gap-2 pt-1">
                             <button
-                              onClick={() => handleStatus(r._id, 'accepted')}
+                              onClick={() => handleStatus(r.id, 'accepted')}
                               disabled={!!actionLoading}
                               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-800/50 text-emerald-400 text-[11px] font-bold rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
@@ -239,7 +239,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                               Accept
                             </button>
                             <button
-                              onClick={() => handleStatus(r._id, 'rejected')}
+                              onClick={() => handleStatus(r.id, 'rejected')}
                               disabled={!!actionLoading}
                               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-red-950/30 hover:bg-red-900/30 border border-red-800/40 text-red-400 text-[11px] font-bold rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >

@@ -91,7 +91,7 @@ export default function ResponsesTab({
 
     try {
       const res = await apiFetch(
-        `/api/responses/post/${post._id}?page=1&limit=20`,
+        `/api/responses/post/${post.id}?page=1&limit=20`,
       );
 
       if (!res.ok) {
@@ -261,7 +261,7 @@ export default function ResponsesTab({
         >
           {filteredPosts.map((post) => (
             <PostGridCard
-              key={post._id || post.id}
+              key={post.id}
               post={post}
               onSelect={() => handleSelectPost(post)}
               viewButtonLabel="Explore"

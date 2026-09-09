@@ -148,8 +148,8 @@ export default function Messaging() {
    * Expected response:
    *
    * [
-   *   {
-   *     _id,
+  *   {
+  *     id,
    *     post: {...},
    *     otherUser: {...},
    *     lastMessageAt,
@@ -393,7 +393,7 @@ export default function Messaging() {
 
   const handleSelectChat = async (chat: any) => {
     setMode("chats");
-    const conversationId = chat._id;
+    const conversationId = chat.id;
     console.log(chat);
 
     dispatch(setActiveConversationId(conversationId));
@@ -456,8 +456,8 @@ export default function Messaging() {
 
   const activeConversation =
     conversations.find(
-      (conversation) => conversation._id === activeConversationId,
-    ) ?? myChats.find((chat) => chat._id === activeConversationId);
+      (conversation) => conversation.id === activeConversationId,
+    ) ?? myChats.find((chat) => chat.id === activeConversationId);
 
   /*
    * ---------------------------------------------------------
@@ -466,9 +466,9 @@ export default function Messaging() {
    */
 
   const activePost =
-    chatPosts.find((post) => post._id === activePostId) ??
+    chatPosts.find((post) => post.id === activePostId) ??
     myChats.find(
-      (chat) => chat.post?._id === activePostId || chat.postId === activePostId,
+      (chat) => chat.post?.id === activePostId || chat.postId === activePostId,
     )?.post;
 
   const activePostTitle = activePost?.title ?? "";

@@ -82,7 +82,7 @@ export default function ProfileContent({
 
   const trustLevel = getTrustLevel(trustScore);
 
-  const completedOffers = metric?.helperMetrics?.completedOffers ?? 0;
+  const completedOffers = metric?.helperMetrics?.completedResponses ?? 0;
 
   const successRate = metric?.helperMetrics?.acceptanceScore ?? 0;
 

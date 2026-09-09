@@ -191,14 +191,14 @@ const MyPostsList = ({ posts, selectedPostId, onSelectPost }) => {
           CATEGORY_COLORS[post.category?.toLowerCase()] ??
           CATEGORY_COLORS.default;
 
-        const selected = selectedPostId === post._id;
+        const selected = selectedPostId === post.id;
         const conversationCount = post.conversationCount ?? 0;
 
         return (
           <button
-            key={post._id}
+            key={post.id}
             type="button"
-            onClick={() => onSelectPost?.(post._id)}
+            onClick={() => onSelectPost?.(post.id)}
             className={`group relative flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-all duration-150 ${
               selected ? "bg-white/[0.055]" : "hover:bg-white/[0.025]"
             }`}
@@ -298,11 +298,11 @@ const MyChatsList = ({ chats, selectedChatId, onSelectChat }) => {
   return (
     <div className="divide-y divide-[#141416]">
       {chats.map((chat) => {
-        const selected = selectedChatId === chat._id;
+        const selected = selectedChatId === chat.id;
 
         return (
           <button
-            key={chat._id}
+            key={chat.id}
             type="button"
             onClick={() => onSelectChat?.(chat)}
             className={`group relative flex w-full items-center gap-3 px-4 py-4 text-left transition-colors ${

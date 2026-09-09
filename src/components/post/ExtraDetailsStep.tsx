@@ -1,10 +1,17 @@
 import { ImagePlus, HelpCircle, X } from "lucide-react";
 
 interface ExtraDetailsStepProps {
+  address?: string;
+  coordinates?: [number, number] | null;
   images: File[];
+  imagePreviews?: string[];
   questions: string[];
+  expiryDays?: number;
+  onAddressChange?: (value: string) => void;
+  onCoordinatesChange?: (value: [number, number] | null) => void;
   onImagesChange: (images: File[]) => void;
   onQuestionsChange: (questions: string[]) => void;
+  onExpiryChange?: (value: number) => void;
 }
 
 export default function ExtraDetailsStep({

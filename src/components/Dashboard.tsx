@@ -24,18 +24,12 @@ export default function Dashboard({ onUpdateStatus, onDeleteListing, onSelectPos
 
   const [offersPost, setOffersPost] = useState<Post | null>(null);
 
-  // Listings authored by current user — compare by MongoDB _id
-  const myPosts = posts.filter((p) =>
-    currentUser?._id
-      ? p.author._id === currentUser._id
-      : p.author.id === currentUser?.id,
-  );
+  const myPosts = posts.filter((p) => p.author.id === currentUser?.id);
 
   // Listings where current user replied or commented
   const postsUserCommentedOn = posts.filter((p) =>
-    p.author._id !== currentUser?._id &&
     p.author.id !== currentUser?.id &&
-    p.comments.some((c) => c.author?.id === currentUser?.id || c.author?._id === currentUser?._id),
+    p.comments.some((c) => c.author?.id === currentUser?.id),
   );
 
   // Stats calculation using backend status values

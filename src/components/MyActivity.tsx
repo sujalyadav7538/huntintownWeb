@@ -35,7 +35,7 @@ export default function MyActivity({
     setTab(initialTab);
   }, [initialTab]);
 
-  const currentUserId = (currentUser as any)?._id || currentUser?.id || "";
+  const currentUserId = currentUser?.id || "";
 
   const hideTabs = (value: boolean) => {
     setSelected(value);

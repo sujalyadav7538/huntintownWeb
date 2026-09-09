@@ -1,4 +1,12 @@
-import { Home, Plus, Activity, LucideIcon, User, Compass } from "lucide-react";
+import {
+  Home,
+  Plus,
+  Activity,
+  LucideIcon,
+  User,
+  Compass,
+  UserRound,
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getAvatarUrl, getUserId, handleAvatarError } from "../../utils";
 
@@ -77,7 +85,7 @@ export default function MobileBottomNavigation({
 
     if (item.id === "profile") {
       if (profileId) {
-        navigate(`/profile/${profileId}`);
+        navigate(`/profile`);
       }
       return;
     }
@@ -98,31 +106,37 @@ export default function MobileBottomNavigation({
       <button
         key={item.id}
         onClick={() => handleNavigation(item)}
-        aria-label={item.label}
+        aria-label={
+          item.id === "profile" && !isAuthenticated ? "Sign In" : item.label
+        }
         className={`flex flex-col items-center gap-0.5 px-3 py-2.5 transition ${
           active ? "text-[#FF3F3F]" : "theme-text-muted"
         }`}
       >
         {item.id === "profile" ? (
-          <img
-            src={getAvatarUrl(
-              currentUser?.name || "Profile",
-              currentUser?.avatar,
-            )}
-            alt={currentUser?.name || "Profile"}
-            onError={(event) =>
-              handleAvatarError(event, currentUser?.name || "Profile")
-            }
-            className={`h-5 w-5 rounded-full object-cover ${
-              active ? "ring-1 ring-[#FF3F3F]" : ""
-            }`}
-          />
+          isAuthenticated ? (
+            <img
+              src={getAvatarUrl(
+                currentUser?.name || "Profile",
+                currentUser?.avatar,
+              )}
+              alt={currentUser?.name || "Profile"}
+              onError={(event) =>
+                handleAvatarError(event, currentUser?.name || "Profile")
+              }
+              className={`h-5 w-5 rounded-full object-cover ${
+                active ? "ring-1 ring-[#FF3F3F]" : ""
+              }`}
+            />
+          ) : (
+            <UserRound className="h-5 w-5" />
+          )
         ) : (
           <Icon className="h-4 w-4" />
         )}
 
         <span className="text-[8px] font-bold uppercase tracking-wider">
-          {item.label}
+          {item.id === "profile" && !isAuthenticated ? "Sign In" : item.label}
         </span>
       </button>
     );

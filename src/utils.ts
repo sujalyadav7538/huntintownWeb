@@ -34,35 +34,35 @@ export const handleAvatarError = (
 
 // --- Type-safe helpers ----------------------------------------------------
 /**
- * Get a stable user identifier from a User object that may contain `_id` or `id`.
+ * Get a stable user identifier from a User object.
  * Returns empty string when the user is not available.
  */
-export const getUserId = (u?: { _id?: string; id?: string } | null): string => {
+export const getUserId = (u?: { id?: string } | null): string => {
   if (!u) return '';
-  return (u._id && String(u._id)) || (u.id && String(u.id)) || '';
+  return (u.id && String(u.id)) || '';
 };
 
 /**
- * Ensure an author object contains an `id` field (fall back to `_id`).
+ * Ensure an author object contains an `id` field.
  * Does not mutate the original object.
  */
-export const normalizeAuthor = <T extends { _id?: string; id?: string }>(
+export const normalizeAuthor = <T extends { id?: string }>(
   author: T,
 ): T & { id: string } => {
-  return { ...(author as any), id: (author.id as string) || (author._id as string) || '' };
+  return { ...(author as any), id: (author.id as string) || '' };
 };
 
 /**
  * Helper to check if the given `postAuthor` corresponds to the `currentUser`.
- * Accepts author and currentUser shapes that may have `_id` or `id`.
+ * Accepts author and currentUser shapes that expose `id`.
  */
 export const isAuthorOf = (
-  postAuthor?: { _id?: string; id?: string } | null,
-  currentUser?: { _id?: string; id?: string } | null,
+  postAuthor?: { id?: string } | null,
+  currentUser?: { id?: string } | null,
 ): boolean => {
   if (!postAuthor || !currentUser) return false;
-  const a = postAuthor._id || postAuthor.id || '';
-  const b = currentUser._id || currentUser.id || '';
+  const a = postAuthor.id || '';
+  const b = currentUser.id || '';
   return a !== '' && b !== '' && a === b;
 };
 

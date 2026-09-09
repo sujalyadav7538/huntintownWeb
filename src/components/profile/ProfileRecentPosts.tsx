@@ -34,7 +34,7 @@ export default function ProfileRecentPosts({
   ============================================================ */
 
   const getPostId = (post: Post) => {
-    return post.id || (post as any)._id;
+    return post.id;
   };
 
   const handlePostSelect = (post: Post) => {
@@ -49,7 +49,7 @@ export default function ProfileRecentPosts({
      * /dashboard/response/:postId
      */
     if (isOwner) {
-      navigate(`/dashboard/responses/${postId}`);
+      navigate(`/responses/${postId}`);
       return;
     }
 
@@ -63,7 +63,7 @@ export default function ProfileRecentPosts({
 
   const handleViewAll = () => {
     if (isOwner) {
-      navigate("/dashboard/responses");
+      navigate("/responses");
       return;
     } else {
       navigate(`/explore/${userId}`);

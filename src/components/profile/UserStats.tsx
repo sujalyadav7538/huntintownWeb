@@ -1,6 +1,4 @@
 import { Star, Shield, CheckCircle2, UserCheck } from "lucide-react";
-
-import OwnerStatsActions from "./OwnerStatsActions";
 import { UserMetric } from "../../types";
 
 interface UserStatsProps {

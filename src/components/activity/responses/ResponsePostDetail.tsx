@@ -60,7 +60,7 @@ export default function ResponsePostDetail({
   onInitiateChat,
   currentUserId,
 }: ResponsePostDetailProps) {
-  const postId = post._id || post.id;
+  const postId = post.id;
 
   const [responses, setResponses] = useState<Response[]>(initialResponses);
 
@@ -186,7 +186,7 @@ export default function ResponsePostDetail({
 
       setResponses((prev) =>
         prev.map((response) =>
-          response._id === responseId
+          response.id === responseId
             ? {
                 ...response,
                 status: newStatus,
@@ -660,22 +660,38 @@ function ActionButton({
 function ResponsesPanel({
   responses,
   loading,
+  error,
+  loadingMore,
+  hasMore,
   actionLoading,
   expandedId,
+  totalResponses,
   onRefresh,
+  onLoadMore,
   onToggle,
   onResponseAction,
   onInitiateChat,
 }: {
   responses: Response[];
   loading: boolean;
+  error?: string | null;
+  loadingMore?: boolean;
+  hasMore?: boolean;
   actionLoading: string | null;
   expandedId: string | null;
+  totalResponses?: number;
   onRefresh: () => void;
+  onLoadMore?: () => void;
   onToggle: (id: string) => void;
   onResponseAction: (id: string, action: "accept" | "reject") => void;
   onInitiateChat: () => void;
 }) {
+  void error;
+  void loadingMore;
+  void hasMore;
+  void totalResponses;
+  void onLoadMore;
+
   return (
     <section className="min-w-0 overflow-hidden rounded-2xl border border-zinc-800/70 bg-[#0c0c0e]">
       <div className="flex items-center justify-between border-b border-zinc-800/70 px-4 py-3.5">
@@ -709,20 +725,20 @@ function ResponsesPanel({
       ) : (
         <div className="divide-y divide-zinc-800/70">
           {responses.map((r, index) => {
-            const actioning = actionLoading === r._id;
+            const actioning = actionLoading === r.id;
 
             return (
               <ResponseRow
-                key={r._id}
+                key={r.id}
                 response={r}
                 idx={index}
-                expanded={expandedId === r._id}
-                onToggle={() => onToggle(r._id)}
+                expanded={expandedId === r.id}
+                onToggle={() => onToggle(r.id)}
                 actions={
                   r.status === "pending" ? (
                     <div className="flex gap-2">
                       <button
-                        onClick={() => onResponseAction(r._id, "accept")}
+                        onClick={() => onResponseAction(r.id, "accept")}
                         disabled={!!actionLoading}
                         className="rounded-lg bg-emerald-950/40 px-3 py-1.5 text-[10px] font-semibold text-emerald-400"
                       >
@@ -730,7 +746,7 @@ function ResponsesPanel({
                       </button>
 
                       <button
-                        onClick={() => onResponseAction(r._id, "reject")}
+                        onClick={() => onResponseAction(r.id, "reject")}
                         disabled={!!actionLoading}
                         className="rounded-lg bg-red-950/30 px-3 py-1.5 text-[10px] font-semibold text-red-400"
                       >

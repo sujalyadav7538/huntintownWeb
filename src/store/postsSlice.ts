@@ -12,13 +12,10 @@ let _fetchPostsInFlight = false;
 export function normalizePost(p: any): Post {
   return {
     ...p,
-    _id: p._id,
-    id: p._id || p.id,
+    id: p.id,
     author: {
       ...p.author,
-      _id: p.author?._id,
-      // id (UUID) is only returned when explicitly selected; fall back to _id
-      id: p.author?.id || p.author?._id || "",
+      id: p.author?.id || "",
       avatar: p.author?.avatar || "",
       role: p.author?.role || "",
       location: p.author?.location || p.location || "",
@@ -97,9 +94,7 @@ export const postsSlice = createSlice({
   initialState,
   reducers: {
     upsertPost: (state, action: PayloadAction<Post>) => {
-      const idx = state.findIndex(
-        (p) => p._id === action.payload._id || p.id === action.payload.id,
-      );
+      const idx = state.findIndex((p) => p.id === action.payload.id);
       if (idx >= 0) {
         state[idx] = action.payload;
       } else {
@@ -107,15 +102,13 @@ export const postsSlice = createSlice({
       }
     },
     appendPosts: (state, action: PayloadAction<Post[]>) => {
-      const existingIds = new Set(state.map((p) => p._id || p.id));
+      const existingIds = new Set(state.map((p) => p.id));
       for (const post of action.payload) {
-        if (!existingIds.has(post._id || post.id)) state.push(post);
+        if (!existingIds.has(post.id)) state.push(post);
       }
     },
     deletePost: (state, action: PayloadAction<string>) => {
-      return state.filter(
-        (p) => p._id !== action.payload && p.id !== action.payload,
-      );
+      return state.filter((p) => p.id !== action.payload);
     },
     addComment: (
       state,
@@ -125,10 +118,7 @@ export const postsSlice = createSlice({
         isOffer: boolean;
       }>,
     ) => {
-      const post = state.find(
-        (p) =>
-          p._id === action.payload.postId || p.id === action.payload.postId,
-      );
+      const post = state.find((p) => p.id === action.payload.postId);
       if (post) {
         post.comments.push(action.payload.comment);
         if (action.payload.isOffer) post.responsesCount++;
@@ -141,10 +131,7 @@ export const postsSlice = createSlice({
         status: Post["status"];
       }>,
     ) => {
-      const post = state.find(
-        (p) =>
-          p._id === action.payload.postId || p.id === action.payload.postId,
-      );
+      const post = state.find((p) => p.id === action.payload.postId);
       if (post) post.status = action.payload.status;
     },
     // Call on logout to allow a fresh fetch on next login
@@ -159,9 +146,9 @@ export const postsSlice = createSlice({
       return action.payload.posts;
     });
     builder.addCase(fetchPostsPage.fulfilled, (state, action) => {
-      const existingIds = new Set(state.map((p) => p._id || p.id));
+      const existingIds = new Set(state.map((p) => p.id));
       for (const post of action.payload.posts) {
-        if (!existingIds.has(post._id || post.id)) state.push(post);
+        if (!existingIds.has(post.id)) state.push(post);
       }
     });
   },

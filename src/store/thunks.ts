@@ -86,7 +86,7 @@ export const submitOfferThunk =
     }
 
     const fakeComment: Comment = {
-      _id: data.response?._id || `response_${Date.now()}`,
+      id: data.response?.id || `response_${Date.now()}`,
       postId,
       author: data.response?.respondedBy,
       content: message,

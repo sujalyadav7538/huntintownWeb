@@ -2,7 +2,7 @@
 
 import { useAppSelector } from "@/src/store/hooks";
 import { getAvatarUrl, handleAvatarError } from "@/src/utils";
-import { Menu, MessageSquare, Moon, Sun } from "lucide-react";
+import { Menu, MessageSquare, Moon, Sun, UserCircle } from "lucide-react";
 
 interface MobileNavigationProps {
   activeTab: string;
@@ -18,102 +18,71 @@ export default function MobileNavigation({
   setActiveTab,
   unreadMessagesCount,
   handleSidePanelOpen,
-  theme
+  theme,
 }: MobileNavigationProps) {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, currentUser } = useAppSelector(
+    (state) => state.auth,
+  );
 
   return (
     <div className="flex h-full items-center justify-between px-4">
-      <button>
-        <Menu
-          className="h-5 w-5 text-zinc-400 hover:text-white"
-          onClick={handleSidePanelOpen}
-        />
+      {/* Menu */}
+      <button type="button" onClick={handleSidePanelOpen}>
+        <Menu className="h-5 w-5 text-zinc-400 hover:text-white" />
       </button>
+
       {/* Logo */}
       <button
+        type="button"
         onClick={() => setActiveTab("mobile")}
-        className="flex  items-center"
+        className="flex items-center"
       >
-        <img src={`${theme=="dark"?"/dark_logo.png":"/light_logo.png"}`} alt="HuntInTown" className="h-8 w-37.5" />
+        <img
+          src={theme === "dark" ? "/dark_logo.png" : "/light_logo.png"}
+          alt="HuntInTown"
+          className="h-8 w-37.5"
+        />
       </button>
 
-      {/* Search */}
+      <div className="flex items-center gap-1">
+        {/* Messages */}
+        {isAuthenticated && currentUser ? (
+          <button
+            type="button"
+            onClick={() =>
+              setActiveTab(isAuthenticated ? "messaging" : "login")
+            }
+            aria-label={isAuthenticated ? "Messages" : "Sign in"}
+            className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+              activeTab === "messaging"
+                ? "bg-[#FF3F3F]/10 text-[#FF3F3F]"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+            }`}
+          >
+            <MessageSquare className="h-5 w-5" />
 
-      {/* <div className="relative ">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-        <input
-          placeholder="Search requirements..."
-          className="
-          w-full
-          h-10
-          rounded-xl
-          border border-[#2b2b30]
-          bg-[#1A1A1D]
-          pl-10
-          pr-4
-          text-sm
-          text-white
-          placeholder:text-zinc-500
-          focus:border-[#FF3F3F]
-          focus:outline-none
-        "
-        />
-      </div> */}
-
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => setActiveTab(isAuthenticated ? "messaging" : "login")}
-          className={`
-                    relative
-                    flex h-10 w-10 shrink-0 items-center justify-center
-                    rounded-xl
-                    transition
-                      ${
-                        activeTab === "messaging"
-                          ? "bg-[#FF3F3F]/10 text-[#FF3F3F]"
-                          : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
-                      }
-            `}
-        >
-          <MessageSquare className="h-5 w-5" />
-
-          {unreadMessagesCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3F3F] px-1 text-[9px] font-bold text-white">
-              {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
-            </span>
-          )}
-        </button>
+            {isAuthenticated && unreadMessagesCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3F3F] px-1 text-[9px] font-bold text-white">
+                {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
+              </span>
+            )}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setActiveTab("login")}
+            aria-label="Sign In"
+            className={`flex h-8 items-center gap-1.5 rounded-lg  text-[11px] font-semibold transition ${
+              activeTab === "login"
+                ? "text-[#FF3F3F]"
+                : "text-zinc-400 hover:text-white"
+            }`}
+          >
+            <UserCircle className="h-4 w-4" />
+            <span>Sign In</span>
+          </button>
+        )}
       </div>
-
-      {/* Profile */}
-      {/* {isAuthenticated && currentUser ? (
-        <button
-          type="button"
-          onClick={() => setActiveTab("profile")}
-          className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
-            activeTab === "profile" ? "bg-zinc-800" : "hover:bg-zinc-800"
-          }`}
-        >
-          <img
-            src={getAvatarUrl(currentUser.name, currentUser.avatar)}
-            alt={currentUser.name}
-            className="h-7 w-7 rounded-full object-cover ring-2 ring-[#2a2a2e]"
-            onError={(e) => handleAvatarError(e, currentUser.name)}
-            referrerPolicy="no-referrer"
-          />
-        </button>
-      ) : (
-        <button
-          id="header-signin-btn"
-          type="button"
-          onClick={() => setActiveTab("login")}
-          className="flex items-center gap-1.5 rounded-lg py-2 text-xs font-bold uppercase tracking-wide text-zinc-300 transition hover:bg-zinc-900 hover:text-white"
-        >
-          <UserCircle className="h-4 w-4" />
-          <span>Sign In</span>
-        </button>
-      )} */}
     </div>
   );
 }

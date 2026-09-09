@@ -85,7 +85,7 @@ export default function ApplyRequirementModal({
       setIsSubmitting(true);
 
       await onSubmit?.({
-        postId: post._id,
+        postId: post.id,
         message: message.trim(),
         answers: formattedAnswers,
       });

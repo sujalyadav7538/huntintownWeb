@@ -175,6 +175,23 @@ function ShowcaseDesktop({
   onEdit,
   onSelect,
 }: ShowcaseDesktopProps) {
+  if (items.length === 0) {
+    return (
+      <div className="hidden sm:flex items-center justify-center rounded-xl border border-white/[0.06] bg-[#151518] px-4 py-10">
+        <div className="text-center">
+          <p className="text-xs font-semibold text-zinc-500">
+            No showcases yet
+          </p>
+
+          <p className="mt-1 text-[10px] text-zinc-700">
+            {isOwner
+              ? "Add projects, achievements, or experiences to showcase."
+              : "No showcase items available."}
+          </p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="hidden gap-3 p-4 sm:grid sm:grid-cols-2">
       {items.map((item) => {
@@ -382,6 +399,25 @@ function ShowcaseMobile({
   onEdit,
   onSelect,
 }: ShowcaseMobileProps) {
+  if (items.length === 0) {
+    return (
+      <>
+        <div className="flex items-center justify-center px-4 py-8 sm:hidden">
+          <div className="w-full rounded-xl border border-white/[0.06] bg-[#151518] px-4 py-8 text-center">
+            <p className="text-xs font-semibold text-zinc-500">
+              No showcases yet
+            </p>
+
+            <p className="mt-1 text-[10px] leading-relaxed text-zinc-700">
+              {isOwner
+                ? "Add projects, achievements, or experiences to showcase."
+                : "No showcase items available."}
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
   return (
     <div className="relative sm:hidden">
       <div className="flex  gap-3 overflow-x-auto px-3 py-4 scrollbar-none [&::-webkit-scrollbar]:hidden">

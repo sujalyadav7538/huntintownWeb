@@ -93,7 +93,7 @@ export default function ChatList({
             placeholder="Search conversations..."
             value={channelsSearch}
             onChange={(e) => setChannelsSearch(e.target.value)}
-            className="h-9 w-full rounded-lg border border-white/[0.06] bg-white/[0.025] pl-9 pr-3 text-xs text-zinc-300 outline-none transition placeholder:text-zinc-700 focus:border-[#FF3F3F]/30 focus:bg-white/[0.035]"
+            className="h-9 w-full rounded-lg border border-white/6 bg-white/2.5 pl-9 pr-3 text-xs text-zinc-300 outline-none transition placeholder:text-zinc-700 focus:border-[#FF3F3F]/30 focus:bg-white/[0.035]"
           />
         </div>
       </header>
@@ -112,7 +112,7 @@ export default function ChatList({
           </div>
         ) : filteredConvs.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center px-8 text-center">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.025]">
+            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-white/2.5">
               <MessageSquare className="h-5 w-5 text-zinc-700" />
             </div>
 
@@ -130,18 +130,18 @@ export default function ChatList({
           <div className="divide-y divide-[#141416]">
             {filteredConvs.map((conv) => {
               const otherUser =
-                conv.participants.find((p) => p._id !== myId) ??
+                conv.participants.find((p) => p.id !== myId) ??
                 conv.participants[0];
 
-              const isSelected = conv._id === activeConversationId;
+              const isSelected = conv.id === activeConversationId;
 
               return (
                 <button
-                  key={conv._id}
+                  key={conv.id}
                   type="button"
-                  onClick={() => handleActiveChatClick(conv._id)}
+                  onClick={() => handleActiveChatClick(conv.id)}
                   className={`group relative flex w-full items-center gap-3 px-4 py-4 text-left transition-colors ${
-                    isSelected ? "bg-white/[0.045]" : "hover:bg-white/[0.025]"
+                    isSelected ? "bg-white/4.5" : "hover:bg-white/2.5"
                   }`}
                 >
                   {/* Selected indicator */}
@@ -150,7 +150,7 @@ export default function ChatList({
                   )}
 
                   {/* Avatar */}
-                  <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.04]">
+                  <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/4">
                     {otherUser?.avatar ? (
                       <img
                         src={otherUser.avatar}

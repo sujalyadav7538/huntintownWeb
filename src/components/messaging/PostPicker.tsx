@@ -80,9 +80,9 @@ export default function PostPicker({
 
               return (
                 <button
-                  key={post._id}
+                  key={post.id}
                   type="button"
-                  onClick={() => onSelectPost(post._id)}
+                  onClick={() => onSelectPost(post.id)}
                   className="group relative flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.025] active:bg-white/[0.04]"
                 >
                   {/* Accent indicator */}

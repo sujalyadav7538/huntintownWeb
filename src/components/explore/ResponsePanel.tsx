@@ -8,7 +8,7 @@ import { useAppSelector } from "@/src/store/hooks";
 type ResponseFilter = "trust" | "earliest" | "latest";
 
 interface ResponseData {
-  _id: string;
+  id: string;
   postId: string;
   respondedBy: User;
   message: string;
@@ -43,7 +43,7 @@ export default function ResponsesPanel({
   const { token } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    if (!post._id || !token) {
+    if (!post.id || !token) {
       setResponses([]);
       return;
     }
@@ -58,7 +58,7 @@ export default function ResponsesPanel({
         });
 
         const response = await fetch(
-          `/api/responses/post/${post._id}?${params.toString()}`,
+          `/api/responses/post/${post.id}?${params.toString()}`,
           {
             method: "GET",
             headers: {
@@ -84,7 +84,7 @@ export default function ResponsesPanel({
     };
 
     fetchResponses();
-  }, [post._id, token, filter]);
+  }, [post.id, token, filter]);
 
   return (
     <aside className="flex h-full min-h-0 flex-col">
@@ -167,7 +167,7 @@ export default function ResponsesPanel({
           <div className="space-y-2">
             {responses.map((response) => (
               <ResponseItem
-                key={response._id}
+                key={response.id}
                 response={response}
                 onViewProfile={onViewProfile}
               />

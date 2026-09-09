@@ -5,7 +5,7 @@ import { getAvatarUrl, handleAvatarError } from '../../utils';
 import { apiFetch } from '../../lib/api';
 
 interface Review {
-  _id: string;
+  id: string;
   hunter: { name: string; avatar: string; role?: string };
   rating: number;
   comment?: string;
@@ -109,7 +109,7 @@ export default function ProfileReviews({ userId, metric, metricLoading, compact 
         <>
           <div className="space-y-4">
             {displayedReviews.map((r) => (
-              <div key={r._id} className="flex gap-3">
+              <div key={r.id} className="flex gap-3">
                 <img
                   src={getAvatarUrl(r.hunter?.name, r.hunter?.avatar)}
                   alt={r.hunter?.name}

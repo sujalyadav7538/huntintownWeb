@@ -43,7 +43,7 @@ export default function ChatPanel({
     chatEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
-  }, [activeConversation?._id, activeMessages.length]);
+  }, [activeConversation?.id, activeMessages.length]);
 
   /*
    * No conversation selected
@@ -95,7 +95,7 @@ export default function ChatPanel({
               const showSeparator = label !== previousLabel;
 
               return (
-                <div key={message._id}>
+                <div key={message.id}>
                   {showSeparator && <DateSeparator label={label} />}
 
                   <MessageBubble msg={message} currentUserId={currentUserId} />

@@ -43,7 +43,7 @@ export default function LoginModal({
       name: customName.trim(),
       avatar: getAvatarUrl(customName.trim()),
       role: customRole.trim(),
-      location: customLocation.trim(),
+      address: customLocation.trim(),
       skills: ["Interior Design", "Home Decor", "Custom Carpentry"],
       bio: "Verified resident inside the HuntInTown network.",
     };

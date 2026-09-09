@@ -44,7 +44,7 @@ export default function HuntMap({
     if (userCoordinates) {
       console.log("Rendering User location");
       map.current.flyTo({
-        center: [userCoordinates.longitude, userCoordinates.latitude],
+        center: [userCoordinates[0], userCoordinates[1]],
         zoom: 14,
         duration: 1500,
       });
@@ -126,7 +126,7 @@ export default function HuntMap({
               onView={() =>
                 navigate("/explore", {
                   state: {
-                    openPostId: selectedPost._id || selectedPost.id,
+                    openPostId: selectedPost.id,
                   },
                 })
               }
