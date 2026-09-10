@@ -30,7 +30,7 @@ interface MobileBottomNavigationProps {
   onCreatePost: () => void;
 
   currentUser?: {
-    id: string;
+    _id: string;
     name: string;
     avatar?: string;
   };
