@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      This head is the ONLY thing crawlers that don't run JavaScript ever see
+      (Slack, WhatsApp, LinkedIn, X/Twitter, most preview bots). Per-route tags
+      are applied at runtime by src/shared/hooks/useSeo.ts for Googlebot, which
+      does render JS. Keep the two in sync: defaults here, overrides there.
+
+      The site-URL placeholders below are substituted by Vite at build time
+      from VITE_SITE_URL in the env file.
+    -->
+
+    <title>HuntInTown — Find Local Help, Offer Your Skills</title>
+    <meta
+      name="description"
+      content="HuntInTown connects people within local communities to post requirements, discover skilled helpers, collaborate securely, and build lasting reputation through verified interactions."
+    />
+
+    <link rel="canonical" href="%VITE_SITE_URL%/" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" href="/logo.jpeg" />
+    <link rel="apple-touch-icon" href="/logo.jpeg" />
+
+    <!-- Theme: the app toggles <html data-theme>, so declare both schemes -->
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#FF3F3F" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="HuntInTown" />
+    <meta property="og:locale" content="en_US" />
+    <meta
+      property="og:title"
+      content="HuntInTown — Find Local Help, Offer Your Skills"
+    />
+    <meta
+      property="og:description"
+      content="Post what you need, discover skilled helpers nearby, and build lasting reputation through verified local collaborations."
+    />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
+    <meta property="og:image" content="%VITE_SITE_URL%/logo.jpeg" />
+    <meta property="og:image:alt" content="HuntInTown" />
+
+    <!-- X / Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="HuntInTown — Find Local Help, Offer Your Skills"
+    />
+    <meta
+      name="twitter:description"
+      content="Post what you need, discover skilled helpers nearby, and build lasting reputation through verified local collaborations."
+    />
+    <meta name="twitter:image" content="%VITE_SITE_URL%/logo.jpeg" />
+
+    <!-- Speeds up the first API/socket call -->
+    <link rel="preconnect" href="%VITE_API_URL%" crossorigin />
+
+    <!-- Structured data: the site itself. Per-page entities are injected by useSeo. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "HuntInTown",
+        "url": "%VITE_SITE_URL%/",
+        "description": "A hyperlocal community marketplace where neighbours post requirements and skilled helpers respond.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "%VITE_SITE_URL%/explore?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Crawlers that don't execute JS get at least a description of the app. -->
+    <noscript>
+      <h1>HuntInTown</h1>
+      <p>
+        HuntInTown is a hyperlocal community network. Post what you need help
+        with, discover skilled helpers nearby, and build reputation through
+        verified local collaborations.
+      </p>
+      <p>JavaScript is required to use the app.</p>
+    </noscript>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
