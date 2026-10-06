@@ -1,5 +1,6 @@
-import { Check, Crosshair, MapPin, Navigation, Search } from "lucide-react";
+import { Check, Crosshair, Info, LoaderCircle, MapPin, X } from "lucide-react";
 import { useState } from "react";
+import { FormSection } from "@/src/features/posts/components/FormSection";
 
 interface LocationStepProps {
   address: string;
@@ -15,243 +16,131 @@ export default function LocationStep({
   onCoordinatesChange,
 }: LocationStepProps) {
   const [detecting, setDetecting] = useState(false);
-  const [locationSelected, setLocationSelected] = useState(
-    !!coordinates || !!address,
-  );
+  const [geoError, setGeoError] = useState("");
 
   const detectLocation = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setGeoError("Your browser doesn't support location access.");
+      return;
+    }
 
     setDetecting(true);
+    setGeoError("");
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-
         onCoordinatesChange([longitude, latitude]);
-        setLocationSelected(true);
-        setDetecting(false);
-
-        // Don't automatically put coordinates into address.
-        // Address can later be reverse-geocoded from backend/map.
-      },
-      () => {
         setDetecting(false);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
+      (error) => {
+        setDetecting(false);
+        setGeoError(
+          error.code === error.PERMISSION_DENIED
+            ? "Location permission was denied. Type an address instead."
+            : "We couldn't detect your location. Type an address instead.",
+        );
       },
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
-  const clearLocation = () => {
-    onAddressChange("");
-    onCoordinatesChange(null);
-    setLocationSelected(false);
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FF3F3F]/10">
-            <MapPin className="h-4 w-4 text-[#FF3F3F]" />
-          </div>
-
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
-              Where is it?
-            </p>
-
-            <p className="mt-0.5 text-[10px] text-zinc-700">
-              Help nearby people find your request.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Location methods */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {/* Current location */}
-        <button
-          type="button"
-          onClick={detectLocation}
-          disabled={detecting}
-          className={`
-            group flex items-center gap-3 rounded-xl border p-4
-            text-left transition-all
-            ${
-              coordinates
-                ? "border-emerald-400/30 bg-emerald-400/[0.06]"
-                : "border-white/[0.07] bg-[#111317] hover:border-white/[0.13]"
-            }
-          `}
-        >
-          <div
-            className={`
-              flex h-10 w-10 shrink-0 items-center justify-center rounded-xl
-              ${coordinates ? "bg-emerald-400/10" : "bg-blue-400/10"}
-            `}
-          >
-            {coordinates ? (
-              <Check className="h-4 w-4 text-emerald-400" />
-            ) : (
-              <Crosshair className="h-4 w-4 text-blue-400" />
-            )}
-          </div>
-
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold text-zinc-200">
-              {detecting
-                ? "Detecting location..."
-                : coordinates
-                  ? "Location selected"
-                  : "Use my location"}
-            </p>
-
-            <p className="mt-1 text-[9px] leading-4 text-zinc-600">
-              {coordinates
-                ? "Your location will be used for this request"
-                : "Automatically use your current location"}
-            </p>
-          </div>
-        </button>
-
-        {/* Map */}
-        <button
-          type="button"
-          className="group flex items-center gap-3 rounded-xl border border-white/[0.07] bg-[#111317] p-4 text-left transition-all hover:border-white/[0.13]"
-        >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-400/10">
-            <Navigation className="h-4 w-4 text-violet-400" />
-          </div>
-
-          <div>
-            <p className="text-[11px] font-semibold text-zinc-200">
-              Pick on map
-            </p>
-
-            <p className="mt-1 text-[9px] leading-4 text-zinc-600">
-              Choose an exact location
-            </p>
-          </div>
-        </button>
-      </div>
-
-      {/* Address */}
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              Address
-              <span className="ml-1.5 font-normal normal-case tracking-normal text-zinc-700">
-                Optional
+    <div className="space-y-4">
+      <FormSection
+        icon={Crosshair}
+        title="Use your current location"
+        hint="Most accurate way to reach helpers nearby."
+      >
+        {coordinates ? (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-3">
+            <span className="flex min-w-0 items-center gap-2.5">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
+                <Check className="h-4 w-4" />
               </span>
-            </p>
+              <span className="min-w-0">
+                <span className="theme-text-primary block text-sm font-semibold">
+                  Location captured
+                </span>
+                <span className="theme-text-muted block truncate text-[11px]">
+                  {coordinates[1].toFixed(4)}, {coordinates[0].toFixed(4)}
+                </span>
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => onCoordinatesChange(null)}
+              aria-label="Remove current location"
+              className="theme-icon-muted theme-hover-soft flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
+        ) : (
+          <button
+            type="button"
+            onClick={detectLocation}
+            disabled={detecting}
+            className="theme-btn-accent-soft inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border text-sm font-semibold transition disabled:opacity-60"
+          >
+            {detecting ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <Crosshair className="h-4 w-4" />
+            )}
+            {detecting ? "Detecting location…" : "Use my location"}
+          </button>
+        )}
 
+        {geoError && (
+          <p role="alert" className="mt-2 text-xs text-red-400">
+            {geoError}
+          </p>
+        )}
+      </FormSection>
+
+      <div className="theme-text-muted flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider">
+        <span className="theme-divider h-px flex-1 border-t" />
+        and / or
+        <span className="theme-divider h-px flex-1 border-t" />
+      </div>
+
+      <FormSection
+        icon={MapPin}
+        title="Area or address"
+        hint={
+          coordinates
+            ? "Optional — a readable area name is filled in automatically if you leave this empty."
+            : "Neighbourhood, landmark or street, e.g. Sector 62, Noida."
+        }
+      >
+        <div className="relative">
+          <MapPin className="theme-icon-muted pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" />
+          <input
+            value={address}
+            onChange={(event) => onAddressChange(event.target.value)}
+            aria-label="Area or address"
+            placeholder="e.g. Akshardham, Delhi"
+            className="theme-input h-11 w-full rounded-lg border pl-10 pr-10 text-sm outline-none transition"
+          />
           {address && (
             <button
               type="button"
-              onClick={clearLocation}
-              className="text-[9px] text-zinc-600 hover:text-zinc-400"
+              onClick={() => onAddressChange("")}
+              aria-label="Clear address"
+              className="theme-icon-muted absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full hover:text-[#FF3F3F]"
             >
-              Clear
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
+      </FormSection>
 
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-700" />
-
-          <input
-            value={address}
-            onChange={(e) => {
-              onAddressChange(e.target.value);
-              setLocationSelected(true);
-            }}
-            placeholder="e.g. Akshardham, Delhi"
-            className="
-              h-11 w-full rounded-xl
-              border border-white/[0.07]
-              bg-[#111317]
-              pl-9 pr-3
-              text-[11px] text-zinc-200
-              outline-none
-              transition
-              placeholder:text-zinc-700
-              focus:border-[#FF3F3F]/40
-            "
-          />
-        </div>
-      </div>
-
-      {/* Location preview */}
-      {locationSelected && (
-        <div className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-[#0f1216]">
-          {/* Fake map preview */}
-          <div className="relative h-36 overflow-hidden bg-[#11161b]">
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute left-[10%] top-1/3 h-px w-[80%] rotate-12 bg-zinc-500" />
-              <div className="absolute left-[20%] top-2/3 h-px w-[70%] -rotate-6 bg-zinc-500" />
-              <div className="absolute left-1/3 top-0 h-full w-px rotate-12 bg-zinc-600" />
-              <div className="absolute right-1/4 top-0 h-full w-px -rotate-[20deg] bg-zinc-600" />
-            </div>
-
-            {/* Pin */}
-            <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#FF3F3F]/30 bg-[#FF3F3F]/15 shadow-[0_0_25px_rgba(255,63,63,0.2)]">
-                <MapPin className="h-4 w-4 text-[#FF3F3F]" />
-              </div>
-
-              <div className="mt-1 h-1.5 w-1.5 rounded-full bg-[#FF3F3F]" />
-            </div>
-
-            {/* Search button */}
-            <button
-              type="button"
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-black/40 text-zinc-400 backdrop-blur hover:text-white"
-            >
-              <Search className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] px-3 py-2.5">
-            <div className="flex min-w-0 items-center gap-2">
-              <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
-
-              <p className="truncate text-[9px] text-zinc-500">
-                {address || "Location selected"}
-              </p>
-            </div>
-
-            <span className="shrink-0 text-[8px] font-medium text-emerald-400">
-              Selected
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Skip */}
-      {!locationSelected && (
-        <div className="flex items-center justify-center rounded-xl border border-dashed border-white/[0.06] px-4 py-3">
-          <p className="text-[9px] text-zinc-700">
-            No location? That's okay — you can skip this step.
-          </p>
-        </div>
-      )}
-
-      {/* Privacy */}
-      <div className="flex items-start gap-2 rounded-xl bg-white/[0.018] px-3 py-2.5">
-        <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-zinc-700" />
-
-        <p className="text-[9px] leading-4 text-zinc-700">
-          Your exact location doesn't have to be displayed publicly. We can use
-          it to connect you with people nearby.
-        </p>
-      </div>
+      <p className="theme-card-subtle theme-text-muted flex items-start gap-2 rounded-lg border px-3.5 py-3 text-xs leading-5">
+        <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        Only the area name is shown on your post. Exact coordinates are used to
+        match you with nearby helpers.
+      </p>
     </div>
   );
 }

@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
+import useDebounce from "@/src/shared/hooks/useDebounce";
+import ExploreSearch from "@/src/features/explore/components/ExploreSearch";
 import type { DashboardPost, PostStatus } from "../types";
 import ReceivedOffersModal from "./ReceivedOffersModal";
+import RateHelpersModal from "./RateHelpersModal";
 import RequirementCard from "./RequirementCard";
 import { EmptyState, ErrorState, LoadingState } from "./RequirementUI";
 
@@ -13,7 +16,7 @@ const FILTERS: { value: "all" | PostStatus; label: string }[] = [
   { value: "in_progress", label: "In progress" },
   { value: "completed", label: "Completed" },
   { value: "expired", label: "Expired" },
-  { value: "cancelled", label: "Cancelled" },
+  // { value: "cancelled", label: "Cancelled" },
 ];
 
 interface PublishedRequirementsProps {
@@ -38,52 +41,58 @@ export default function PublishedRequirements({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedPost, setSelectedPost] = useState<DashboardPost | null>(null);
+  const [ratingPost, setRatingPost] = useState<DashboardPost | null>(null);
+  const closeRating = useCallback(() => setRatingPost(null), []);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search.trim(), 400);
   const sentinel = useRef<HTMLDivElement>(null);
-  const requestInFlight = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   const loadPosts = useCallback(async () => {
-    if (requestInFlight.current) return;
-    requestInFlight.current = true;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
     setError("");
     try {
-      const response = await apiFetch("/api/responses/received");
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set("q", debouncedSearch);
+      if (filter !== "all") params.set("status", filter);
+      const query = params.toString();
+      const response = await apiFetch(
+        `/api/responses/received${query ? `?${query}` : ""}`,
+        { signal: controller.signal },
+      );
       const body = await response.json();
       if (!response.ok)
         throw new Error(body?.message || "Could not load your requirements.");
       const data: DashboardPost[] = body.data ?? [];
       setPosts(data);
       setVisibleCount(PAGE_SIZE);
-      onDataChange(data);
+      // Overview stats need the unfiltered list
+      if (!debouncedSearch && filter === "all") onDataChange(data);
     } catch (cause) {
+      if (controller.signal.aborted) return;
       setError(
         cause instanceof Error
           ? cause.message
           : "Could not load your requirements.",
       );
     } finally {
-      setLoading(false);
-      requestInFlight.current = false;
+      if (abortRef.current === controller) setLoading(false);
     }
-  }, [onDataChange]);
+  }, [debouncedSearch, filter, onDataChange]);
 
   useEffect(() => {
     void loadPosts();
+    return () => abortRef.current?.abort();
   }, [loadPosts]);
 
-  const filteredPosts = useMemo(
-    () =>
-      filter === "all" ? posts : posts.filter((post) => post.status === filter),
-    [filter, posts],
-  );
+  const filteredPosts = posts;
   const refreshRequirements = useCallback(async () => {
     await loadPosts();
     onChanged();
   }, [loadPosts, onChanged]);
-
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [filter]);
 
   useEffect(() => {
     const target = sentinel.current;
@@ -123,6 +132,14 @@ export default function PublishedRequirements({
         </button>
       </div>
 
+      <div className="mb-3">
+        <ExploreSearch
+          searchTerm={search}
+          setSearchTerm={setSearch}
+          placeholder="Search your requirements..."
+        />
+      </div>
+
       <div
         className="theme-divider mb-3 flex gap-1 overflow-x-auto border-b pb-2 scrollbar-hide"
         aria-label="Filter requirements"
@@ -148,9 +165,11 @@ export default function PublishedRequirements({
         ) : filteredPosts.length === 0 ? (
           <EmptyState
             text={
-              filter === "all"
-                ? "You haven’t published a requirement yet."
-                : `No ${FILTERS.find((item) => item.value === filter)?.label.toLowerCase()} requirements.`
+              debouncedSearch
+                ? `No requirements match "${debouncedSearch}".`
+                : filter === "all"
+                  ? "You haven’t published a requirement yet."
+                  : `No ${FILTERS.find((item) => item.value === filter)?.label.toLowerCase()} requirements.`
             }
           />
         ) : (
@@ -163,7 +182,9 @@ export default function PublishedRequirements({
                 onUpdateStatus={async (status) => {
                   await onUpdateStatus(post._id, status);
                   await refreshRequirements();
+                  if (status === "completed") setRatingPost(post);
                 }}
+                onRate={() => setRatingPost(post)}
                 onDelete={async () => {
                   await onDeleteListing(post._id);
                   await refreshRequirements();
@@ -186,6 +207,13 @@ export default function PublishedRequirements({
           onClose={() => setSelectedPost(null)}
           onInitiateChat={onInitiateChat}
           onChanged={refreshRequirements}
+        />
+      )}
+      {ratingPost && (
+        <RateHelpersModal
+          postId={ratingPost._id}
+          postTitle={ratingPost.title}
+          onClose={closeRating}
         />
       )}
     </section>

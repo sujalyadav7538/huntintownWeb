@@ -144,9 +144,10 @@ export default function App() {
   );
 
   const handlePostCreated = useCallback(
-    (postId: string) => {
+    (_postId: string) => {
       dispatch(closeCreatePost());
-      navigate("/explore", { state: { openPostId: postId } });
+      // Explore hides the user's own posts, so show it in the Dashboard instead.
+      navigate("/dashboard");
     },
     [dispatch, navigate],
   );

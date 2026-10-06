@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   Bell,
   Check,
+  CheckCheck,
   ChevronRight,
   ExternalLink,
   Settings,
@@ -11,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import {
   NotificationItem,
+  resolveNotificationLink,
   useNotifications,
 } from "../../hooks/useNotifications";
 
@@ -21,6 +23,8 @@ interface NotificationViewProps {
   onClose: () => void;
   onPushAction: () => void;
   onNotificationClick: (notification: NotificationItem) => void;
+  onMarkAllRead: () => void;
+  onViewAll: () => void;
 }
 
 const formatTime = (value: string) => {
@@ -75,31 +79,47 @@ const EmptyState = ({ mobile = false }: { mobile?: boolean }) => (
 );
 
 const NotificationFooter = ({
-  count,
   unreadCount,
+  onMarkAllRead,
+  onViewAll,
   mobile = false,
 }: {
-  count: number;
   unreadCount: number;
+  onMarkAllRead: () => void;
+  onViewAll: () => void;
   mobile?: boolean;
 }) => (
   <footer
-    className={`flex items-center justify-between border-t border-(--app-border) bg-(--app-surface-soft) text-[10px] text-(--app-text-muted) ${
+    className={`flex items-center justify-between border-t border-(--app-border) bg-(--app-surface-soft) text-[11px] ${
       mobile
         ? "px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
         : "px-4 py-2.5"
     }`}
   >
-    <span>
-      {count} notification{count === 1 ? "" : "s"}
-    </span>
-
-    {unreadCount > 0 && (
+    {unreadCount > 0 ? (
+      <button
+        type="button"
+        onClick={onMarkAllRead}
+        className="flex items-center gap-1 font-semibold text-(--app-text-muted) transition hover:text-(--app-text)"
+      >
+        <CheckCheck className="h-3.5 w-3.5" />
+        Mark all as read
+      </button>
+    ) : (
       <span className="flex items-center gap-1 text-(--app-text-muted)">
         <Check className="h-3 w-3" />
-        {unreadCount} unread
+        All caught up
       </span>
     )}
+
+    <button
+      type="button"
+      onClick={onViewAll}
+      className="flex items-center gap-1 font-semibold text-(--app-red) transition hover:opacity-80"
+    >
+      View all
+      <ChevronRight className="h-3.5 w-3.5" />
+    </button>
   </footer>
 );
 
@@ -309,6 +329,8 @@ const DesktopNotification = ({
   onClose,
   onPushAction,
   onNotificationClick,
+  onMarkAllRead,
+  onViewAll,
 }: NotificationViewProps) => (
   <section
     aria-label="Notification center"
@@ -331,12 +353,11 @@ const DesktopNotification = ({
       onNotificationClick={onNotificationClick}
     />
 
-    {notifications.length > 0 && (
-      <NotificationFooter
-        count={notifications.length}
-        unreadCount={unreadCount}
-      />
-    )}
+    <NotificationFooter
+      unreadCount={unreadCount}
+      onMarkAllRead={onMarkAllRead}
+      onViewAll={onViewAll}
+    />
   </section>
 );
 
@@ -347,6 +368,8 @@ const MobileNotification = ({
   onClose,
   onPushAction,
   onNotificationClick,
+  onMarkAllRead,
+  onViewAll,
 }: NotificationViewProps) =>
   createPortal(
     <>
@@ -385,13 +408,12 @@ const MobileNotification = ({
           mobile
         />
 
-        {notifications.length > 0 && (
-          <NotificationFooter
-            count={notifications.length}
-            unreadCount={unreadCount}
-            mobile
-          />
-        )}
+        <NotificationFooter
+          unreadCount={unreadCount}
+          onMarkAllRead={onMarkAllRead}
+          onViewAll={onViewAll}
+          mobile
+        />
       </section>
     </>,
     document.body,
@@ -403,7 +425,9 @@ const Notification = () => {
 
   const {
     notifications,
+    unreadCount,
     markAsRead,
+    markAllAsRead,
     enablePushNotifications,
     renewPushNotifications,
   } = useNotifications();
@@ -417,13 +441,6 @@ const Notification = () => {
 
   const [permission, setPermission] = useState<NotificationPermission>(() =>
     "Notification" in window ? window.Notification.permission : "default",
-  );
-
-  /* ------------------------------ Derived Data ---------------------------- */
-
-  const unreadCount = useMemo(
-    () => notifications.filter((notification) => !notification.isRead).length,
-    [notifications],
   );
 
   /* ------------------------------ Push Logic ------------------------------ */
@@ -449,24 +466,22 @@ const Notification = () => {
   /* --------------------------- Notification Logic ------------------------- */
 
   const handleNotificationClick = async (notification: NotificationItem) => {
-    try {
-      await markAsRead(notification._id);
+    setIsOpen(false);
 
-      setIsOpen(false);
+    const target = resolveNotificationLink(notification);
+    if (target) navigate(target);
 
-      if (!notification.link) {
-        return;
-      }
-
-      if (/^https?:\/\//i.test(notification.link)) {
-        window.location.assign(notification.link);
-        return;
-      }
-
-      navigate(notification.link);
-    } catch (error) {
-      console.error("[Notifications] Failed to handle notification:", error);
+    if (!notification.isRead) {
+      markAsRead(notification._id).catch((error) =>
+        console.error("[Notifications] Failed to mark as read:", error),
+      );
     }
+  };
+
+  const handleMarkAllRead = () => {
+    markAllAsRead().catch((error) =>
+      console.error("[Notifications] Failed to mark all as read:", error),
+    );
   };
 
   /* ------------------------------ UI Events ------------------------------- */
@@ -529,6 +544,11 @@ const Notification = () => {
     onClose: () => setIsOpen(false),
     onPushAction: handlePushAction,
     onNotificationClick: handleNotificationClick,
+    onMarkAllRead: handleMarkAllRead,
+    onViewAll: () => {
+      setIsOpen(false);
+      navigate("/notifications");
+    },
   };
 
   /* -------------------------------- Render -------------------------------- */

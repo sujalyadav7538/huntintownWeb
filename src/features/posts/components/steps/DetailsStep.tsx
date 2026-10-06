@@ -1,11 +1,22 @@
 import { useMemo } from "react";
 import {
+  AlignLeft,
   Clock3,
   IndianRupee,
   Lightbulb,
   PenLine,
-  Sparkles,
 } from "lucide-react";
+import {
+  CharCount,
+  FormSection,
+} from "@/src/features/posts/components/FormSection";
+import { ComboInput } from "@/src/features/posts/components/Dropdowns";
+import {
+  BUDGET_MAX,
+  DESCRIPTION_MAX,
+  TIMELINE_MAX,
+  TITLE_MAX,
+} from "@/src/features/posts/lib/postForm";
 
 interface DetailsStepProps {
   title: string;
@@ -28,7 +39,15 @@ const BUDGETS = [
   "Negotiable",
 ];
 
-const TIMELINES = ["Today", "Tomorrow", "This Week", "Next Week", "Flexible"];
+const TIMELINES = [
+  "Today",
+  "Tomorrow",
+  "Within 3 days",
+  "This Week",
+  "Next Week",
+  "This Month",
+  "Flexible",
+];
 
 const TITLE_SUGGESTIONS: Record<string, string[]> = {
   home_services: [
@@ -104,180 +123,93 @@ export default function DetailsStep({
     [category],
   );
 
-  const selectedBudget = BUDGETS.includes(budget);
-  const selectedTimeline = TIMELINES.includes(timeline);
-
   return (
-    <div className="space-y-7">
-      {/* =====================================================
-          TITLE
-      ====================================================== */}
-      <section>
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <PenLine className="h-3.5 w-3.5 text-[#FF3F3F]" />
-              <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-                What do you need?
-              </p>
-            </div>
-
-            <p className="mt-1 text-[10px] text-zinc-700">
-              Pick a suggestion or write your own.
-            </p>
-          </div>
-
-          <span className="text-[9px] text-zinc-700">{title.length}/100</span>
-        </div>
-
+    <div className="space-y-4">
+      <FormSection
+        icon={PenLine}
+        title="Title"
+        hint="A short headline people will see first."
+        aside={<CharCount value={title.length} max={TITLE_MAX} />}
+      >
         <input
           value={title}
           onChange={(event) => onTitleChange(event.target.value)}
-          maxLength={100}
+          maxLength={TITLE_MAX}
+          aria-label="Requirement title"
           placeholder="e.g. Need a plumber for bathroom repair"
-          className="h-11 w-full rounded-xl border border-white/[0.08] bg-[#111317] px-3.5 text-[12px] text-zinc-200 outline-none transition placeholder:text-zinc-700 focus:border-[#FF3F3F]/40 focus:bg-[#13161a]"
+          className="theme-input h-11 w-full rounded-lg border px-3.5 text-sm outline-none transition"
         />
 
-        <div className="mt-3">
-          <div className="mb-2 flex items-center gap-1.5">
-            <Lightbulb className="h-3 w-3 text-amber-400" />
-            <p className="text-[9px] font-medium text-zinc-600">Suggestions</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion}
-                type="button"
-                onClick={() => onTitleChange(suggestion)}
-                className={`rounded-lg border px-2.5 py-1.5 text-left text-[9px] transition ${title === suggestion ? "border-[#FF3F3F]/30 bg-[#FF3F3F]/10 text-[#ff6565]" : "border-white/[0.06] bg-white/[0.02] text-zinc-500 hover:border-white/[0.11] hover:text-zinc-300"}`}
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          DESCRIPTION
-      ====================================================== */}
-      <section>
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              A little more detail
-            </p>
-            <p className="mt-1 text-[10px] text-zinc-700">
-              Tell people what actually needs to be done.
-            </p>
-          </div>
-
-          <span className="text-[9px] text-zinc-700">
-            {description.length}/300
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="theme-text-muted inline-flex items-center gap-1 text-[11px] font-medium">
+            <Lightbulb className="h-3.5 w-3.5 text-amber-400" />
+            Try:
           </span>
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => onTitleChange(suggestion)}
+              className={`rounded-full border px-3 py-1 text-[11px] transition ${
+                title === suggestion
+                  ? "theme-chip-active text-[#FF3F3F]"
+                  : "theme-chip theme-divider"
+              }`}
+            >
+              {suggestion}
+            </button>
+          ))}
         </div>
+      </FormSection>
 
+      <FormSection
+        icon={AlignLeft}
+        title="Description"
+        hint="What needs to be done? Mention anything a helper should know."
+        aside={<CharCount value={description.length} max={DESCRIPTION_MAX} />}
+      >
         <textarea
           value={description}
           onChange={(event) => onDescriptionChange(event.target.value)}
-          maxLength={300}
+          maxLength={DESCRIPTION_MAX}
           rows={4}
+          aria-label="Requirement description"
           placeholder="Describe the task, problem, or result you need..."
-          className="w-full resize-none rounded-xl border border-white/[0.08] bg-[#111317] px-3.5 py-3 text-[11px] leading-5 text-zinc-200 outline-none transition placeholder:text-zinc-700 focus:border-[#FF3F3F]/40 focus:bg-[#13161a]"
+          className="theme-input w-full resize-none rounded-lg border px-3.5 py-3 text-sm leading-6 outline-none transition"
         />
+      </FormSection>
 
-        <div className="mt-2 flex items-center gap-1.5 text-[9px] text-zinc-700">
-          <Sparkles className="h-3 w-3" />
-          Keep it short. You can add photos and questions later.
-        </div>
-      </section>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <FormSection
+          icon={IndianRupee}
+          title="Budget"
+          hint="Type an amount or range, or pick a suggestion."
+        >
+          <ComboInput
+            value={budget}
+            onChange={onBudgetChange}
+            suggestions={BUDGETS}
+            maxLength={BUDGET_MAX}
+            ariaLabel="Budget"
+            placeholder="e.g. ₹3,500 or ₹800/hour"
+          />
+        </FormSection>
 
-      {/* =====================================================
-          BUDGET
-      ====================================================== */}
-      <section>
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/10">
-            <IndianRupee className="h-3.5 w-3.5 text-emerald-400" />
-          </div>
-
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              What's your budget?
-            </p>
-            <p className="mt-0.5 text-[10px] text-zinc-700">
-              Choose a range. No typing needed.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {BUDGETS.map((item) => {
-            const active = budget === item;
-
-            return (
-              <button
-                key={item}
-                type="button"
-                onClick={() => onBudgetChange(item)}
-                className={`rounded-xl border px-3 py-2.5 text-[10px] font-semibold transition ${active ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" : "border-white/[0.06] bg-[#111317] text-zinc-500 hover:border-white/[0.12] hover:text-zinc-300"}`}
-              >
-                {item}
-              </button>
-            );
-          })}
-        </div>
-
-        {!selectedBudget && (
-          <p className="mt-2 text-[9px] text-zinc-700">
-            Select one to continue.
-          </p>
-        )}
-      </section>
-
-      {/* =====================================================
-          TIMELINE
-      ====================================================== */}
-      <section>
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/10">
-            <Clock3 className="h-3.5 w-3.5 text-amber-400" />
-          </div>
-
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500">
-              When do you need it?
-            </p>
-            <p className="mt-0.5 text-[10px] text-zinc-700">
-              Choose the closest option.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {TIMELINES.map((item) => {
-            const active = timeline === item;
-
-            return (
-              <button
-                key={item}
-                type="button"
-                onClick={() => onTimelineChange(item)}
-                className={`rounded-xl border px-3 py-2.5 text-[10px] font-semibold transition ${active ? "border-amber-400/30 bg-amber-400/10 text-amber-300" : "border-white/[0.06] bg-[#111317] text-zinc-500 hover:border-white/[0.12] hover:text-zinc-300"}`}
-              >
-                {item}
-              </button>
-            );
-          })}
-        </div>
-
-        {!selectedTimeline && (
-          <p className="mt-2 text-[9px] text-zinc-700">
-            Select one to continue.
-          </p>
-        )}
-      </section>
+        <FormSection
+          icon={Clock3}
+          title="Timeline"
+          hint="Type when you need it, or pick a suggestion."
+        >
+          <ComboInput
+            value={timeline}
+            onChange={onTimelineChange}
+            suggestions={TIMELINES}
+            maxLength={TIMELINE_MAX}
+            ariaLabel="Timeline"
+            placeholder="e.g. By Saturday evening"
+          />
+        </FormSection>
+      </div>
     </div>
   );
 }

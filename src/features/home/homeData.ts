@@ -1,4 +1,5 @@
 import {
+  BowArrow,
   Coins,
   Compass,
   Crown,
@@ -209,7 +210,7 @@ export const heroSectionStats: MetricConfig[] = [
     title: "Active Requests",
     value: (activePosts: number) => activePosts,
     subtitle: "People currently looking for local help",
-    icon: Compass,
+    icon: BowArrow,
     color: "#FF3F3F",
     className: "border border-[#232327] bg-[#1e1e1f]",
     // badge: {

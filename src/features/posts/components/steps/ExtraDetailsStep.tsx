@@ -1,205 +1,249 @@
-import { ImagePlus, HelpCircle, X } from "lucide-react";
+import { useState } from "react";
+import {
+  CalendarClock,
+  ClipboardCheck,
+  HelpCircle,
+  ImagePlus,
+  Plus,
+  X,
+} from "lucide-react";
+import {
+  FormSection,
+  OptionChip,
+} from "@/src/features/posts/components/FormSection";
+import {
+  ACCEPTED_IMAGE_TYPES,
+  EXPIRY_OPTIONS,
+  MAX_IMAGE_BYTES,
+  MAX_POST_IMAGES,
+  MAX_QUESTIONS,
+  QUESTION_MAX,
+  getCategoryLabel,
+} from "@/src/features/posts/lib/postForm";
 
 interface ExtraDetailsStepProps {
-  address?: string;
-  coordinates?: [number, number] | null;
   images: File[];
-  imagePreviews?: string[];
+  imagePreviews: string[];
   questions: string[];
-  expiryDays?: number;
-  onAddressChange?: (value: string) => void;
-  onCoordinatesChange?: (value: [number, number] | null) => void;
+  expiryDays: number;
+  summary: {
+    category: string;
+    title: string;
+    budget: string;
+    timeline: string;
+    address: string;
+    hasCoordinates: boolean;
+  };
   onImagesChange: (images: File[]) => void;
   onQuestionsChange: (questions: string[]) => void;
-  onExpiryChange?: (value: number) => void;
+  onExpiryChange: (value: number) => void;
 }
 
 export default function ExtraDetailsStep({
   images,
+  imagePreviews,
   questions,
+  expiryDays,
+  summary,
   onImagesChange,
   onQuestionsChange,
+  onExpiryChange,
 }: ExtraDetailsStepProps) {
+  const [imageError, setImageError] = useState("");
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
-
-    // Keep it optional, but limit to 5 images.
-    const nextImages = [...images, ...files].slice(0, 5);
-
-    onImagesChange(nextImages);
-
-    // Allow selecting the same file again.
     e.target.value = "";
+
+    const valid = files.filter(
+      (file) =>
+        ACCEPTED_IMAGE_TYPES.includes(file.type) && file.size <= MAX_IMAGE_BYTES,
+    );
+    const room = MAX_POST_IMAGES - images.length;
+
+    if (valid.length < files.length) {
+      setImageError("Only JPG, PNG or WEBP images up to 5 MB are allowed.");
+    } else if (valid.length > room) {
+      setImageError(`You can add up to ${MAX_POST_IMAGES} photos.`);
+    } else {
+      setImageError("");
+    }
+
+    if (valid.length && room > 0) {
+      onImagesChange([...images, ...valid.slice(0, room)]);
+    }
   };
 
   const removeImage = (index: number) => {
+    setImageError("");
     onImagesChange(images.filter((_, i) => i !== index));
   };
 
-  const addQuestion = () => {
-    if (questions.length >= 3) return;
-    onQuestionsChange([...questions, ""]);
-  };
-
   const updateQuestion = (index: number, value: string) => {
-    const updated = [...questions];
-    updated[index] = value;
-    onQuestionsChange(updated);
-  };
-
-  const removeQuestion = (index: number) => {
-    onQuestionsChange(questions.filter((_, i) => i !== index));
+    onQuestionsChange(questions.map((q, i) => (i === index ? value : q)));
   };
 
   return (
-    <div className="space-y-5">
-      {/* Images */}
-      <section>
-        <div className="mb-2 flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold text-white">
-              Add photos
-              <span className="ml-1 text-[10px] font-normal text-zinc-600">
-                Optional
-              </span>
-            </h3>
-
-            <p className="mt-0.5 text-[10px] text-zinc-500">
-              Photos help people understand what you need.
-            </p>
-          </div>
-
-          <span className="text-[10px] text-zinc-600">{images.length}/5</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-          {images.map((file, index) => (
-            <div
-              key={`${file.name}-${index}`}
-              className="group relative aspect-square overflow-hidden rounded-xl border border-[#2a2a2e] bg-[#0e0e10]"
-            >
-              <img
-                src={URL.createObjectURL(file)}
-                alt={`Upload ${index + 1}`}
-                className="h-full w-full object-cover"
-              />
-
-              <button
-                type="button"
-                onClick={() => removeImage(index)}
-                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-zinc-300 opacity-100 backdrop-blur-sm transition hover:bg-red-500 hover:text-white"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-
-          {images.length < 5 && (
-            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#2a2a2e] bg-[#111113] text-zinc-600 transition hover:border-[#FF3F3F]/50 hover:bg-[#151517] hover:text-zinc-400">
-              <ImagePlus className="h-5 w-5" />
-
-              <span className="mt-1 text-[9px] font-medium">Add photo</span>
-
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handleImageChange}
-              />
-            </label>
-          )}
-        </div>
-      </section>
-
-      {/* Questions */}
-      <section>
-        <div className="mb-2 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-sm font-semibold text-white">Questions</h3>
-
-              <span className="rounded-full bg-[#1e1e22] px-1.5 py-0.5 text-[8px] font-medium text-zinc-500">
-                Optional
-              </span>
-            </div>
-
-            <p className="mt-0.5 text-[10px] text-zinc-500">
-              Ask something people should answer before responding.
-            </p>
-          </div>
-
-          {questions.length < 3 && (
-            <button
-              type="button"
-              onClick={addQuestion}
-              className="text-[10px] font-semibold text-[#FF3F3F] transition hover:text-[#ff6666]"
-            >
-              + Add
-            </button>
-          )}
-        </div>
-
-        {questions.length === 0 ? (
-          <button
-            type="button"
-            onClick={addQuestion}
-            className="flex w-full items-center gap-3 rounded-xl border border-dashed border-[#2a2a2e] bg-[#111113] px-4 py-3 text-left transition hover:border-[#FF3F3F]/40 hover:bg-[#151517]"
-          >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FF3F3F]/10">
-              <HelpCircle className="h-4 w-4 text-[#FF3F3F]" />
-            </div>
-
-            <div>
-              <p className="text-[11px] font-semibold text-zinc-300">
-                Add a question
-              </p>
-
-              <p className="mt-0.5 text-[9px] text-zinc-600">
-                Example: "Have you done this before?"
-              </p>
-            </div>
-          </button>
-        ) : (
-          <div className="space-y-2">
-            {questions.map((question, index) => (
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="space-y-4">
+        <FormSection
+          icon={ImagePlus}
+          title="Photos"
+          hint="Photos help helpers understand the job at a glance."
+          optional
+          aside={
+            <span className="theme-text-muted text-[11px] tabular-nums">
+              {images.length}/{MAX_POST_IMAGES}
+            </span>
+          }
+        >
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {imagePreviews.map((src, index) => (
               <div
-                key={index}
-                className="flex items-center gap-2 rounded-xl border border-[#1e1e22] bg-[#111113] p-2"
+                key={src}
+                className="theme-divider group relative aspect-square overflow-hidden rounded-lg border"
               >
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#1a1a1d] text-[9px] font-bold text-zinc-500">
-                  {index + 1}
-                </span>
-
-                <input
-                  type="text"
-                  value={question}
-                  maxLength={150}
-                  onChange={(e) => updateQuestion(index, e.target.value)}
-                  placeholder="What would you like to know?"
-                  className="min-w-0 flex-1 bg-transparent px-1 text-[11px] text-white outline-none placeholder:text-zinc-700"
+                <img
+                  src={src}
+                  alt={`Upload ${index + 1}`}
+                  className="h-full w-full object-cover"
                 />
-
                 <button
                   type="button"
-                  onClick={() => removeQuestion(index)}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-zinc-600 transition hover:bg-red-500/10 hover:text-red-400"
+                  onClick={() => removeImage(index)}
+                  aria-label={`Remove photo ${index + 1}`}
+                  className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-white backdrop-blur-sm transition hover:bg-[#FF3F3F]"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-3 w-3" />
                 </button>
               </div>
             ))}
-          </div>
-        )}
-      </section>
 
-      {/* Small helper */}
-      <div className="rounded-xl border border-[#1e1e22] bg-[#0e0e10] px-3 py-2.5">
-        <p className="text-[9px] leading-4 text-zinc-600">
-          You can skip both sections. Only add details that make your request
-          easier to understand.
-        </p>
+            {images.length < MAX_POST_IMAGES && (
+              <label className="theme-divider theme-text-muted flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed transition hover:border-[#FF3F3F]/50 hover:text-[#FF3F3F]">
+                <ImagePlus className="h-5 w-5" />
+                <span className="text-[11px] font-medium">Add photo</span>
+                <input
+                  type="file"
+                  accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                  multiple
+                  className="sr-only"
+                  onChange={handleImageChange}
+                />
+              </label>
+            )}
+          </div>
+          {imageError && (
+            <p role="alert" className="mt-2 text-xs text-red-400">
+              {imageError}
+            </p>
+          )}
+        </FormSection>
+
+        <FormSection
+          icon={HelpCircle}
+          title="Screening questions"
+          hint="Ask what helpers should answer when they send an offer."
+          optional
+          aside={
+            questions.length < MAX_QUESTIONS && (
+              <button
+                type="button"
+                onClick={() => onQuestionsChange([...questions, ""])}
+                className="theme-link-accent inline-flex items-center gap-1 text-xs font-semibold"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add
+              </button>
+            )
+          }
+        >
+          {questions.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => onQuestionsChange([""])}
+              className="theme-divider theme-text-muted flex w-full items-center gap-3 rounded-lg border border-dashed px-4 py-3 text-left text-xs transition hover:border-[#FF3F3F]/40"
+            >
+              <Plus className="h-4 w-4 text-[#FF3F3F]" />
+              e.g. "Have you done this kind of work before?"
+            </button>
+          ) : (
+            <div className="space-y-2">
+              {questions.map((question, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <span className="theme-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold">
+                    {index + 1}
+                  </span>
+                  <input
+                    type="text"
+                    value={question}
+                    maxLength={QUESTION_MAX}
+                    onChange={(e) => updateQuestion(index, e.target.value)}
+                    aria-label={`Question ${index + 1}`}
+                    placeholder="What would you like to know?"
+                    className="theme-input h-9 min-w-0 flex-1 rounded-lg border px-3 text-sm outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onQuestionsChange(questions.filter((_, i) => i !== index))
+                    }
+                    aria-label={`Remove question ${index + 1}`}
+                    className="theme-icon-muted flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition hover:bg-red-500/10 hover:text-red-400"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </FormSection>
+
+        <FormSection
+          icon={CalendarClock}
+          title="Keep it live for"
+          hint="Your post expires automatically after this period."
+        >
+          <div className="grid grid-cols-4 gap-2">
+            {EXPIRY_OPTIONS.map((days) => (
+              <OptionChip
+                key={days}
+                active={expiryDays === days}
+                onClick={() => onExpiryChange(days)}
+              >
+                {days} days
+              </OptionChip>
+            ))}
+          </div>
+        </FormSection>
       </div>
+
+      <aside className="lg:sticky lg:top-4 lg:self-start">
+        <FormSection icon={ClipboardCheck} title="Review" hint="How your post will be published.">
+          <dl className="space-y-3 text-xs">
+            {[
+              ["Category", getCategoryLabel(summary.category)],
+              ["Title", summary.title],
+              ["Budget", summary.budget],
+              ["Timeline", summary.timeline],
+              [
+                "Location",
+                summary.address ||
+                  (summary.hasCoordinates ? "Current location" : "—"),
+              ],
+              ["Photos", `${images.length}`],
+              ["Questions", `${questions.filter((q) => q.trim()).length}`],
+              ["Expires in", `${expiryDays} days`],
+            ].map(([label, value]) => (
+              <div key={label} className="flex justify-between gap-3">
+                <dt className="theme-text-muted shrink-0">{label}</dt>
+                <dd className="theme-text-primary min-w-0 truncate text-right font-medium">
+                  {value || "—"}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </FormSection>
+      </aside>
     </div>
   );
 }

@@ -3,11 +3,13 @@ import { Search, X } from "lucide-react";
 interface ExploreSearchProps {
   searchTerm: string;
   setSearchTerm: (value: string) => void;
+  placeholder?: string;
 }
 
 export default function ExploreSearch({
   searchTerm,
   setSearchTerm,
+  placeholder = "Search requirements, skills, people...",
 }: ExploreSearchProps) {
   return (
     <div className="relative w-full max-w-2xl">
@@ -21,7 +23,8 @@ export default function ExploreSearch({
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Search requirements, skills, people..."
+        placeholder={placeholder}
+        aria-label={placeholder}
         className="
           theme-input
           h-10 w-full

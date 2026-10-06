@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
+import useDebounce from "@/src/shared/hooks/useDebounce";
+import ExploreSearch from "@/src/features/explore/components/ExploreSearch";
 import type { DashboardConversation, SubmittedResponse } from "../types";
 import {
   EmptyState,
@@ -16,8 +19,8 @@ const RESPONSE_FILTERS = [
   "pending",
   "accepted",
   "rejected",
-  "completed",
-  "cancelled",
+  // "completed",
+  // "cancelled",
 ] as const;
 
 interface SubmittedOffersProps {
@@ -36,18 +39,27 @@ export default function SubmittedOffers({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<SubmittedResponse | null>(null);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search.trim(), 400);
   const sentinel = useRef<HTMLDivElement>(null);
-  const requestInFlight = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   const loadActivity = useCallback(async () => {
-    if (requestInFlight.current) return;
-    requestInFlight.current = true;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
     setError("");
     try {
+      const params = new URLSearchParams();
+      if (debouncedSearch) params.set("q", debouncedSearch);
+      if (filter !== "all") params.set("status", filter);
+      const query = params.toString();
       const [activityResponse, chatsResponse] = await Promise.all([
-        apiFetch("/api/responses/my-activity"),
-        apiFetch("/api/chat/my-chats"),
+        apiFetch(`/api/responses/my-activity${query ? `?${query}` : ""}`, {
+          signal: controller.signal,
+        }),
+        apiFetch("/api/chat/my-chats", { signal: controller.signal }),
       ]);
       const body = await activityResponse.json();
       const chatsBody = await chatsResponse.json();
@@ -67,21 +79,23 @@ export default function SubmittedOffers({
         }));
       setItems(activity);
       setVisibleCount(PAGE_SIZE);
-      onDataChange(activity);
+      // Overview stats need the unfiltered list
+      if (!debouncedSearch && filter === "all") onDataChange(activity);
     } catch (cause) {
+      if (controller.signal.aborted) return;
       setError(
         cause instanceof Error
           ? cause.message
           : "Could not load your submitted offers.",
       );
     } finally {
-      setLoading(false);
-      requestInFlight.current = false;
+      if (abortRef.current === controller) setLoading(false);
     }
-  }, [onDataChange]);
+  }, [debouncedSearch, filter, onDataChange]);
 
   useEffect(() => {
     void loadActivity();
+    return () => abortRef.current?.abort();
   }, [loadActivity]);
 
   const uniqueItems = useMemo(() => {
@@ -92,17 +106,23 @@ export default function SubmittedOffers({
     return Array.from(byPost.values());
   }, [items]);
 
-  const filteredItems = useMemo(
-    () =>
-      filter === "all"
-        ? uniqueItems
-        : uniqueItems.filter((item) => item.status === filter),
-    [filter, uniqueItems],
-  );
+  const filteredItems = uniqueItems;
+
+  // Opened from a "rate the owner back" notification link.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const ratePostId = searchParams.get("ratePost");
+  useEffect(() => {
+    if (!ratePostId || loading) return;
+    const match = items.find((item) => item.postId?._id === ratePostId);
+    if (match) setSelected(match);
+    const next = new URLSearchParams(searchParams);
+    next.delete("ratePost");
+    setSearchParams(next, { replace: true });
+  }, [ratePostId, loading, items, searchParams, setSearchParams]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [filter, uniqueItems.length]);
+  }, [uniqueItems.length]);
 
   useEffect(() => {
     const target = sentinel.current;
@@ -142,6 +162,14 @@ export default function SubmittedOffers({
         </button>
       </div>
 
+      <div className="mb-3">
+        <ExploreSearch
+          searchTerm={search}
+          setSearchTerm={setSearch}
+          placeholder="Search your submitted offers..."
+        />
+      </div>
+
       <div
         className="theme-divider mb-3 flex gap-1 overflow-x-auto border-b pb-2 scrollbar-hide"
         aria-label="Filter submitted offers"
@@ -167,9 +195,11 @@ export default function SubmittedOffers({
         ) : filteredItems.length === 0 ? (
           <EmptyState
             text={
-              filter === "all"
-                ? "Your responses to requirements will appear here."
-                : "No submitted offers have this response status."
+              debouncedSearch
+                ? `No submitted offers match "${debouncedSearch}".`
+                : filter === "all"
+                  ? "Your responses to requirements will appear here."
+                  : "No submitted offers have this response status."
             }
           />
         ) : (

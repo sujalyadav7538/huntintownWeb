@@ -23,6 +23,10 @@ export const CATEGORY_COLORS: Record<string, string> = {
   "home & living": "#f97316",
 
   // Additional categories
+  home_services: "#f97316",
+  repairs: "#dc2626",
+  moving: "#0ea5e9",
+  personal: "#a855f7",
   transport: "#06b6d4",
   automotive: "#ef4444",
   events: "#f43f5e",

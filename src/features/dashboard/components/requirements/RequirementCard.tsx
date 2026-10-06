@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   MoreHorizontal,
   Search,
+  Star,
   Trash2,
   Users,
 } from "lucide-react";
@@ -15,6 +16,7 @@ interface RequirementCardProps {
   onExplore: () => void;
   onUpdateStatus: (status: PostStatus) => Promise<void>;
   onDelete: () => Promise<void>;
+  onRate?: () => void;
 }
 
 export default function RequirementCard({
@@ -22,6 +24,7 @@ export default function RequirementCard({
   onExplore,
   onUpdateStatus,
   onDelete,
+  onRate,
 }: RequirementCardProps) {
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -154,6 +157,19 @@ export default function RequirementCard({
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> Mark
                 completed
               </button>
+              {onRate && post.status === "completed" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    actionsRef.current?.removeAttribute("open");
+                    setActionsOpen(false);
+                    onRate();
+                  }}
+                  className="theme-text-primary theme-hover-soft inline-flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs font-medium"
+                >
+                  <Star className="h-3.5 w-3.5 text-amber-400" /> Rate helpers
+                </button>
+              )}
               <button
                 type="button"
                 disabled={pending}

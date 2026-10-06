@@ -23,6 +23,7 @@ import PublicRoutes from "@/src/app/routes/PublicRoutes";
 
 import type { Post, User } from "@/src/shared/types";
 import AboutPage from "@/src/features/home/pages/AboutPage";
+import NotificationsPage from "@/src/features/notifications/pages/NotificationsPage";
 import { apiFetchJSON } from "@/src/shared/lib/api";
 import { normalizePost } from "@/src/store/postsSlice";
 import { useSeo } from "@/src/shared/hooks/useSeo";
@@ -103,7 +104,6 @@ export default function AppRoutes({
           </PublicRoutes>
         }
       />
-
       {/* =========================================================
           EXPLORE
       ========================================================== */}
@@ -230,6 +230,19 @@ export default function AppRoutes({
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <Messaging />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* =========================================================
+          NOTIFICATIONS
+      ========================================================== */}
+
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />

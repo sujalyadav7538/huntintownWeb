@@ -2,6 +2,7 @@ import { MessageCircle } from "lucide-react";
 import DashboardModal from "../DashboardModal";
 import type { SubmittedResponse } from "../types";
 import { Avatar, StatusBadge } from "../requirements/RequirementUI";
+import RateOwnerSection from "./RateOwnerSection";
 
 interface SubmittedOfferModalProps {
   item: SubmittedResponse;
@@ -37,13 +38,13 @@ export default function SubmittedOfferModal({
                 <p className="theme-text-primary mt-1 text-sm font-semibold">
                   {post.author?.name || "Requirement owner"}
                 </p>
-                <p className="theme-text-primary mt-2 text-sm font-bold">
+                <p className="theme-text-primary mt-2 wrap-break-word text-sm font-bold">
                   {post.title}
                 </p>
                 <p className="theme-text-muted mt-1 text-xs">
                   {post.category} · {post.budget || "Negotiable"}
                 </p>
-                <p className="theme-text-secondary mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+                <p className="theme-text-secondary mt-2 whitespace-pre-wrap wrap-break-word text-sm leading-relaxed">
                   {post.description}
                 </p>
               </div>
@@ -60,7 +61,7 @@ export default function SubmittedOfferModal({
               </h3>
               <StatusBadge status={item.status} />
             </div>
-            <p className="theme-text-primary mt-3 whitespace-pre-wrap text-sm leading-relaxed">
+            <p className="theme-text-primary mt-3 whitespace-pre-wrap wrap-break-word text-sm leading-relaxed">
               {item.message || "No message provided."}
             </p>
           </section>
@@ -75,13 +76,22 @@ export default function SubmittedOfferModal({
                   key={`${answer.question}-${index}`}
                   className="theme-panel-soft rounded-md border p-3"
                 >
-                  <p className="theme-text-muted text-xs">{answer.question}</p>
-                  <p className="theme-text-primary mt-1 text-sm">
+                  <p className="theme-text-muted wrap-break-word text-xs">
+                    {answer.question}
+                  </p>
+                  <p className="theme-text-primary mt-1 wrap-break-word text-sm">
                     {answer.answer}
                   </p>
                 </div>
               ))}
             </section>
+          )}
+
+          {post.status === "completed" && item.status === "accepted" && (
+            <RateOwnerSection
+              postId={post._id}
+              ownerName={post.author?.name || "the owner"}
+            />
           )}
         </div>
 

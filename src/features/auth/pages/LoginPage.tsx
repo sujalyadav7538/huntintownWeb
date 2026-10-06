@@ -1,26 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
+import { useLocation } from "react-router-dom";
 import type { User } from "@/src/shared/types";
 import { getAvatarUrl } from "@/src/shared/utils";
 import { apiFetch } from "@/src/shared/lib/api";
 import { useSeo } from "@/src/shared/hooks/useSeo";
+import type { AuthNavigationState, SignupFormData } from "../types";
+import SignInForm from "./SignInForm";
+import SignUpForm from "./SignUpForm";
+import TermsAndConditionsPage from "./TermsAndConditionsPage";
 
 interface LoginPageProps {
   onLogin?: (user: User, token: string) => void;
 }
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
-  const [isSignup, setIsSignup] = useState(false);
+  const location = useLocation();
+  const authState = location.state as AuthNavigationState | null;
+  const [isSignup, setIsSignup] = useState(authState?.isSignup ?? false);
+  const [termsAccepted, setTermsAccepted] = useState(
+    authState?.termsAccepted === true,
+  );
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+
+  useEffect(() => {
+    const navigationState = location.state as AuthNavigationState | null;
+    if (!navigationState) return;
+
+    setIsSignup(navigationState.isSignup ?? false);
+    setTermsAccepted(navigationState.termsAccepted === true);
+    if (navigationState.formData) setFormData(navigationState.formData);
+  }, [location.key]);
 
   useSeo({ title: isSignup ? "Create an Account" : "Sign In" });
 
   const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SignupFormData>({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
+    ...authState?.formData,
   });
 
   const [error, setError] = useState("");
@@ -33,7 +54,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         const res = await apiFetch("/api/user/google", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ access_token: tokenResponse.access_token }),
+          body: JSON.stringify({
+            access_token: tokenResponse.access_token,
+            acceptedTerms: isSignup && termsAccepted,
+          }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Google sign-in failed");
@@ -58,6 +82,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     e.preventDefault();
 
     setError("");
+
+    if (isSignup && !termsAccepted) return;
 
     if (!formData.email || !formData.password) {
       setError("Please fill all required fields.");
@@ -91,6 +117,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          acceptedTerms: isSignup && termsAccepted,
         }),
       });
 
@@ -125,7 +152,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
+  const openTermsPage = () => setIsTermsOpen(true);
+
   return (
+    <>
     <main className="min-h-dvh  text-white">
       <div className="mx-auto grid min-h-dvh w-full max-w-7xl lg:grid-cols-[minmax(0,1fr)_520px]">
         {/* =====================================================
@@ -255,216 +285,27 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             {/* =================================================
              * Form
              * ================================================= */}
-            <form onSubmit={handleSubmit}>
-              {isSignup ? (
-                <div className="space-y-3.5">
-                  {/* Name */}
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
-                      Full name
-                    </label>
-
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder="Your name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="
-                      w-full rounded-xl
-                      border border-white/[0.08]
-                      bg-white/[0.025]
-                      px-4 py-3
-                      text-sm text-white
-                      outline-none
-                      transition
-                      placeholder:text-zinc-700
-                      focus:border-[#FF3F3F]/50
-                      focus:bg-white/[0.04]
-                    "
-                    />
-                  </div>
-
-                  {/* Email */}
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
-                      Email
-                    </label>
-
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="you@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="
-                      w-full rounded-xl
-                      border border-white/[0.08]
-                      bg-white/[0.025]
-                      px-4 py-3
-                      text-sm text-white
-                      outline-none
-                      transition
-                      placeholder:text-zinc-700
-                      focus:border-[#FF3F3F]/50
-                      focus:bg-white/[0.04]
-                    "
-                    />
-                  </div>
-
-                  {/* Passwords */}
-                  <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
-                        Password
-                      </label>
-
-                      <input
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        className="
-                        w-full rounded-xl
-                        border border-white/[0.08]
-                        bg-white/[0.025]
-                        px-4 py-3
-                        text-sm text-white
-                        outline-none
-                        transition
-                        placeholder:text-zinc-700
-                        focus:border-[#FF3F3F]/50
-                        focus:bg-white/[0.04]
-                      "
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
-                        Confirm password
-                      </label>
-
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        placeholder="Confirm"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        className="
-                        w-full rounded-xl
-                        border border-white/[0.08]
-                        bg-white/[0.025]
-                        px-4 py-3
-                        text-sm text-white
-                        outline-none
-                        transition
-                        placeholder:text-zinc-700
-                        focus:border-[#FF3F3F]/50
-                        focus:bg-white/[0.04]
-                      "
-                      />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3.5">
-                  {/* Email */}
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
-                      Email
-                    </label>
-
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="you@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="
-                      w-full rounded-xl
-                      border border-white/[0.08]
-                      bg-white/[0.025]
-                      px-4 py-3
-                      text-sm text-white
-                      outline-none
-                      transition
-                      placeholder:text-zinc-700
-                      focus:border-[#FF3F3F]/50
-                      focus:bg-white/[0.04]
-                    "
-                    />
-                  </div>
-
-                  {/* Password */}
-                  <div>
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <label className="text-[11px] font-medium text-zinc-500">
-                        Password
-                      </label>
-
-                      <button
-                        type="button"
-                        className="text-[11px] font-medium text-zinc-600 transition hover:text-[#FF3F3F]"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
-
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Your password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="
-                      w-full rounded-xl
-                      border border-white/[0.08]
-                      bg-white/[0.025]
-                      px-4 py-3
-                      text-sm text-white
-                      outline-none
-                      transition
-                      placeholder:text-zinc-700
-                      focus:border-[#FF3F3F]/50
-                      focus:bg-white/[0.04]
-                    "
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Error */}
-              {error && (
-                <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/[0.06] px-3 py-2.5 text-xs text-red-400">
-                  {error}
-                </div>
-              )}
-
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="
-                mt-6 flex w-full
-                items-center justify-center
-                rounded-xl
-                bg-[#FF3F3F]
-                py-3
-                text-sm font-semibold text-white
-                transition
-                hover:bg-[#e53535]
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
-              >
-                {loading
-                  ? "Please wait..."
-                  : isSignup
-                    ? "Create Account"
-                    : "Sign In"}
-              </button>
-            </form>
+            {isSignup ? (
+              <SignUpForm
+                formData={formData}
+                onChange={handleChange}
+                onSubmit={handleSubmit}
+                loading={loading}
+                error={error}
+                termsAccepted={termsAccepted}
+                onTermsAcceptedChange={(accepted) =>
+                  accepted ? openTermsPage() : setTermsAccepted(false)
+                }
+              />
+            ) : (
+              <SignInForm
+                formData={formData}
+                onChange={handleChange}
+                onSubmit={handleSubmit}
+                loading={loading}
+                error={error}
+              />
+            )}
 
             {/* =================================================
              * Divider
@@ -485,7 +326,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <button
               type="button"
               onClick={() => googleLogin()}
-              disabled={loading}
+              disabled={loading || (isSignup && !termsAccepted)}
               className="
               flex w-full
               items-center justify-center
@@ -552,5 +393,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         </section>
       </div>
     </main>
+      {isTermsOpen && (
+        <TermsAndConditionsPage
+          onClose={() => setIsTermsOpen(false)}
+          onAccept={() => {
+            setTermsAccepted(true);
+            setIsTermsOpen(false);
+          }}
+        />
+      )}
+    </>
   );
 }

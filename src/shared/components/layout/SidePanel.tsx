@@ -13,6 +13,7 @@ import {
   LogIn,
   BookOpen,
   Footprints,
+  BowArrow,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -49,7 +50,7 @@ export default function SidePanel({
   const navigationItems = [
     {
       label: "Jungle",
-      icon: Compass,
+      icon: BowArrow,
       path: "/explore",
       authRequired: false,
     },

@@ -1,5 +1,12 @@
-﻿import { ReactNode, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
+﻿import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BowArrow,
+  Check,
+  LoaderCircle,
+  X,
+} from "lucide-react";
 
 import { useIsDesktop } from "@/src/shared/hooks/useBreakpoint";
 import { useSeo } from "@/src/shared/hooks/useSeo";
@@ -68,6 +75,8 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const [step, setStep] = useState<Step>(1);
 
   const [form, setForm] = useState<PostFormData>(INITIAL_FORM);
+  const previewsRef = useRef<string[]>([]);
+  previewsRef.current = form.imagePreviews;
 
   const [publishing, setPublishing] = useState(false);
 
@@ -95,16 +104,29 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
      IMAGE UPDATE
   ============================================================ */
 
-  const handleImagesChange = (files: File[], previews?: string[]) => {
-    const nextPreviews =
-      previews ?? files.map((file) => URL.createObjectURL(file));
+  const handleImagesChange = (files: File[]) => {
+    setForm((prev) => {
+      // Reuse existing object URLs for files that are still selected.
+      const previewByFile = new Map(
+        prev.images.map((file, index) => [file, prev.imagePreviews[index]]),
+      );
+      const nextPreviews = files.map(
+        (file) => previewByFile.get(file) ?? URL.createObjectURL(file),
+      );
+      prev.imagePreviews
+        .filter((url) => !nextPreviews.includes(url))
+        .forEach((url) => URL.revokeObjectURL(url));
 
-    setForm((prev) => ({
-      ...prev,
-      images: files,
-      imagePreviews: nextPreviews,
-    }));
+      return { ...prev, images: files, imagePreviews: nextPreviews };
+    });
   };
+
+  useEffect(
+    () => () => {
+      previewsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    },
+    [],
+  );
 
   /* ============================================================
      STEP VALIDATION
@@ -119,14 +141,14 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       return (
         form.title.trim().length > 0 &&
         form.description.trim().length > 0 &&
-        Boolean(form.budget) &&
-        Boolean(form.timeline)
+        form.budget.trim().length > 0 &&
+        form.timeline.trim().length > 0
       );
     }
 
-    // The API requires an address — it geocodes it when no coordinates are given.
+    // The API needs an address or coordinates; an address alone is geocoded server-side.
     if (step === 3) {
-      return form.address.trim().length > 0;
+      return form.address.trim().length > 0 || form.coordinates !== null;
     }
 
     return true;
@@ -138,7 +160,11 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
 
   const goNext = () => {
     if (!canContinue) {
-      setError("Please complete the required details.");
+      setError(
+        step === 3
+          ? "Add an area/address or use your current location."
+          : "Please complete the required details.",
+      );
       return;
     }
 
@@ -168,14 +194,14 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       !form.category ||
       !form.title.trim() ||
       !form.description.trim() ||
-      !form.budget ||
-      !form.timeline
+      !form.budget.trim() ||
+      !form.timeline.trim()
     ) {
       setError("Please complete the required details.");
       return;
     }
 
-    if (!form.address.trim()) {
+    if (!form.address.trim() && !form.coordinates) {
       setError("Please add a location for your requirement.");
       setStep(3);
       return;
@@ -191,11 +217,13 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       formData.append("title", form.title.trim());
       formData.append("description", form.description.trim());
       formData.append("category", form.category);
-      formData.append("budget", form.budget);
-      formData.append("timeline", form.timeline);
+      formData.append("budget", form.budget.trim());
+      formData.append("timeline", form.timeline.trim());
       formData.append("expiryDays", String(form.expiryDays));
 
-      formData.append("address", form.address.trim());
+      if (form.address.trim()) {
+        formData.append("address", form.address.trim());
+      }
 
       // The API reads GeoJSON from `location`; without it the address is geocoded.
       if (form.coordinates) {
@@ -288,16 +316,16 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
 
   const stepTitle = {
     1: "What do you need help with?",
-    2: "Tell us what you need",
-    3: "Add your location",
-    4: "Add anything else",
+    2: "Describe your requirement",
+    3: "Where do you need it?",
+    4: "Final touches",
   }[step];
 
   const stepDescription = {
-    1: "Choose a category to get started.",
-    2: "Keep it simple. Choose options instead of typing whenever possible.",
-    3: "Add the place where you need help, if it matters.",
-    4: "Add photos or questions only if they help.",
+    1: "Pick the category that fits best — it helps the right people find you.",
+    2: "A clear title, short description, budget and timeline get faster offers.",
+    3: "Share your location or type an area so nearby helpers can see it.",
+    4: "Add photos or questions if they help, then review and publish.",
   }[step];
 
   /* ============================================================
@@ -306,171 +334,123 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
 
   const stepContent = (
     <>
-            <div className="mt-7">
-              {/* STEP 1 */}
+      <div className="mt-7">
+        {/* STEP 1 */}
 
-              {step === 1 && (
-                <CategoryStep
-                  value={form.category}
-                  onChange={(value) => updateForm("category", value)}
-                />
-              )}
+        {step === 1 && (
+          <CategoryStep
+            value={form.category}
+            onChange={(value) => updateForm("category", value)}
+          />
+        )}
 
-              {/* STEP 2 */}
+        {/* STEP 2 */}
 
-              {step === 2 && (
-                <DetailsStep
-                  title={form.title}
-                  description={form.description}
-                  budget={form.budget}
-                  timeline={form.timeline}
-                  category={form.category}
-                  onTitleChange={(value) => updateForm("title", value)}
-                  onDescriptionChange={(value) =>
-                    updateForm("description", value)
-                  }
-                  onBudgetChange={(value) => updateForm("budget", value)}
-                  onTimelineChange={(value) => updateForm("timeline", value)}
-                />
-              )}
+        {step === 2 && (
+          <DetailsStep
+            title={form.title}
+            description={form.description}
+            budget={form.budget}
+            timeline={form.timeline}
+            category={form.category}
+            onTitleChange={(value) => updateForm("title", value)}
+            onDescriptionChange={(value) => updateForm("description", value)}
+            onBudgetChange={(value) => updateForm("budget", value)}
+            onTimelineChange={(value) => updateForm("timeline", value)}
+          />
+        )}
 
-              {/* STEP 3 */}
+        {/* STEP 3 */}
 
-              {step === 3 && (
-                <LocationStep
-                  address={form.address}
-                  coordinates={form.coordinates}
-                  onAddressChange={(value) => updateForm("address", value)}
-                  onCoordinatesChange={(value) =>
-                    updateForm("coordinates", value)
-                  }
-                />
-              )}
+        {step === 3 && (
+          <LocationStep
+            address={form.address}
+            coordinates={form.coordinates}
+            onAddressChange={(value) => updateForm("address", value)}
+            onCoordinatesChange={(value) => updateForm("coordinates", value)}
+          />
+        )}
 
-              {/* STEP 4 */}
+        {/* STEP 4 */}
 
-              {step === 4 && (
-                <ExtraDetailsStep
-                  address={form.address}
-                  coordinates={form.coordinates}
-                  images={form.images}
-                  imagePreviews={form.imagePreviews}
-                  questions={form.questions}
-                  expiryDays={form.expiryDays}
-                  onAddressChange={(value) => updateForm("address", value)}
-                  onCoordinatesChange={(value) =>
-                    updateForm("coordinates", value)
-                  }
-                  onImagesChange={handleImagesChange}
-                  onQuestionsChange={(questions) =>
-                    updateForm("questions", questions)
-                  }
-                  onExpiryChange={(value) => updateForm("expiryDays", value)}
-                />
-              )}
-            </div>
+        {step === 4 && (
+          <ExtraDetailsStep
+            images={form.images}
+            imagePreviews={form.imagePreviews}
+            questions={form.questions}
+            expiryDays={form.expiryDays}
+            summary={{
+              category: form.category,
+              title: form.title.trim(),
+              budget: form.budget.trim(),
+              timeline: form.timeline.trim(),
+              address: form.address.trim(),
+              hasCoordinates: form.coordinates !== null,
+            }}
+            onImagesChange={handleImagesChange}
+            onQuestionsChange={(questions) =>
+              updateForm("questions", questions)
+            }
+            onExpiryChange={(value) => updateForm("expiryDays", value)}
+          />
+        )}
+      </div>
 
-            {/* ==================================================
+      {/* ==================================================
                 ERROR
             ================================================== */}
 
-            {error && (
-              <div className="mt-5 flex items-center gap-2 rounded-xl border border-red-500/15 bg-red-500/[0.06] px-3 py-2.5 text-[10px] text-red-300">
-                <X className="h-3.5 w-3.5 shrink-0" />
+      {error && (
+        <div
+          role="alert"
+          className="mt-5 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3.5 py-3 text-xs text-red-500"
+        >
+          <X className="h-4 w-4 shrink-0" />
 
-                <span>{error}</span>
-              </div>
-            )}
+          <span>{error}</span>
+        </div>
+      )}
     </>
   );
 
   const actions = (
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
-            {/* BACK */}
+    <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3">
+      <button
+        type="button"
+        onClick={goBack}
+        disabled={step === 1 || publishing}
+        className="theme-chip theme-divider inline-flex h-10 items-center gap-1.5 rounded-lg border px-3.5 text-[11px] font-semibold transition disabled:pointer-events-none disabled:opacity-40"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Back
+      </button>
 
-            <button
-              type="button"
-              onClick={goBack}
-              disabled={step === 1 || publishing}
-              className="
-                inline-flex
-                h-10
-                items-center
-                gap-1.5
-                rounded-xl
-                border
-                border-white/[0.07]
-                bg-white/[0.02]
-                px-4
-                text-[10px]
-                font-semibold
-                text-zinc-500
-                transition
-                hover:bg-white/[0.04]
-                hover:text-white
-                disabled:pointer-events-none
-                disabled:opacity-30
-              "
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back
-            </button>
-
-            {/* NEXT / PUBLISH */}
-
-            {step < 4 ? (
-              <button
-                type="button"
-                onClick={goNext}
-                disabled={!canContinue || publishing}
-                className="
-                  inline-flex
-                  h-10
-                  items-center
-                  gap-2
-                  rounded-xl
-                  bg-[#FF3F3F]
-                  px-5
-                  text-[10px]
-                  font-bold
-                  text-white
-                  transition
-                  hover:bg-[#e93636]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-30
-                "
-              >
-                Continue
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handlePublish}
-                disabled={publishing}
-                className="
-                  inline-flex
-                  h-10
-                  items-center
-                  gap-2
-                  rounded-xl
-                  bg-[#FF3F3F]
-                  px-5
-                  text-[10px]
-                  font-bold
-                  text-white
-                  transition
-                  hover:bg-[#e93636]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-40
-                "
-              >
-                {publishing ? "Publishing..." : "Publish Requirement"}
-
-                {!publishing && <Check className="h-3.5 w-3.5" />}
-              </button>
-            )}
-          </div>
+      {step < 4 ? (
+        <button
+          type="button"
+          onClick={goNext}
+          disabled={publishing}
+          className={`theme-btn-accent inline-flex h-10 items-center gap-1.5 rounded-lg border px-4 text-[11px] font-bold transition ${canContinue ? "" : "opacity-50"}`}
+        >
+          Continue
+          <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handlePublish}
+          disabled={publishing}
+          className="theme-btn-accent inline-flex h-10 items-center gap-1.5 rounded-lg border px-4 text-[11px] font-bold transition disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {publishing ? (
+            <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <BowArrow className="h-3.5 w-3.5" />
+          )}
+          {publishing ? "Hunting..." : "Hunt"}
+        </button>
+      )}
+    </div>
   );
 
   const viewProps: CreatePostViewProps = {
@@ -508,18 +488,24 @@ function CreatePostDesktop({
   actions,
 }: CreatePostViewProps) {
   return (
-    <div className="h-full text-zinc-100">
+    <div className="theme-page-shell h-full">
       <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-6">
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
           <div className="mx-auto w-full max-w-5xl py-8">
-            <StepRail step={step} />
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">
+              Post a requirement
+            </p>
+
+            <div className="mt-4">
+              <StepRail step={step} />
+            </div>
 
             <div className="mt-8">
-              <h1 className="text-3xl font-bold tracking-tight text-white">
+              <h1 className="theme-text-primary font-display text-2xl font-bold tracking-tight">
                 {stepTitle}
               </h1>
 
-              <p className="mt-2 max-w-xl text-xs leading-5 text-zinc-500">
+              <p className="theme-text-muted mt-1.5 max-w-xl text-sm leading-6">
                 {stepDescription}
               </p>
             </div>
@@ -528,7 +514,7 @@ function CreatePostDesktop({
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-20 -mx-6 px-6 pt-3 pb-4 backdrop-blur-md">
+        <div className="theme-divider sticky bottom-0 z-20  border-t px-6 pb-2 pt-3 backdrop-blur-md">
           {actions}
         </div>
       </div>
@@ -548,19 +534,21 @@ function CreatePostMobile({
   actions,
 }: CreatePostViewProps) {
   return (
-    <div className="h-full text-zinc-100">
+    <div className="theme-page-shell h-full">
       <div className="mx-auto flex h-full w-full flex-col px-4">
         <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
           <div className="w-full py-3">
-            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#FF3F3F]">
-              Step {step} of {TOTAL_STEPS}
-            </p>
+            <div className="flex flex-row items-center justify-between">
+              {/* <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">
+                Step {step} of {TOTAL_STEPS}
+              </p> */}
 
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-white">
-              {stepTitle}
-            </h1>
+              <h1 className="theme-text-primary mt-2 font-display text-xl font-bold tracking-tight">
+                {stepTitle}
+              </h1>
+            </div>
 
-            <p className="mt-2 text-[11px] leading-5 text-zinc-500">
+            <p className="theme-text-muted mt-1.5 text-xs leading-5">
               {stepDescription}
             </p>
 
@@ -570,7 +558,7 @@ function CreatePostMobile({
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-20 -mx-4 px-4 pt-3 pb-3 backdrop-blur-md">
+        <div className="theme-divider sticky bottom-0 z-20 -mx-4 border-t pt-1  backdrop-blur-md">
           {actions}
         </div>
       </div>
@@ -593,24 +581,20 @@ function StepRail({ step }: { step: Step }) {
           <div key={item.id} className="flex flex-1 items-center">
             <div className="flex shrink-0 items-center gap-2">
               <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full border text-[9px] font-bold transition ${
+                className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs font-bold transition ${
                   completed
                     ? "border-[#FF3F3F] bg-[#FF3F3F] text-white"
                     : active
                       ? "border-[#FF3F3F] bg-[#FF3F3F]/10 text-[#FF3F3F]"
-                      : "border-white/[0.09] bg-white/[0.02] text-zinc-600"
+                      : "theme-divider theme-chip"
                 }`}
               >
-                {completed ? <Check className="h-3.5 w-3.5" /> : item.id}
+                {completed ? <Check className="h-4 w-4" /> : item.id}
               </div>
 
               <span
-                className={`text-[9px] font-semibold ${
-                  active
-                    ? "text-zinc-200"
-                    : completed
-                      ? "text-zinc-400"
-                      : "text-zinc-600"
+                className={`text-xs font-semibold ${
+                  active ? "theme-text-primary" : "theme-text-muted"
                 }`}
               >
                 {item.label}
@@ -619,8 +603,8 @@ function StepRail({ step }: { step: Step }) {
 
             {index < STEPS.length - 1 && (
               <div
-                className={`mx-2 h-px flex-1 ${
-                  completed ? "bg-[#FF3F3F]" : "bg-white/[0.07]"
+                className={`mx-3 h-px flex-1 ${
+                  completed ? "bg-[#FF3F3F]" : "theme-divider border-t"
                 }`}
               />
             )}
@@ -638,7 +622,7 @@ function StepDots({ step }: { step: Step }) {
         <span
           key={item.id}
           className={`h-1 flex-1 rounded-full transition ${
-            step >= item.id ? "bg-[#FF3F3F]" : "bg-white/[0.08]"
+            step >= item.id ? "bg-[#FF3F3F]" : "theme-chip"
           }`}
         />
       ))}

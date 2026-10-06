@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { SlidersHorizontal, LogIn, Compass } from "lucide-react";
+import { SlidersHorizontal, LogIn, Compass, BowArrow } from "lucide-react";
 
 import CategoryFilterRow from "@/src/features/explore/components/CategoryFilterRow";
 import PostGridCard from "@/src/shared/components/post/PostGridCard";
@@ -13,10 +13,27 @@ import {
   deletePost,
   fetchPosts,
   fetchPostsPage,
+  normalizePost,
 } from "@/src/store/postsSlice";
 import { handleHideMobileBottomNav } from "@/src/store/uiSlice";
 import { useIsDesktop } from "@/src/shared/hooks/useBreakpoint";
 import { useSeo } from "@/src/shared/hooks/useSeo";
+import useDebounce from "@/src/shared/hooks/useDebounce";
+import { apiFetch } from "@/src/shared/lib/api";
+
+const SEARCH_PAGE_SIZE = 20;
+
+type Coords = { lat: number; lng: number };
+
+const getCurrentCoords = () =>
+  new Promise<Coords | null>((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => resolve(null),
+      { timeout: 8000, maximumAge: 60000 },
+    );
+  });
 
 /* ================================================================
    PAGE — state and data loading only.
@@ -31,6 +48,7 @@ export default function ExplorePage() {
 
   const { isAuthenticated } = useAppSelector((s) => s.auth);
   const posts = useAppSelector((s) => s.posts);
+  const initialSearchTerm = useAppSelector((s) => s.ui.searchTerm);
 
   const isDesktop = useIsDesktop();
 
@@ -42,9 +60,24 @@ export default function ExplorePage() {
   });
 
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm ?? "");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+
+  const debouncedSearch = useDebounce(searchTerm.trim(), 400);
+  const isSearchMode = debouncedSearch.length > 0 || selectedCategory !== "All";
+
+  // Server-side search state (used whenever a search term or filter is active)
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchHasMore, setSearchHasMore] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const searchModeRef = useRef(isSearchMode);
+  const searchPageRef = useRef(1);
+  const searchHasMoreRef = useRef(false);
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const coordsRef = useRef<Coords | null>(null);
+  searchModeRef.current = isSearchMode;
 
   // Pagination state
   const [hasMore, setHasMore] = useState(true);
@@ -89,9 +122,103 @@ export default function ExplorePage() {
       });
   }, []);
 
+  const fetchSearchPage = useCallback(
+    async (page: number, signal?: AbortSignal) => {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(SEARCH_PAGE_SIZE),
+        filter: selectedCategory.toLowerCase(),
+      });
+      if (debouncedSearch) params.set("q", debouncedSearch);
+
+      if (selectedCategory === "Nearby") {
+        coordsRef.current ??= await getCurrentCoords();
+        if (coordsRef.current) {
+          params.set("lat", String(coordsRef.current.lat));
+          params.set("lng", String(coordsRef.current.lng));
+        }
+      }
+
+      const res = await apiFetch(`/api/posts/search?${params}`, { signal });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Search failed");
+      return {
+        posts: (data.posts ?? []).map(normalizePost) as Post[],
+        hasMore: Boolean(data.hasMore),
+      };
+    },
+    [debouncedSearch, selectedCategory],
+  );
+
+  // Run a fresh search whenever the debounced term or filter changes
+  useEffect(() => {
+    searchAbortRef.current?.abort();
+    searchPageRef.current = 1;
+    searchHasMoreRef.current = false;
+    setSearchError("");
+
+    if (!isSearchMode) {
+      setSearchResults([]);
+      setSearchHasMore(false);
+      setSearchLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
+    setSearchLoading(true);
+
+    fetchSearchPage(1, controller.signal)
+      .then(({ posts: results, hasMore: more }) => {
+        if (controller.signal.aborted) return;
+        setSearchResults(results);
+        searchHasMoreRef.current = more;
+        setSearchHasMore(more);
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        setSearchResults([]);
+        setSearchHasMore(false);
+        setSearchError(err instanceof Error ? err.message : "Search failed");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setSearchLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [fetchSearchPage, isSearchMode]);
+
   // Load next page — reads from refs so the observer closure is never stale
   const loadMore = useCallback(async () => {
-    if (loadingMoreRef.current || !hasMoreRef.current) return;
+    if (loadingMoreRef.current) return;
+
+    if (searchModeRef.current) {
+      if (!searchHasMoreRef.current) return;
+      loadingMoreRef.current = true;
+      setLoadingMore(true);
+      const nextPage = searchPageRef.current + 1;
+      try {
+        const { posts: results, hasMore: more } = await fetchSearchPage(
+          nextPage,
+          searchAbortRef.current?.signal,
+        );
+        setSearchResults((prev) => {
+          const seen = new Set(prev.map((p) => p.id));
+          return [...prev, ...results.filter((p) => !seen.has(p.id))];
+        });
+        searchPageRef.current = nextPage;
+        searchHasMoreRef.current = more;
+        setSearchHasMore(more);
+      } catch {
+        // aborted or failed — the next intersection retries
+      } finally {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      }
+      return;
+    }
+
+    if (!hasMoreRef.current) return;
     loadingMoreRef.current = true;
     setLoadingMore(true);
     const nextPage = pageRef.current + 1;
@@ -108,52 +235,20 @@ export default function ExplorePage() {
       loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [dispatch]);
+  }, [dispatch, fetchSearchPage]);
 
   // Attach IntersectionObserver to the sentinel div
   useEffect(() => {
     if (!sentinelRef.current) return;
     const observer = new IntersectionObserver(
-      (entries, obs) => {
-        if (!entries[0].isIntersecting) return;
-        if (!hasMoreRef.current) {
-          obs.disconnect();
-          return;
-        }
-        loadMore();
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
       },
       { rootMargin: "200px" },
     );
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
   }, [loadMore]);
-
-  const filteredPosts = posts.filter((post) => {
-    const term = searchTerm.toLowerCase();
-
-    const matchesSearch =
-      post.title.toLowerCase().includes(term) ||
-      post.description.toLowerCase().includes(term) ||
-      post.author?.name?.toLowerCase().includes(term) ||
-      post.category.toLowerCase().includes(term);
-
-    let matchesCategory = true;
-    if (selectedCategory !== "All") {
-      if (selectedCategory === "Urgent") {
-        matchesCategory =
-          post.title.toLowerCase().includes("urgent") ||
-          post.description.toLowerCase().includes("urgent");
-      } else if (selectedCategory === "Trending") {
-        matchesCategory = post.responsesCount >= 8;
-      } else if (selectedCategory === "Nearby") {
-        matchesCategory = post.address.includes("Sector 62");
-      } else if (selectedCategory === "Premium") {
-        matchesCategory = post.budget !== "Negotiable";
-      }
-    }
-
-    return matchesSearch && matchesCategory;
-  });
 
   const handleSelectPost = (post: Post) => {
     dispatch(handleHideMobileBottomNav(true));
@@ -168,6 +263,7 @@ export default function ExplorePage() {
   const handleResponseSubmit = (postId: string) => {
     handleClosePost();
     dispatch(deletePost(postId));
+    setSearchResults((prev) => prev.filter((p) => p.id !== postId));
   };
 
   const handleClearFilters = () => {
@@ -191,10 +287,11 @@ export default function ExplorePage() {
 
   const viewProps: ExploreViewProps = {
     isAuthenticated,
-    posts: filteredPosts,
-    loading,
+    posts: isSearchMode ? searchResults : posts,
+    loading: isSearchMode ? searchLoading : loading,
     loadingMore,
-    hasMore,
+    hasMore: isSearchMode ? searchHasMore : hasMore,
+    errorMessage: isSearchMode ? searchError : "",
     searchTerm,
     selectedCategory,
     sentinelRef,
@@ -219,6 +316,7 @@ interface ExploreViewProps {
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
+  errorMessage: string;
   searchTerm: string;
   selectedCategory: string;
   sentinelRef: React.RefObject<HTMLDivElement | null>;
@@ -239,6 +337,7 @@ function ExploreDesktop({
   loading,
   loadingMore,
   hasMore,
+  errorMessage,
   searchTerm,
   selectedCategory,
   sentinelRef,
@@ -282,6 +381,7 @@ function ExploreDesktop({
         />
       ) : posts.length === 0 ? (
         <EmptyFeed
+          errorMessage={errorMessage}
           canClear={Boolean(searchTerm) || selectedCategory !== "All"}
           onClearFilters={onClearFilters}
         />
@@ -318,6 +418,7 @@ function ExploreMobile({
   loading,
   loadingMore,
   hasMore,
+  errorMessage,
   searchTerm,
   selectedCategory,
   sentinelRef,
@@ -351,6 +452,7 @@ function ExploreMobile({
         <FeedSkeleton className="grid grid-cols-1 gap-3 sm:grid-cols-2" count={4} />
       ) : posts.length === 0 ? (
         <EmptyFeed
+          errorMessage={errorMessage}
           canClear={Boolean(searchTerm) || selectedCategory !== "All"}
           onClearFilters={onClearFilters}
         />
@@ -391,7 +493,7 @@ function GuestNotice({
   return (
     <div className="flex items-center gap-3 border-b border-zinc-800/70 pb-4">
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FF3F3F]/10">
-        <Compass className="h-4 w-4 text-[#FF3F3F]" />
+        <BowArrow className="h-4 w-4 text-[#FF3F3F]" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -417,9 +519,11 @@ function GuestNotice({
 }
 
 function EmptyFeed({
+  errorMessage,
   canClear,
   onClearFilters,
 }: {
+  errorMessage?: string;
   canClear: boolean;
   onClearFilters: () => void;
 }) {
@@ -434,7 +538,7 @@ function EmptyFeed({
       </p>
 
       <p className="mt-1.5 max-w-xs text-[11px] text-zinc-600">
-        Try changing your search or selecting another category.
+        {errorMessage || "Try changing your search or selecting another category."}
       </p>
 
       {canClear && (

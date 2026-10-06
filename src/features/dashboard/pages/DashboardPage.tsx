@@ -12,7 +12,10 @@ import OffersReceivedModal from "@/src/features/dashboard/components/OffersRecei
 import DashboardOverviewStats from "@/src/features/dashboard/components/DashboardOverviewStats";
 import PublishedRequirements from "@/src/features/dashboard/components/requirements/PublishedRequirements";
 import SubmittedOffers from "@/src/features/dashboard/components/offers/SubmittedOffers";
-import type { DashboardPost, SubmittedResponse } from "@/src/features/dashboard/components/types";
+import type {
+  DashboardPost,
+  SubmittedResponse,
+} from "@/src/features/dashboard/components/types";
 
 type PostStatus = Post["status"];
 
@@ -87,10 +90,14 @@ export default function DashboardPage({
         />
       </nav>
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-7 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <div className={`min-w-0 ${selectedView === "published" ? "block" : "hidden md:block"}`}>
+        <div
+          className={`min-w-0 ${selectedView === "published" ? "block" : "hidden md:block"}`}
+        >
           {published}
         </div>
-        <div className={`min-w-0 ${selectedView === "submitted" ? "block" : "hidden md:block"}`}>
+        <div
+          className={`min-w-0 ${selectedView === "submitted" ? "block" : "hidden md:block"}`}
+        >
           {submittedOffers}
         </div>
       </div>
@@ -98,7 +105,15 @@ export default function DashboardPage({
   );
 }
 
-function DashboardTab({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+function DashboardTab({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"

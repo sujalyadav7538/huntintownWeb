@@ -50,6 +50,7 @@ const PUBLIC_ROUTES = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/explore", changefreq: "hourly", priority: "0.9" },
   { path: "/about", changefreq: "monthly", priority: "0.5" },
+  { path: "/terms-and-conditions", changefreq: "yearly", priority: "0.3" },
 ];
 
 const DISALLOWED = [
