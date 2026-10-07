@@ -34,19 +34,19 @@ const FEATURES = [
 
 export default function WhyHuntInTown() {
   return (
-    <section className="mt-12">
+    <section className="py-8 sm:py-12">
       <div className="">
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <p className="text-[#FF3F3F] font-semibold uppercase tracking-[0.2em] text-sm">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-12">
+          <p className="landing-eyebrow font-semibold uppercase tracking-[0.2em] text-sm">
             WHY HUNTINTOWN
           </p>
 
-          <h2 className="mt-3 text-4xl font-black text-white">
+          <h2 className="mt-3 text-3xl sm:text-4xl font-black theme-text-primary">
             Built Around Trust,
-            <span className="text-[#FF3F3F]"> Not Transactions</span>
+            <span className="landing-eyebrow"> Not Transactions</span>
           </h2>
 
-          <p className="mt-5 text-zinc-400 leading-relaxed">
+          <p className="mt-3 sm:mt-5 text-sm sm:text-base theme-text-muted leading-6 sm:leading-relaxed">
             HuntInTown helps neighbours connect with confidence through
             transparent reputation, direct communication and a community-first
             marketplace.
@@ -57,8 +57,8 @@ export default function WhyHuntInTown() {
         <div className="block md:hidden">
           <Swiper
             modules={[Pagination]}
-            spaceBetween={16}
-            slidesPerView={1}
+            spaceBetween={12}
+            slidesPerView={1.12}
             pagination={{
               clickable: true,
             }}
@@ -107,28 +107,22 @@ function FeatureCard({
         group
         h-full
         rounded-2xl
-        border border-zinc-800
-        bg-zinc-900/40
-        backdrop-blur-sm
-        p-7
-        transition-all duration-300
-        hover:border-[#FF3F3F]/50
+        landing-card
+        p-5 sm:p-7
       "
     >
       <div
         className="
-          mb-6 flex h-14 w-14 items-center justify-center
-          rounded-xl bg-[#FF3F3F]/10
-          transition
-          group-hover:bg-[#FF3F3F]/20
+          mb-4 sm:mb-6 flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center
+          rounded-xl theme-btn-accent-soft
         "
       >
-        <Icon className="h-7 w-7 text-[#FF3F3F]" />
+        <Icon className="h-5 w-5 sm:h-7 sm:w-7" />
       </div>
 
-      <h3 className="mb-3 text-lg font-bold text-white">{feature.title}</h3>
+      <h3 className="mb-2 sm:mb-3 text-base sm:text-lg font-bold theme-text-primary">{feature.title}</h3>
 
-      <p className="text-sm leading-7 text-zinc-400">{feature.description}</p>
+      <p className="text-sm leading-6 sm:leading-7 theme-text-muted">{feature.description}</p>
     </div>
   );
 }

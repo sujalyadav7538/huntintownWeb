@@ -35,7 +35,7 @@ export default function MobileNavigation({
 
       <button
         type="button"
-        onClick={() => setActiveTab("mobile")}
+        onClick={() => setActiveTab("landing")}
         className="flex items-center"
         aria-label="Home"
       >

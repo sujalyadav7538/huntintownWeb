@@ -7,7 +7,7 @@ import HeroSection from "@/src/features/home/components/HeroSection";
 import HowItWorks from "@/src/features/home/components/HowItWorks";
 import TrustSystem from "@/src/features/home/components/TrustSystem";
 import WhyHuntInTown from "@/src/features/home/components/WhyHuntInTown";
-import MapSection from "@/src/features/map/components/MapSection";
+import Reveal from "@/src/shared/components/Reveal";
 
 interface HomePageProps {
   onExplore: () => void;
@@ -43,29 +43,34 @@ export default function HomePage({
   });
 
   return (
-    <main className="min-h-screen   overflow-x-hidden">
-      {/* Hero */}
+    <main className="min-h-screen overflow-x-hidden">
       <HeroSection
         activePosts={activePosts}
         onPostRequirement={onPostRequirement}
         onExplore={onExplore}
       />
 
-      {/* Main Content */}
-      <div className="">
-        <MapSection posts={activePosts} />
+      <div className="px-2 sm:px-6 lg:px-10">
+        <Reveal>
+          <WhyHuntInTown />
+        </Reveal>
 
-        <WhyHuntInTown />
+        <Reveal>
+          <HowItWorks />
+        </Reveal>
 
-        <HowItWorks />
+        <Reveal>
+          <TrustSystem />
+        </Reveal>
 
-        <TrustSystem />
-
-        <CommunityPrinciples />
+        <Reveal>
+          <CommunityPrinciples />
+        </Reveal>
       </div>
 
-      {/* Footer */}
-      <Footer />
+      <Reveal>
+        <Footer />
+      </Reveal>
     </main>
   );
 }

@@ -42,19 +42,19 @@ const PRINCIPLES = [
 
 export default function CommunityPrinciples() {
   return (
-    <section className="py-12">
+    <section className="py-8 sm:py-12">
       <div className="">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <p className="uppercase tracking-[0.2em] text-[#FF3F3F] text-sm font-semibold">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-12">
+          <p className="uppercase tracking-[0.2em] landing-eyebrow text-sm font-semibold">
             COMMUNITY FIRST
           </p>
 
-          <h2 className="mt-3 text-4xl font-black text-white">
+          <h2 className="mt-3 text-3xl sm:text-4xl font-black theme-text-primary">
             Simple Principles.
-            <span className="text-[#FF3F3F]"> Strong Community.</span>
+            <span className="landing-eyebrow"> Strong Community.</span>
           </h2>
 
-          <p className="mt-5 text-zinc-400 leading-8">
+          <p className="mt-3 sm:mt-5 text-sm sm:text-base theme-text-muted leading-6 sm:leading-8">
             HuntInTown is built on transparency, respect and local trust.
             Every member contributes to creating a safer and more reliable
             community.
@@ -66,8 +66,8 @@ export default function CommunityPrinciples() {
         <div className="block lg:hidden">
           <Swiper
             modules={[Pagination]}
-            spaceBetween={16}
-            slidesPerView={1}
+            spaceBetween={12}
+            slidesPerView={1.12}
             pagination={{
               clickable: true,
             }}
@@ -122,37 +122,32 @@ function PrincipleCard({
       className="
         h-full
         rounded-2xl
-        border border-zinc-800
-        bg-zinc-900/40
-        backdrop-blur-sm
-        p-8
-        hover:border-[#FF3F3F]/40
-        transition-all
+        landing-card
+        p-5 sm:p-8
       "
     >
       <div
         className="
-          w-16 h-16
+          w-11 h-11 sm:w-16 sm:h-16
           rounded-xl
-          bg-zinc-950
-          border border-zinc-800
+          landing-icon-box
           flex items-center justify-center
-          mb-6
+          mb-4 sm:mb-6
         "
       >
-        <Icon className={`w-8 h-8 ${item.color}`} />
+        <Icon className={`w-5 h-5 sm:w-8 sm:h-8 ${item.color}`} />
       </div>
 
-      <h3 className="text-2xl font-bold text-white mb-6">
+      <h3 className="text-lg sm:text-2xl font-bold theme-text-primary mb-3 sm:mb-6">
         {item.title}
       </h3>
 
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-4">
         {item.points.map((point) => (
           <div key={point} className="flex items-start gap-3">
-            <ArrowRight className="w-4 h-4 mt-1 text-[#FF3F3F]" />
+            <ArrowRight className="w-4 h-4 mt-1 landing-eyebrow" aria-hidden="true" />
 
-            <p className="text-zinc-400 text-sm leading-7">
+            <p className="theme-text-muted text-sm leading-6 sm:leading-7">
               {point}
             </p>
           </div>

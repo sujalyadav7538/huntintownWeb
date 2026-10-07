@@ -47,19 +47,19 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-12">
+    <section className="py-8 sm:py-12">
       <div>
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <p className="text-[#FF3F3F] uppercase tracking-[0.2em] text-sm font-semibold">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-12">
+          <p className="landing-eyebrow uppercase tracking-[0.2em] text-sm font-semibold">
             HOW IT WORKS
           </p>
 
-          <h2 className="mt-3 text-4xl font-black text-white">
+          <h2 className="mt-3 text-3xl sm:text-4xl font-black theme-text-primary">
             From Requirement
-            <span className="text-[#FF3F3F]"> to Completion</span>
+            <span className="landing-eyebrow"> to Completion</span>
           </h2>
 
-          <p className="mt-5 text-zinc-400 leading-relaxed">
+          <p className="mt-3 sm:mt-5 text-sm sm:text-base theme-text-muted leading-6 sm:leading-relaxed">
             A simple workflow designed to help local communities connect,
             collaborate and build trust.
           </p>
@@ -70,8 +70,8 @@ export default function HowItWorks() {
         <div className="block lg:hidden">
           <Swiper
             modules={[Pagination]}
-            spaceBetween={16}
-            slidesPerView={1}
+            spaceBetween={12}
+            slidesPerView={1.12}
             pagination={{
               clickable: true,
             }}
@@ -112,9 +112,10 @@ export default function HowItWorks() {
                     className="
                       absolute -right-6 top-1/2
                       -translate-y-1/2
-                      text-zinc-700
+                      theme-text-muted
                       w-6 h-6
                     "
+                    aria-hidden="true"
                   />
                 )}
               </div>
@@ -143,36 +144,29 @@ function StepCard({
     <div
       className="
         rounded-2xl
-        border border-zinc-800
-        bg-zinc-900/40
-        backdrop-blur-sm
-        p-6
+        landing-card
+        p-5 sm:p-6
         h-full
         group
-        hover:border-[#FF3F3F]/50
-        transition
       "
     >
       <div
         className="
-          w-14 h-14
+          w-11 h-11 sm:w-14 sm:h-14
           rounded-xl
-          bg-[#FF3F3F]/10
+          theme-btn-accent-soft
           flex items-center justify-center
-          mb-6
-          group-hover:bg-[#FF3F3F]/20
-          transition
+          mb-4 sm:mb-6
         "
       >
-        <Icon className="w-7 h-7 text-[#FF3F3F]" />
+        <Icon className="w-5 h-5 sm:w-7 sm:h-7" />
       </div>
 
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-2 sm:mb-3">
         <div
           className="
-            w-7 h-7 rounded-full
-            bg-[#FF3F3F]
-            text-white
+            w-6 h-6 sm:w-7 sm:h-7 rounded-full
+            theme-badge-accent
             text-xs font-bold
             flex items-center justify-center
           "
@@ -180,12 +174,12 @@ function StepCard({
           {index + 1}
         </div>
 
-        <h3 className="text-lg font-bold text-white">
+        <h3 className="text-base sm:text-lg font-bold theme-text-primary">
           {step.title}
         </h3>
       </div>
 
-      <p className="text-sm leading-7 text-zinc-400">
+      <p className="text-sm leading-6 sm:leading-7 theme-text-muted">
         {step.description}
       </p>
     </div>

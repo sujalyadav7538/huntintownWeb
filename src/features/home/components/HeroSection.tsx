@@ -1,6 +1,7 @@
 import { Post } from "@/src/shared/types";
-import { ArrowUpRight, LucideIcon, Radio } from "lucide-react";
-import { heroSectionStats } from "@/src/features/home/homeData";
+import { ArrowUpRight, MapPin } from "lucide-react";
+
+import HuntMap from "../../map/components/HuntMap";
 
 interface HeroSectionProps {
   activePosts: Post[];
@@ -8,213 +9,178 @@ interface HeroSectionProps {
   onExplore: () => void;
 }
 
+type HeroActionsProps = Pick<HeroSectionProps, "onPostRequirement" | "onExplore">;
+
 export default function HeroSection({
   activePosts,
   onPostRequirement,
   onExplore,
 }: HeroSectionProps) {
-  const isMobile = window.innerWidth < 768; // Adjust the breakpoint as needed
   return (
     <section className="relative overflow-hidden">
-      {/* Background Glow */}
-      {/* <div className="absolute top-0 right-10 w-125 h-125  rounded-full blur-[120px] pointer-events-none" /> */}
-      {/* <div className="absolute -bottom-10 -left-10 w-75 h-75  rounded-full blur-[90px] pointer-events-none" /> */}
+      <div className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-120" aria-hidden="true" />
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-center p-6 sm:p-10 lg:p-12 relative overflow-hidden">
-        <HeroContent
-          onPostRequirement={onPostRequirement}
-          onExplore={onExplore}
-        />
+      <div className="relative grid grid-cols-1 items-center gap-3 px-2 py-6 sm:px-6 sm:py-10 lg:grid-cols-2 lg:gap-12 lg:px-10 lg:py-12">
+        {/* Desktop Content */}
+        <div className="hidden lg:block">
+          <HeroSectionDesktop
+            onPostRequirement={onPostRequirement}
+            onExplore={onExplore}
+          />
+        </div>
 
-        <HeroStats activePosts={activePosts.length} />
+        {/* Mobile Content */}
+        <div className="block lg:hidden">
+          <HeroSectionMobile
+            onPostRequirement={onPostRequirement}
+            onExplore={onExplore}
+          />
+        </div>
+
+        {/* Map */}
+        <section className="hero-animate hero-delay-3 space-y-3" aria-labelledby="hero-map-title">
+          <div className="flex items-end justify-between gap-4 px-1">
+            <div>
+              <p className="mb-1 text-[11px] font-bold uppercase theme-text-muted">
+                Around the neighborhood
+              </p>
+              <h2
+                id="hero-map-title"
+                className="font-display text-xl font-bold theme-text-primary"
+              >
+                See what's nearby
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={onExplore}
+              aria-label="Explore all nearby requests"
+              title="Explore nearby requests"
+              className="theme-btn-accent-soft flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition"
+            >
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="relative h-62.5 overflow-hidden rounded-lg border theme-divider theme-panel shadow-lg sm:h-80 lg:h-95">
+            <HuntMap posts={activePosts} className="h-full rounded-lg" />
+
+            <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/75 px-3 py-2 text-xs font-semibold text-white shadow backdrop-blur-sm">
+              <MapPin
+                className="h-3.5 w-3.5 text-[#FF6B6B]"
+                aria-hidden="true"
+              />
+              {activePosts.length} live{" "}
+              {activePosts.length === 1 ? "request" : "requests"}
+            </div>
+          </div>
+        </section>
       </div>
     </section>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*                              Hero Left Section                             */
-/* -------------------------------------------------------------------------- */
-
-function HeroContent({ onPostRequirement, onExplore }) {
-  const avatars = [
-    "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80",
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80",
-  ];
-
+function HeroSectionDesktop({ onPostRequirement, onExplore }: HeroActionsProps) {
   return (
-    <div className="xl:col-span-7 space-y-7">
-      {/* Platform Badge */}
-
-      <div className="inline-flex items-center gap-2 rounded-full border border-[#FF3F3F]/30 bg-[#FF3F3F]/10 px-4 py-2">
-        <Radio className="w-4 h-4 text-[#FF3F3F] animate-pulse" />
-
-        <span className="text-[11px] font-black uppercase tracking-[0.18em] text-[#FF3F3F]">
-          Community Powered Marketplace
-        </span>
-      </div>
-
-      {/* Heading */}
-
+    <div className="space-y-7">
       <div className="space-y-4">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-none tracking-tight text-white">
+        <h1 className="hero-animate font-black leading-none tracking-tight theme-text-primary text-5xl xl:text-6xl">
           Find Help.
           <br />
-          <span className="text-[#FF3F3F]">Offer Skills.</span>
+          <span className="landing-eyebrow">Offer Skills.</span>
           <br />
           Build Local Trust.
         </h1>
 
-        <p className="max-w-2xl text-sm sm:text-base leading-7 text-zinc-400">
+        <p className="hero-animate hero-delay-1 max-w-xl text-base leading-7 theme-text-muted">
           HuntInTown connects people within local communities to post
           requirements, discover skilled helpers, collaborate securely, and
           build lasting reputation through verified interactions.
         </p>
       </div>
 
-      {/* CTA */}
-
-      <div className="flex flex-row gap-4">
+      <div className="hero-animate hero-delay-2 flex flex-row gap-3">
         <button
+          type="button"
           onClick={onPostRequirement}
-          className="inline-flex theme-btn-accent  items-center gap-2 rounded-xl  px-3 py-2.5 font-semibold uppercase transition-all  cursor-pointer"
+          className="theme-btn-accent inline-flex h-12 items-center gap-2 rounded-xl px-5 text-sm font-bold uppercase transition"
         >
           Post Requirement
-          <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </button>
 
         <button
+          type="button"
           onClick={onExplore}
-          className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3.5 font-bold uppercase tracking-wider text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 cursor-pointer"
+          className="landing-btn-secondary group inline-flex h-13 items-center gap-2 rounded-xl px-5 text-sm font-bold uppercase"
         >
+          <img
+            src="/lion.png"
+            alt=""
+            className="h-6 w-6 transition-transform duration-300 group-hover:scale-130"
+          />
           Explore Needs
         </button>
       </div>
-
-      {/* Community Trust */}
-
-      <HeroTrustWidget avatars={avatars} />
     </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*                             Hero Right Section                             */
-/* -------------------------------------------------------------------------- */
-
-interface HeroTrustWidgetProps {
-  avatars: string[];
-}
-
-function HeroTrustWidget({ avatars }: HeroTrustWidgetProps) {
+function HeroSectionMobile({ onExplore }: HeroActionsProps) {
   return (
-    <div className="flex flex-wrap items-center gap-5 border-t border-zinc-800 pt-6">
-      <div className="flex -space-x-2">
-        {avatars.map((avatar) => (
-          <img
-            key={avatar}
-            src={avatar}
-            alt="Community Member"
-            className="h-10 w-10 rounded-full border-2 border-[#121214] object-cover"
-          />
-        ))}
+    <div className="relative px-2 pt-4 pb-2">
+      <div className="relative space-y-7">
+        <div className="hero-fade">
+          <div className="theme-btn-accent-soft inline-flex items-center gap-2 rounded-full border px-3 py-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-(--app-red) animate-pulse" />
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#121214] bg-[#FF3F3F] text-[10px] font-bold text-white">
-          +12K
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
+              Community Powered
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h1 className="flex flex-col gap-3 text-[2.75rem] font-black leading-[0.92] tracking-tight theme-text-primary">
+            <span className="hero-animate hero-delay-1">Find Help.</span>
+
+            <span className="hero-animate hero-delay-2 ml-3 landing-eyebrow">
+              Offer Skills.
+            </span>
+
+            <span className="hero-animate hero-delay-3 ml-6">Build Local Trust.</span>
+          </h1>
+
+          <p className="hero-animate hero-delay-3 text-sm leading-6 theme-text-muted">
+            Post what you need. Discover people nearby. Connect directly.
+          </p>
+        </div>
+
+        <div className="hero-animate hero-delay-4">
+          <button
+            type="button"
+            onClick={onExplore}
+            className="landing-btn-secondary group flex h-14 w-full items-center justify-center gap-3 rounded-xl px-6 font-black uppercase tracking-wider active:scale-[0.97]"
+          >
+            <img
+              src="/lion.png"
+              alt=""
+              className="h-7 w-7 transition-transform duration-300 group-hover:scale-130 "
+            />
+
+            <span>HUNT Growl...</span>
+          </button>
+        </div>
+
+        <div className="hero-fade hero-delay-5 flex flex-col items-center pt-1">
+          <span className="text-[9px] font-bold uppercase tracking-[0.35em] theme-text-muted">
+            Explore nearby
+          </span>
+
+          <div className="mt-2 h-8 w-px bg-linear-to-b from-(--app-red) to-transparent" />
         </div>
       </div>
-
-      <div>
-        <h3 className="font-semibold text-white">
-          Trusted by thousands of local community members
-        </h3>
-
-        <p className="mt-1 text-xs text-zinc-500">
-          Zero commission • Reputation driven • Verified collaborations
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function HeroStats({ activePosts }: { activePosts: number }) {
-  return (
-    <div className="xl:col-span-5">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* {heroSectionStats.map((stat) => (
-          <ProfileMetricCard
-            key={stat.title}
-            title={stat.title}
-            value={
-              stat.value instanceof Function
-                ? stat.value(activePosts)
-                : stat.value
-            }
-            subtitle={stat.subtitle}
-            icon={stat.icon}
-            color={stat.color}
-            size="md"
-            className={stat?.className ?? ""}
-          />
-        ))} */}
-      </div>
-    </div>
-  );
-}
-
-interface HeroStatCardProps {
-  title: string;
-  value: string;
-  suffix?: string;
-  description: string;
-  icon: LucideIcon;
-  color: string;
-}
-
-function HeroStatCard({
-  title,
-  value,
-  suffix,
-  description,
-  icon: Icon,
-  color,
-}: HeroStatCardProps) {
-  return (
-    <div className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-[#0d0d0f] p-5 transition-all duration-300 hover:-translate-y-1 hover:border-[#FF3F3F]/40">
-      {/* Glow */}
-
-      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#FF3F3F]/5 blur-2xl transition-opacity group-hover:opacity-100" />
-
-      {/* Icon */}
-
-      <div
-        className={`inline-flex h-11 w-11 items-center justify-center rounded-xl bg-zinc-900 ${color}`}
-      >
-        <Icon className="h-5 w-5" />
-      </div>
-
-      {/* Title */}
-
-      <p className="mt-5 text-[11px] uppercase tracking-[0.18em] text-zinc-500 font-bold">
-        {title}
-      </p>
-
-      {/* Value */}
-
-      <div className="mt-2 flex items-end gap-2">
-        <span className="text-3xl font-black text-white">{value}</span>
-
-        {suffix && (
-          <span className="pb-1 text-xs uppercase tracking-wider text-zinc-400">
-            {suffix}
-          </span>
-        )}
-      </div>
-
-      {/* Description */}
-
-      <p className="mt-3 text-xs leading-5 text-zinc-500">{description}</p>
     </div>
   );
 }

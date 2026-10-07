@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
+import svgr from 'vite-plugin-svgr';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
@@ -8,7 +9,7 @@ export default defineConfig(({ mode }) => {
   const apiTarget = env.VITE_API_URL || 'http://localhost:5000';
 
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(),svgr()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

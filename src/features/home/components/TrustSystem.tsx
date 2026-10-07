@@ -60,21 +60,21 @@ const TRUST_FEATURES = [
 
 export default function TrustSystem() {
   return (
-    <section className="py-12">
+    <section className="py-8 sm:py-12">
       <div className="">
 
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <p className="uppercase tracking-[0.2em] text-[#FF3F3F] font-semibold text-sm">
+        <div className="max-w-3xl mx-auto text-center mb-6 sm:mb-12">
+          <p className="uppercase tracking-[0.2em] landing-eyebrow font-semibold text-sm">
             TRUST ECOSYSTEM
           </p>
 
-          <h2 className="mt-4 text-4xl font-black text-white">
+          <h2 className="mt-4 text-3xl sm:text-4xl font-black theme-text-primary">
             Reputation That Is
-            <span className="text-[#FF3F3F]"> Earned</span>,
+            <span className="landing-eyebrow"> Earned</span>,
             Not Claimed
           </h2>
 
-          <p className="mt-5 text-zinc-400 leading-8">
+          <p className="mt-3 sm:mt-5 text-sm sm:text-base theme-text-muted leading-6 sm:leading-8">
             Every interaction contributes to your reputation.
             HuntInTown combines multiple trust signals to help
             community members make informed decisions.
@@ -86,8 +86,8 @@ export default function TrustSystem() {
         <div className="block xl:hidden">
           <Swiper
             modules={[Pagination]}
-            spaceBetween={16}
-            slidesPerView={1}
+            spaceBetween={12}
+            slidesPerView={1.12}
             pagination={{
               clickable: true,
             }}
@@ -144,35 +144,30 @@ function TrustCard({
         group
         h-full
         rounded-2xl
-        border border-zinc-800
-        bg-zinc-900/40
-        backdrop-blur-sm
-        p-7
-        hover:border-[#FF3F3F]/40
-        transition-all
-        duration-300
+        landing-card
+        p-5 sm:p-7
         hover:-translate-y-1
       "
     >
-      <div className="flex items-center gap-4 mb-5">
+      <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-5">
         <div
           className="
-            w-14 h-14
+            w-11 h-11 sm:w-14 sm:h-14
+            shrink-0
             rounded-xl
-            bg-zinc-950
+            landing-icon-box
             flex items-center justify-center
-            border border-zinc-800
           "
         >
-          <Icon className={`w-7 h-7 ${item.accent}`} />
+          <Icon className={`w-5 h-5 sm:w-7 sm:h-7 ${item.accent}`} />
         </div>
 
-        <h3 className="text-xl font-bold text-white">
+        <h3 className="text-base sm:text-xl font-bold theme-text-primary">
           {item.title}
         </h3>
       </div>
 
-      <p className="text-zinc-400 leading-7 text-sm">
+      <p className="theme-text-muted leading-6 sm:leading-7 text-sm">
         {item.description}
       </p>
     </div>

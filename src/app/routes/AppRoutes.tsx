@@ -40,7 +40,10 @@ interface AppRoutesProps {
   onPostRequirement: () => void;
   onExplorePost: (postId: string) => void;
 
-  onUpdateStatus: (postId: string, status: Post["status"]) => void | Promise<void>;
+  onUpdateStatus: (
+    postId: string,
+    status: Post["status"],
+  ) => void | Promise<void>;
 
   onDeleteListing: (postId: string) => void | Promise<void>;
 
@@ -92,11 +95,6 @@ export default function AppRoutes({
       />
 
       <Route
-        path="/mobile"
-        element={<MobileHomePage setActiveTab={setActiveTab} />}
-      />
-
-      <Route
         path="/login"
         element={
           <PublicRoutes isAuthenticated={isAuthenticated}>
@@ -143,7 +141,8 @@ export default function AppRoutes({
               setActiveTab={setActiveTab}
               onInitiateChat={(postId, conversationId) => {
                 const params = new URLSearchParams({ postId });
-                if (conversationId) params.set("conversationId", conversationId);
+                if (conversationId)
+                  params.set("conversationId", conversationId);
                 navigate(`/messaging?${params.toString()}`);
               }}
             />
@@ -362,7 +361,9 @@ function PostDetailRoute() {
     <PostDetailView
       post={post}
       onBack={goBack}
-      onViewProfile={() => navigate(`/profile/${post.author?.id ?? post.author?._id}`)}
+      onViewProfile={() =>
+        navigate(`/profile/${post.author?.id ?? post.author?._id}`)
+      }
       onResponseSubmit={goBack}
     />
   );

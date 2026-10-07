@@ -9,7 +9,6 @@ import {
   Sun,
   BowArrow,
 } from "lucide-react";
-
 import UserProfileIndicator from "@/src/shared/components/layout/header/UserProfileIndicator";
 import Notification from "@/src/shared/components/layout/Notification";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
@@ -28,7 +27,7 @@ interface DesktopNavigationProps {
 
 const NAV_ITEMS = [
   { id: "landing", label: "Den", icon: Trees },
-  { id: "explore", label: "Jungle", icon: BowArrow },
+  { id: "explore", label: "Jungle", icon: Compass },
   { id: "activity", label: "Tracks", icon: Footprints, auth: true },
   { id: "messaging", label: "Chat", icon: MessageSquare, auth: true },
 ];
@@ -56,7 +55,7 @@ export default function DesktopNavigation({
       {/* Logo */}
       <button
         type="button"
-        onClick={() => setActiveTab("mobile")}
+        onClick={() => setActiveTab("landing")}
         className="flex shrink-0 items-center"
         aria-label="Home"
       >

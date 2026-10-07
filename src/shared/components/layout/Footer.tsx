@@ -74,22 +74,21 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden border-t border-zinc-800">
-      {/* Glow */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-[#FF3F3F]/10 blur-3xl" />
+    <footer className="relative overflow-hidden border-t theme-divider">
+      <div className="hero-glow pointer-events-none absolute inset-x-0 top-0 h-72" aria-hidden="true" />
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#FF3F3F]/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-(--app-red) to-transparent opacity-60" />
 
-      <div className="relative px-4 pt-6 ">
+      <div className="relative px-4 pt-6 pb-6">
         <div className="grid gap-12 lg:grid-cols-12">
           {/* Brand Section */}
           <div className="lg:col-span-5">
-            <h2 className="text-4xl font-black tracking-tight text-white">
+            <h2 className="text-4xl font-black tracking-tight theme-text-primary">
               Hunt
-              <span className="text-[#FF3F3F]">InTown</span>
+              <span className="landing-eyebrow">InTown</span>
             </h2>
 
-            <p className="mt-5 max-w-md text-sm leading-7 text-zinc-400">
+            <p className="mt-5 max-w-md text-sm leading-7 theme-text-muted">
               A local-first network where neighbours find trusted help,
               collaborate transparently, and grow reputation through real work.
             </p>
@@ -117,9 +116,9 @@ export default function Footer() {
                 return (
                   <div
                     key={item.text}
-                    className="flex items-center gap-3 text-sm text-zinc-300"
+                    className="flex items-center gap-3 text-sm theme-text-secondary"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 border border-zinc-800">
+                    <div className="landing-icon-box flex h-8 w-8 items-center justify-center rounded-lg">
                       <Icon className={`h-4 w-4 ${item.color}`} />
                     </div>
 
@@ -133,21 +132,20 @@ export default function Footer() {
             <form
               onSubmit={handleNewsletterSubmit}
               className="
+              landing-card
               mt-8 rounded-2xl
-              border border-zinc-800
-              bg-zinc-900/60
-              p-2
+              p-3
               lg:p-4
             "
             >
               <label
                 htmlFor="footer-newsletter"
-                className="text-sm font-semibold text-white"
+                className="text-sm font-semibold theme-text-primary"
               >
                 Stay updated
               </label>
 
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs theme-text-muted">
                 Get community updates and new features.
               </p>
 
@@ -159,27 +157,23 @@ export default function Footer() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className="
-                  h-11 flex-1 rounded-xl
-                  border border-zinc-700
-                  bg-zinc-950
+                  theme-input
+                  h-11 min-w-0 flex-1 rounded-xl
+                  border
                   px-4 text-sm
-                  text-white
-                  placeholder:text-zinc-600
                   focus:outline-none
-                  focus:border-[#FF3F3F]/60
                 "
                 />
 
                 <button
                   type="submit"
                   className="
+                  theme-btn-accent
                   flex h-11 items-center gap-2
                   rounded-xl
-                  bg-[#FF3F3F]
                   px-5
-                  text-sm font-semibold text-white
+                  text-sm font-semibold
                   transition
-                  hover:bg-[#e63939]
                 "
                 >
                   Join
@@ -216,7 +210,7 @@ export default function Footer() {
               },
             ].map((section) => (
               <div key={section.title}>
-                <h3 className="mb-5 text-sm font-bold uppercase tracking-wider text-white">
+                <h3 className="mb-5 text-sm font-bold uppercase tracking-wider theme-text-primary">
                   {section.title}
                 </h3>
 
@@ -258,7 +252,7 @@ export default function Footer() {
         <div
           className="
           mt-14
-          border-t border-zinc-800
+          border-t theme-divider
           pt-6
           flex flex-col gap-5
           sm:flex-row
@@ -266,7 +260,7 @@ export default function Footer() {
           sm:justify-between
         "
         >
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm theme-text-muted">
             © {currentYear} HuntInTown. Built with community in mind.
           </p>
 
@@ -282,15 +276,12 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   aria-label={item.label}
                   className="
+                  landing-btn-secondary
                   flex h-10 w-10
                   items-center justify-center
                   rounded-xl
-                  border border-zinc-800
-                  bg-zinc-900
-                  text-zinc-400
-                  transition
-                  hover:border-[#FF3F3F]/50
-                  hover:text-[#FF3F3F]
+                  theme-text-muted
+                  hover:text-(--app-red)
                 "
                 >
                   <Icon className="h-5 w-5" />
@@ -299,19 +290,15 @@ export default function Footer() {
             })}
 
             <button
+              type="button"
               onClick={scrollToTop}
               className="
+              landing-btn-secondary
               flex h-10 items-center gap-2
               rounded-xl
-              border border-zinc-800
-              bg-zinc-900
               px-4
               text-sm
               font-semibold
-              text-zinc-300
-              transition
-              hover:border-[#FF3F3F]/50
-              hover:text-white
             "
             >
               Top
