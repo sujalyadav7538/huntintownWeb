@@ -40,6 +40,7 @@ export const TYPE_CONFIG: Record<
   experience: { label: "Experience", icon: Briefcase },
   product: { label: "Product", icon: Package },
   portfolio: { label: "Portfolio", icon: Rocket },
+  feed: { label: "Feed", icon: Sparkles },
   other: { label: "Showcase", icon: Sparkles },
 };
 
@@ -103,7 +104,7 @@ export default function UserShowcase({
             className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#FF3F3F]/20 bg-[#FF3F3F]/10 px-3 text-[9px] font-semibold text-[#ff6b6b] transition-colors hover:bg-[#FF3F3F]/15"
           >
             <Plus className="h-3.5 w-3.5" />
-            Add
+            Create Items
           </button>
         )}
       </header>
@@ -126,7 +127,7 @@ export default function UserShowcase({
               onClick={onAdd}
               className="mt-3 text-[9px] font-semibold text-[#ff6b6b] hover:text-[#ff8585]"
             >
-              Add your first showcase
+              Create Items
             </button>
           )}
         </div>

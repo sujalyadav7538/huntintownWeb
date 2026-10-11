@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Star, Loader2, CheckCircle2 } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
 import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 interface Helper {
   helperId: string; // MongoDB ObjectId hex string
@@ -154,17 +155,26 @@ export default function ReviewHelpersModal({
                 <div key={helper.helperId} className="p-5 space-y-4">
                   {/* Helper info */}
                   <div className="flex items-center gap-3">
-                    <img
-                      src={getAvatarUrl(helper.name, helper.avatar)}
-                      alt={helper.name}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-[#1e1e22] shrink-0"
-                      onError={(e) => handleAvatarError(e, helper.name)}
-                      referrerPolicy="no-referrer"
-                    />
+                    <UserProfileLink
+                      userId={helper.helperId}
+                      aria-label={`View ${helper.name}'s profile`}
+                      className="shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+                    >
+                      <img
+                        src={getAvatarUrl(helper.name, helper.avatar)}
+                        alt={helper.name}
+                        className="h-10 w-10 rounded-full object-cover ring-2 ring-[#1e1e22]"
+                        onError={(e) => handleAvatarError(e, helper.name)}
+                        referrerPolicy="no-referrer"
+                      />
+                    </UserProfileLink>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold text-zinc-100">
+                      <UserProfileLink
+                        userId={helper.helperId}
+                        className="text-[13px] font-semibold text-zinc-100 hover:text-[#ff7777]"
+                      >
                         {helper.name}
-                      </p>
+                      </UserProfileLink>
                       {isDone && (
                         <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-semibold">
                           <CheckCircle2 className="w-3 h-3" />

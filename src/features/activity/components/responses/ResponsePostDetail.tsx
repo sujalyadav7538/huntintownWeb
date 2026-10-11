@@ -17,6 +17,7 @@ import { Response, Post } from "@/src/shared/types";
 import { apiFetch } from "@/src/shared/lib/api";
 import ReviewHelpersModal from "@/src/features/activity/components/responses/ReviewHelpersModal";
 import { handleAvatarError } from "@/src/shared/utils";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 import {
   CATEGORY_COLORS,
   CATEGORY_GRADIENTS,
@@ -846,10 +847,10 @@ function ResponseRow({
     <div className="group transition-colors hover:bg-zinc-900/30">
       <div className="flex gap-3 p-4">
         {/* Avatar */}
-        <button
-          onClick={onToggle}
-          className="shrink-0 cursor-pointer"
-          aria-label={`View response from ${response.respondedBy.name}`}
+        <UserProfileLink
+          userId={response.respondedBy.id ?? response.respondedBy._id}
+          className="shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+          aria-label={`View ${response.respondedBy.name}'s profile`}
         >
           <img
             src={response.respondedBy.avatar || ""}
@@ -858,19 +859,19 @@ function ResponseRow({
             onError={(e) => handleAvatarError(e, response.respondedBy.name)}
             referrerPolicy="no-referrer"
           />
-        </button>
+        </UserProfileLink>
 
         {/* Main content */}
         <div className="min-w-0 flex-1">
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <button
-                onClick={onToggle}
+              <UserProfileLink
+                userId={response.respondedBy.id ?? response.respondedBy._id}
                 className="block max-w-full truncate text-left text-[12px] font-bold text-zinc-200 hover:text-white"
               >
                 {response.respondedBy.name}
-              </button>
+              </UserProfileLink>
 
               <p className="mt-0.5 text-[10px] text-zinc-600">
                 {new Date(response.createdAt).toLocaleDateString("en-IN", {

@@ -14,7 +14,13 @@ interface AvatarUploaderProps {
 
 const OUTPUT_SIZE = 400;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ACCEPTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
 
 function createCroppedFile(imageUrl: string, area: Area): Promise<File> {
   return new Promise((resolve, reject) => {
@@ -92,7 +98,7 @@ export default function AvatarUploader({
     if (!file) return;
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setError("Choose a JPG, PNG, or WEBP image.");
+      setError("Choose a JPG, PNG, WEBP, HEIC, or HEIF image.");
       return;
     }
 
@@ -152,7 +158,7 @@ export default function AvatarUploader({
           </span>
           <input
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
             hidden
             onChange={handleFileChange}
           />

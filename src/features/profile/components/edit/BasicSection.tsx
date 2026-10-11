@@ -8,6 +8,7 @@ interface SectionBasicProps {
   onAvatarChange: (file: File) => void;
   onRemoveAvatar: () => void;
   onCoverImageChange: (file: File) => void;
+  onRemoveCoverImage: () => void;
 }
 const labelCls = "block text-xs font-medium text-zinc-400 mb-2";
 const inputCls =
@@ -19,6 +20,7 @@ export default function BasicSection({
   onAvatarChange,
   onRemoveAvatar,
   onCoverImageChange,
+  onRemoveCoverImage,
 }: SectionBasicProps) {
   return (
     <>
@@ -29,6 +31,7 @@ export default function BasicSection({
           onAvatarChange={onAvatarChange}
           onRemoveAvatar={onRemoveAvatar}
           onCoverImageChange={onCoverImageChange}
+          onRemoveCoverImage={onRemoveCoverImage}
         />
       </div>
 
@@ -39,6 +42,7 @@ export default function BasicSection({
           onAvatarChange={onAvatarChange}
           onRemoveAvatar={onRemoveAvatar}
           onCoverImageChange={onCoverImageChange}
+          onRemoveCoverImage={onRemoveCoverImage}
         />
       </div>
     </>
@@ -51,6 +55,7 @@ interface SectionBasicDesktopProps {
   onAvatarChange: (file: File) => void;
   onRemoveAvatar: () => void;
   onCoverImageChange: (file: File) => void;
+  onRemoveCoverImage: () => void;
 }
 
 function SectionBasicDesktop({
@@ -59,6 +64,7 @@ function SectionBasicDesktop({
   onAvatarChange,
   onRemoveAvatar,
   onCoverImageChange,
+  onRemoveCoverImage,
 }: SectionBasicDesktopProps) {
   return (
     <div className="space-y-6">
@@ -112,7 +118,7 @@ function SectionBasicDesktop({
 
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                 hidden
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -123,11 +129,25 @@ function SectionBasicDesktop({
           </div>
 
           <div className="border-t border-white/6 p-3">
-            <p className="text-sm font-semibold text-zinc-200">Cover photo</p>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-zinc-200">Cover photo</p>
 
-            <p className="mt-0.5 text-xs text-zinc-500">
-              JPG, PNG · Recommended 1600 × 400px
-            </p>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  JPG, PNG, WEBP, HEIC, HEIF · Recommended 1600 × 400px
+                </p>
+              </div>
+
+              {draft.coverImage && (
+                <button
+                  type="button"
+                  onClick={onRemoveCoverImage}
+                  className="rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/20"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -178,6 +198,7 @@ interface SectionBasicMobileProps {
   onAvatarChange: (file: File) => void;
   onRemoveAvatar: () => void;
   onCoverImageChange: (file: File) => void;
+  onRemoveCoverImage: () => void;
 }
 
 function SectionBasicMobile({
@@ -186,6 +207,7 @@ function SectionBasicMobile({
   onAvatarChange,
   onRemoveAvatar,
   onCoverImageChange,
+  onRemoveCoverImage,
 }: SectionBasicMobileProps) {
   return (
     <div className="space-y-5">
@@ -239,7 +261,7 @@ function SectionBasicMobile({
 
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                 hidden
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -250,11 +272,25 @@ function SectionBasicMobile({
           </div>
 
           <div className="border-t border-white/6 p-3">
-            <p className="text-sm font-semibold text-zinc-200">Cover photo</p>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-zinc-200">Cover photo</p>
 
-            <p className="mt-0.5 text-xs text-zinc-500">
-              JPG, PNG · 1600 × 400px recommended
-            </p>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  JPG, PNG, WEBP, HEIC, HEIF · 1600 × 400px recommended
+                </p>
+              </div>
+
+              {draft.coverImage && (
+                <button
+                  type="button"
+                  onClick={onRemoveCoverImage}
+                  className="rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1.5 text-[11px] font-medium text-red-300 transition hover:bg-red-500/20"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

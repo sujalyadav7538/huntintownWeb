@@ -10,6 +10,7 @@ import { handleAvatarError } from "@/src/shared/utils";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { apiFetch } from "@/src/shared/lib/api";
 import { setConversationMessages } from "@/src/store/conversationsSlice";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 export default function ChatList({
   setActiveConversationId,
@@ -141,10 +142,8 @@ export default function ChatList({
               const isSelected = conv._id === activeConversationId;
 
               return (
-                <button
+                <div
                   key={conv._id}
-                  type="button"
-                  onClick={() => handleActiveChatClick(conv._id)}
                   className={`group relative flex w-full items-center gap-3 px-4 py-4 text-left transition-colors ${
                     isSelected ? "bg-white/4.5" : "hover:bg-white/2.5"
                   }`}
@@ -155,7 +154,11 @@ export default function ChatList({
                   )}
 
                   {/* Avatar */}
-                  <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/4">
+                  <UserProfileLink
+                    userId={otherUser?.id ?? otherUser?._id}
+                    aria-label={`View ${otherUser?.name ?? "user"}'s profile`}
+                    className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/4 focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+                  >
                     {otherUser?.avatar ? (
                       <img
                         src={otherUser.avatar}
@@ -174,53 +177,59 @@ export default function ChatList({
                     {otherUser?.isOnline && (
                       <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full border border-[#0c0c0e] bg-emerald-500" />
                     )}
-                  </div>
+                  </UserProfileLink>
 
                   {/* Conversation info */}
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={`truncate text-[13px] font-semibold ${
-                        isSelected ? "text-white" : "text-zinc-100"
-                      }`}
-                    >
-                      {otherUser?.name || "User"}
-                    </p>
+                  <button
+                    type="button"
+                    onClick={() => handleActiveChatClick(conv._id)}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`truncate text-[13px] font-semibold ${
+                          isSelected ? "text-white" : "text-zinc-100"
+                        }`}
+                      >
+                        {otherUser?.name || "User"}
+                      </p>
 
-                    {/* <p className="mt-0.5 truncate text-[10px] text-zinc-600">
+                      {/* <p className="mt-0.5 truncate text-[10px] text-zinc-600">
                       {conv?.post?.title || "Post conversation"}
                     </p> */}
 
-                    {otherUser?.isOnline ? (
-                      <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-500/70">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        Online
-                      </div>
-                    ) : (
-                      conv.lastMessageAt && (
-                        <div className="mt-1 flex items-center gap-1 text-[10px] text-zinc-600">
-                          <Clock className="h-2.5 w-2.5" />
-                          {formatDate(conv.lastMessageAt)}
+                      {otherUser?.isOnline ? (
+                        <div className="mt-1 flex items-center gap-1 text-[10px] text-emerald-500/70">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          Online
                         </div>
-                      )
+                      ) : (
+                        conv.lastMessageAt && (
+                          <div className="mt-1 flex items-center gap-1 text-[10px] text-zinc-600">
+                            <Clock className="h-2.5 w-2.5" />
+                            {formatDate(conv.lastMessageAt)}
+                          </div>
+                        )
+                      )}
+                    </div>
+
+                    {/* Unread */}
+                    {conv.unreadCount > 0 && (
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF3F3F] px-1.5 text-[9px] font-bold text-white">
+                        {conv.unreadCount > 99 ? "99+" : conv.unreadCount}
+                      </span>
                     )}
-                  </div>
 
-                  {/* Unread */}
-                  {conv.unreadCount > 0 && (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF3F3F] px-1.5 text-[9px] font-bold text-white">
-                      {conv.unreadCount > 99 ? "99+" : conv.unreadCount}
-                    </span>
-                  )}
-
-                  {/* Arrow */}
-                  <ChevronRight
-                    className={`h-3.5 w-3.5 shrink-0 transition ${
-                      isSelected
-                        ? "text-zinc-400"
-                        : "text-zinc-700 group-hover:text-zinc-400"
-                    }`}
-                  />
-                </button>
+                    {/* Arrow */}
+                    <ChevronRight
+                      className={`h-3.5 w-3.5 shrink-0 transition ${
+                        isSelected
+                          ? "text-zinc-400"
+                          : "text-zinc-700 group-hover:text-zinc-400"
+                      }`}
+                    />
+                  </button>
+                </div>
               );
             })}
           </div>

@@ -10,6 +10,7 @@ import {
   setMessageStatus,
 } from "@/src/store/conversationsSlice";
 import { apiFetch } from "@/src/shared/lib/api";
+import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 
 interface MessageInputProps {
   participantName: string;
@@ -27,13 +28,16 @@ export default function MessageInput({ participantName }: MessageInputProps) {
   const token = useAppSelector((s) => s.auth.token);
   const currentUser = useAppSelector((s) => s.auth.currentUser);
   const dispatch = useAppDispatch();
+  const { showAlert } = useAppDialog();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!typedText.trim() || !conversationId || !currentUser) return;
 
     if (!socket.connected) {
-      alert("Connection lost. Please refresh the page.");
+      void showAlert("Connection lost. Please refresh the page.", {
+        title: "Connection lost",
+      });
       return;
     }
 
@@ -109,7 +113,11 @@ export default function MessageInput({ participantName }: MessageInputProps) {
   ) => {
     const file = event.target.files?.[0];
     if (!file || !conversationId || !token || !currentUser) {
-      if (!token) alert("Your session has expired. Please login again.");
+      if (!token) {
+        void showAlert("Your session has expired. Please login again.", {
+          title: "Session expired",
+        });
+      }
       event.target.value = "";
       return;
     }
@@ -216,7 +224,7 @@ export default function MessageInput({ participantName }: MessageInputProps) {
       {isEmojiOpen && (
         <div
           ref={pickerRef}
-          className="absolute bottom-[calc(100%+10px)] left-3 z-50 overflow-hidden rounded-2xl border border-white/[0.08] shadow-2xl"
+          className="absolute bottom-[calc(100%+10px)] left-3 z-50 overflow-hidden rounded-2xl border border-white/8 shadow-2xl"
         >
           <EmojiPicker
             onEmojiClick={handleEmojiSelect}
@@ -239,9 +247,9 @@ export default function MessageInput({ participantName }: MessageInputProps) {
           title="Attach file"
           disabled={isUploading}
           onClick={() => fileInputRef.current?.click()}
-          className="mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-40"
+          className="mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-white/5 hover:text-zinc-300 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <Paperclip className="h-[17px] w-[17px]" />
+          <Paperclip className="h-4.25 w-4.25" />
         </button>
 
         <input
@@ -263,10 +271,10 @@ export default function MessageInput({ participantName }: MessageInputProps) {
             className={`ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition ${
               isEmojiOpen
                 ? "bg-white/[0.07] text-zinc-200"
-                : "text-zinc-500 hover:bg-white/[0.05] hover:text-zinc-300"
+                : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
             } disabled:opacity-40`}
           >
-            <Smile className="h-[18px] w-[18px]" />
+            <Smile className="h-4.5 w-4.5" />
           </button>
 
           <input

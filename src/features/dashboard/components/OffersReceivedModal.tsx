@@ -6,6 +6,7 @@ import {
 import { apiFetch } from '@/src/shared/lib/api';
 import { Post, User } from '@/src/shared/types';
 import { getAvatarUrl, handleAvatarError } from '@/src/shared/utils';
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 interface BackendResponse {
   id: string;
@@ -170,16 +171,27 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                   <div key={r.id} className="p-4 sm:p-5 hover:bg-[#0e0e10] transition-colors">
                     {/* ── Response header row ── */}
                     <div className="flex items-start gap-3">
-                      <img
-                        src={getAvatarUrl(r.respondedBy.name, r.respondedBy.avatar)}
-                        alt={r.respondedBy.name}
-                        className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1e1e22] shrink-0 mt-0.5"
-                        onError={(e) => handleAvatarError(e, r.respondedBy.name)}
-                        referrerPolicy="no-referrer"
-                      />
+                      <UserProfileLink
+                        userId={r.respondedBy.id}
+                        aria-label={`View ${r.respondedBy.name}'s profile`}
+                        className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+                      >
+                        <img
+                          src={getAvatarUrl(r.respondedBy.name, r.respondedBy.avatar)}
+                          alt={r.respondedBy.name}
+                          className="mt-0.5 h-9 w-9 rounded-full object-cover ring-2 ring-[#1e1e22]"
+                          onError={(e) => handleAvatarError(e, r.respondedBy.name)}
+                          referrerPolicy="no-referrer"
+                        />
+                      </UserProfileLink>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[13px] font-semibold text-zinc-100">{r.respondedBy.name}</span>
+                          <UserProfileLink
+                            userId={r.respondedBy.id}
+                            className="text-[13px] font-semibold text-zinc-100 hover:text-[#ff7777]"
+                          >
+                            {r.respondedBy.name}
+                          </UserProfileLink>
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border uppercase tracking-wide ${statusCfg.class}`}>
                             {statusCfg.label}
                           </span>

@@ -3,6 +3,7 @@ import { ArrowLeft, FileText, MapPin } from "lucide-react";
 import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
 import { useAppSelector } from "@/src/store/hooks";
 import { formatLastSeen } from "@/src/shared/lib/presence";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 interface ChatHeaderProps {
   activeConv: Conversation;
@@ -36,7 +37,11 @@ export default function ChatHeader({
           </button>
 
           {/* Avatar */}
-          <div className="relative shrink-0">
+          <UserProfileLink
+            userId={otherParticipant?._id ?? otherParticipant?.id}
+            aria-label={`View ${otherParticipant?.name ?? "user"}'s profile`}
+            className="relative block shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+          >
             <img
               src={
                 otherParticipant?.avatar || getAvatarUrl(otherParticipant?.name)
@@ -53,13 +58,16 @@ export default function ChatHeader({
                 otherParticipant?.isOnline ? "bg-emerald-500" : "bg-zinc-600"
               }`}
             />
-          </div>
+          </UserProfileLink>
 
           {/* User */}
           <div className="min-w-0">
-            <h4 className="truncate text-xs font-bold text-zinc-100 sm:text-sm">
+            <UserProfileLink
+              userId={otherParticipant?._id ?? otherParticipant?.id}
+              className="block truncate text-xs font-bold text-zinc-100 hover:text-[#ff7777] sm:text-sm"
+            >
               {otherParticipant?.name || "Unknown"}
-            </h4>
+            </UserProfileLink>
 
             <p className="truncate text-[10px] text-zinc-500">
               {otherParticipant?.isOnline

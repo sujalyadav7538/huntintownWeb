@@ -14,6 +14,7 @@ import {
   isPostExpired,
 } from "@/src/shared/utils";
 import { CATEGORY_COLORS } from "@/src/shared/lib/postConstants";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 export interface PostCardData {
   _id?: string;
@@ -31,6 +32,8 @@ export interface PostCardData {
   createdAt?: string;
 
   author?: {
+    id?: string;
+    _id?: string;
     name: string;
     // Mirrored from the user document; absent on older/partial payloads.
     rating?: number;
@@ -84,7 +87,7 @@ export default function PostGridCard({
   return (
     <article
       className="
-        group relative flex h-[292px] min-w-0 cursor-pointer flex-col
+        group relative flex h-73 min-w-0 cursor-pointer flex-col
         overflow-hidden rounded-2xl
         theme-post-card
         border border-white/[0.07]
@@ -111,20 +114,19 @@ export default function PostGridCard({
       <header className="flex items-center justify-between gap-3">
         {/* Author */}
         {post.author ? (
-          <div className="flex min-w-0 items-center gap-2">
+          <UserProfileLink
+            userId={post.author.id ?? post.author._id}
+            aria-label={`View ${post.author.name}'s profile`}
+            className="flex min-w-0 items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+          >
             <img
-              src={getAvatarUrl(
-                post.author.name,
-                post.author.avatar ?? undefined,
-              )}
+              src={getAvatarUrl(post.author.name, post.author.avatar ?? undefined)}
               alt={post.author.name}
               className="h-7 w-7 shrink-0 rounded-full object-cover"
               onError={(e) => handleAvatarError(e, post.author.name)}
               referrerPolicy="no-referrer"
             />
-            <div></div>
-
-            <span className="truncate text-[10px] font-medium text-zinc-400">
+            <span className="truncate text-[10px] font-medium text-zinc-400 hover:text-zinc-100">
               {post.author.name}
             </span>
 
@@ -134,7 +136,7 @@ export default function PostGridCard({
                 {post?.author?.trustscore.toFixed(0)}
               </span>
             )}
-          </div>
+          </UserProfileLink>
         ) : (
           <span />
         )}

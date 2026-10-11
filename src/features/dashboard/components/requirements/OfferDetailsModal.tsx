@@ -9,6 +9,7 @@ import {
 import DashboardModal from "../DashboardModal";
 import type { DashboardPost, DashboardResponse } from "../types";
 import { Avatar, StatusBadge } from "./RequirementUI";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 interface OfferDetailsModalProps {
   post: DashboardPost;
@@ -78,15 +79,24 @@ export default function OfferDetailsModal({
                 User detail
               </h3>
               <div className="mt-3 flex items-center gap-3">
-                <Avatar
-                  name={response.respondedBy?.name ?? "Respondent"}
-                  src={response.respondedBy?.avatar}
-                  large
-                />
+                <UserProfileLink
+                  userId={response.respondedBy?._id}
+                  aria-label={`View ${response.respondedBy?.name ?? "respondent"}'s profile`}
+                  className="shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+                >
+                  <Avatar
+                    name={response.respondedBy?.name ?? "Respondent"}
+                    src={response.respondedBy?.avatar}
+                    large
+                  />
+                </UserProfileLink>
                 <div className="min-w-0">
-                  <p className="theme-text-primary truncate text-sm font-bold">
+                  <UserProfileLink
+                    userId={response.respondedBy?._id}
+                    className="theme-text-primary block truncate text-sm font-bold hover:text-[#FF3F3F]"
+                  >
                     {response.respondedBy?.name ?? "Respondent"}
-                  </p>
+                  </UserProfileLink>
                   <p className="theme-text-muted mt-0.5 text-xs">
                     {response.respondedBy?.role ?? "Community member"}
                   </p>

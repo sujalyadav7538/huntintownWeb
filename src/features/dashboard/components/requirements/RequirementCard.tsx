@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import { getCategoryPresentation } from "@/src/shared/lib/postConstants";
+import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 import type { DashboardPost, PostStatus } from "../types";
 import { StatusBadge } from "./RequirementUI";
 
@@ -33,6 +34,7 @@ export default function RequirementCard({
   const [actionsOpen, setActionsOpen] = useState(false);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const actionsRef = useRef<HTMLDetailsElement>(null);
+  const { showConfirm } = useAppDialog();
 
   useEffect(() => {
     const element = descriptionRef.current;
@@ -173,10 +175,13 @@ export default function RequirementCard({
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => {
+                onClick={async () => {
                   actionsRef.current?.removeAttribute("open");
                   setActionsOpen(false);
-                  if (window.confirm(`Delete “${post.title}”?`))
+                  if (await showConfirm(`Delete “${post.title}”?`, {
+                    title: "Delete requirement",
+                    confirmLabel: "Delete",
+                  }))
                     void runAction(onDelete);
                 }}
                 className="theme-text-primary inline-flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs font-medium hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50"

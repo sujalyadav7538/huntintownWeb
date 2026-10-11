@@ -3,6 +3,7 @@ import {
   Briefcase,
   Building2,
   Calendar,
+  Check,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -20,9 +21,10 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import type { ChangeEvent, ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/src/shared/lib/api";
+import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 
 /* =========================================================
    TYPES
@@ -38,6 +40,7 @@ type ShowcaseType =
   | "experience"
   | "product"
   | "portfolio"
+  | "feed"
   | "other";
 
 type ShowcaseField =
@@ -99,6 +102,8 @@ interface PortfolioSectionProps {
   items?: ShowcaseItem[];
   onChange?: (items: ShowcaseItem[]) => void;
 }
+
+type PortfolioListFilter = "portfolio" | "feed";
 
 interface ShowcaseTypeConfig {
   value: ShowcaseType;
@@ -284,6 +289,14 @@ const SHOWCASE_CONFIG: Record<ShowcaseType, ShowcaseTypeConfig> = {
     metadata: ["category", "result"],
   },
 
+  feed: {
+    value: "feed",
+    label: "Feed",
+    icon: Sparkles,
+    description: "A quick post or short update — no extra details needed.",
+    fields: ["subtitle", "description", "coverImage", "tags"],
+  },
+
   other: {
     value: "other",
     label: "Other",
@@ -368,9 +381,9 @@ const EMPTY_METADATA: ShowcaseMetadata = {
    HELPERS
 ========================================================= */
 
-const createEmptyItem = (): ShowcaseItem => ({
+const createEmptyItem = (type: ShowcaseType = "project"): ShowcaseItem => ({
   id: crypto.randomUUID(),
-  type: "project",
+  type,
   title: "",
   subtitle: "",
   description: "",
@@ -420,7 +433,10 @@ export default function PortfolioSection({
   items: externalItems = [],
   onChange,
 }: PortfolioSectionProps) {
+  const { showConfirm } = useAppDialog();
   const [items, setItems] = useState<ShowcaseItem[]>(externalItems);
+  const [listFilter, setListFilter] =
+    useState<PortfolioListFilter>("portfolio");
   const [editingItem, setEditingItem] = useState<ShowcaseItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -433,6 +449,10 @@ export default function PortfolioSection({
     setItems(nextItems);
     onChange?.(nextItems);
   };
+
+  const visibleItems = items.filter((item) =>
+    listFilter === "feed" ? item.type === "feed" : item.type !== "feed",
+  );
 
   const addItem = () => {
     setError(null);
@@ -496,7 +516,13 @@ export default function PortfolioSection({
   };
 
   const deleteItem = async (id: string) => {
-    if (isSubmitting || !window.confirm("Delete this showcase item?")) {
+    if (
+      isSubmitting ||
+      !(await showConfirm("Delete this showcase item?", {
+        title: "Delete portfolio item",
+        confirmLabel: "Delete",
+      }))
+    ) {
       return;
     }
 
@@ -531,7 +557,9 @@ export default function PortfolioSection({
       {/* DESKTOP */}
       <div className="hidden md:block">
         <PortfolioDesktop
-          items={items}
+          items={visibleItems}
+          listFilter={listFilter}
+          onFilterChange={setListFilter}
           onAdd={addItem}
           onEdit={editItem}
           onDelete={deleteItem}
@@ -547,7 +575,9 @@ export default function PortfolioSection({
       {/* MOBILE */}
       <div className="md:hidden">
         <PortfolioMobile
-          items={items}
+          items={visibleItems}
+          listFilter={listFilter}
+          onFilterChange={setListFilter}
           onAdd={addItem}
           onEdit={editItem}
           onDelete={deleteItem}
@@ -573,21 +603,30 @@ export default function PortfolioSection({
 
 function PortfolioDesktop({
   items,
+  listFilter,
+  onFilterChange,
   onAdd,
   onEdit,
   onDelete,
 }: {
   items: ShowcaseItem[];
+  listFilter: PortfolioListFilter;
+  onFilterChange: (filter: PortfolioListFilter) => void;
   onAdd: () => void;
   onEdit: (item: ShowcaseItem) => void;
   onDelete: (id: string) => void;
 }) {
   return (
     <div className="space-y-5">
-      <PortfolioHeader count={items.length} onAdd={onAdd} />
+      <PortfolioHeader
+        count={items.length}
+        listFilter={listFilter}
+        onFilterChange={onFilterChange}
+        onAdd={onAdd}
+      />
 
       {items.length === 0 ? (
-        <PortfolioEmptyState onAdd={onAdd} />
+        <PortfolioEmptyState listFilter={listFilter} onAdd={onAdd} />
       ) : (
         <div className="grid grid-cols-2 gap-5">
           {items.map((item) => (
@@ -610,21 +649,30 @@ function PortfolioDesktop({
 
 function PortfolioMobile({
   items,
+  listFilter,
+  onFilterChange,
   onAdd,
   onEdit,
   onDelete,
 }: {
   items: ShowcaseItem[];
+  listFilter: PortfolioListFilter;
+  onFilterChange: (filter: PortfolioListFilter) => void;
   onAdd: () => void;
   onEdit: (item: ShowcaseItem) => void;
   onDelete: (id: string) => void;
 }) {
   return (
     <div className="space-y-4">
-      <PortfolioHeader count={items.length} onAdd={onAdd} />
+      <PortfolioHeader
+        count={items.length}
+        listFilter={listFilter}
+        onFilterChange={onFilterChange}
+        onAdd={onAdd}
+      />
 
       {items.length === 0 ? (
-        <PortfolioEmptyState onAdd={onAdd} />
+        <PortfolioEmptyState listFilter={listFilter} onAdd={onAdd} />
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
@@ -647,13 +695,47 @@ function PortfolioMobile({
 
 function PortfolioHeader({
   count,
+  listFilter,
+  onFilterChange,
   onAdd,
 }: {
   count: number;
+  listFilter: PortfolioListFilter;
+  onFilterChange: (filter: PortfolioListFilter) => void;
   onAdd: () => void;
 }) {
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    if (!filterOpen) return;
+
+    const closeOutside = (event: PointerEvent) => {
+      if (!filterRef.current?.contains(event.target as Node)) {
+        if (filterRef.current) filterRef.current.open = false;
+        setFilterOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        if (filterRef.current) filterRef.current.open = false;
+        setFilterOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [filterOpen]);
+
+  const selectedFilterLabel =
+    listFilter === "portfolio" ? "Portfolio Items" : "Feed";
+
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-4">
       <div>
         <div className="flex items-center gap-2">
           <LayoutGrid className="h-5 w-5 text-[#ff6262]" />
@@ -672,14 +754,56 @@ function PortfolioHeader({
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={onAdd}
-        className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF3F3F] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#ff5757]"
-      >
-        <Plus className="h-4 w-4" />
-        <span className="hidden sm:inline">Add item</span>
-      </button>
+      <div className="flex items-center gap-2">
+        <details
+          ref={filterRef}
+          className="relative"
+          onToggle={(event) => setFilterOpen(event.currentTarget.open)}
+        >
+          <summary
+            aria-label="Filter portfolio items"
+            className="flex h-9 list-none items-center gap-2 rounded-lg border border-white/10 bg-[#111113] px-3 text-xs font-medium text-zinc-200 transition hover:bg-white/5 [&::-webkit-details-marker]:hidden"
+          >
+            <span>{selectedFilterLabel}</span>
+            <ChevronDown
+              className={`h-3.5 w-3.5 text-zinc-500 transition-transform ${filterOpen ? "rotate-180" : ""}`}
+            />
+          </summary>
+          <div className="absolute right-0 top-10 z-30 w-44 rounded-lg border border-white/10 bg-[#151518] p-1 shadow-xl">
+            {(
+              [
+                ["portfolio", "Portfolio Items"],
+                ["feed", "Feed"],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={listFilter === value}
+                onClick={() => {
+                  if (filterRef.current) filterRef.current.open = false;
+                  setFilterOpen(false);
+                  onFilterChange(value);
+                }}
+                className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition hover:bg-white/5 ${listFilter === value ? "font-semibold text-white" : "text-zinc-400"}`}
+              >
+                <span className="flex-1">{label}</span>
+                {listFilter === value && (
+                  <Check className="h-3.5 w-3.5 text-[#FF3F3F]" />
+                )}
+              </button>
+            ))}
+          </div>
+        </details>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF3F3F] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#ff5757]"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Add item</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -688,7 +812,24 @@ function PortfolioHeader({
    EMPTY STATE
 ========================================================= */
 
-function PortfolioEmptyState({ onAdd }: { onAdd: () => void }) {
+function PortfolioEmptyState({
+  listFilter,
+  onAdd,
+}: {
+  listFilter: PortfolioListFilter;
+  onAdd: () => void;
+}) {
+  if (listFilter === "feed") {
+    return (
+      <div className="flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-white/10 px-6 py-12 text-center">
+        <p className="text-sm font-semibold text-zinc-100">No feed posts yet</p>
+        <p className="mt-1 max-w-sm text-sm text-zinc-500">
+          Create a post from the Highlights tab.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -1101,25 +1242,18 @@ function PortfolioItemEditor({
             {(hasField("coverImage") || hasField("gallery")) && (
               <EditorSection
                 title="Visual proof"
-                description="Add images to make this item more engaging."
+                description="Upload up to five images for this item."
               >
-                {hasField("coverImage") && (
-                  <Field
-                    label="Cover image URL"
-                    value={item.coverImage}
-                    placeholder="https://..."
-                    onChange={(value) => updateItem("coverImage", value)}
-                  />
-                )}
-
-                {hasField("gallery") && (
-                  <div className="mt-4">
-                    <GalleryInput
-                      gallery={item.gallery}
-                      onChange={(gallery) => updateItem("gallery", gallery)}
-                    />
-                  </div>
-                )}
+                <ShowcaseImagesInput
+                  coverImage={item.coverImage}
+                  coverImagePublicId={item.coverImage_public_id}
+                  gallery={item.gallery}
+                  onChange={(images) => {
+                    updateItem("coverImage", images[0]?.url ?? "");
+                    updateItem("coverImage_public_id", images[0]?.public_id ?? "");
+                    updateItem("gallery", images.slice(1));
+                  }}
+                />
               </EditorSection>
             )}
 
@@ -1413,83 +1547,116 @@ function TagInput({
    GALLERY INPUT
 ========================================================= */
 
-function GalleryInput({
+function ShowcaseImagesInput({
+  coverImage,
+  coverImagePublicId,
   gallery,
   onChange,
 }: {
+  coverImage: string;
+  coverImagePublicId: string;
   gallery: ShowcaseMedia[];
   onChange: (gallery: ShowcaseMedia[]) => void;
 }) {
-  const [url, setUrl] = useState("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState("");
+  const images = [
+    ...(coverImage ? [{ url: coverImage, public_id: coverImagePublicId }] : []),
+    ...gallery,
+  ];
 
-  const addImage = () => {
-    const value = url.trim();
+  const uploadImages = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (!files.length) return;
 
-    if (!value) return;
+    if (images.length + files.length > 5) {
+      setError("You can upload up to five images for each item.");
+      return;
+    }
 
-    onChange([
-      ...gallery,
-      {
-        url: value,
-        public_id: "",
-      },
-    ]);
+    setIsUploading(true);
+    setError("");
 
-    setUrl("");
-  };
+    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append("images", file));
+      const response = await apiFetch("/api/showcase/images", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = await response.json().catch(() => ({}));
 
-  const removeImage = (index: number) => {
-    onChange(gallery.filter((_, i) => i !== index));
+      if (!response.ok || !Array.isArray(payload.images)) {
+        throw new Error(payload.message || "Unable to upload images.");
+      }
+
+      onChange([...images, ...payload.images]);
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Unable to upload images.",
+      );
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <div>
-      <div className="mb-2 flex items-center gap-2">
-        <ImagePlus className="h-4 w-4 text-zinc-500" />
-
-        <span className="text-xs font-medium text-zinc-400">Gallery</span>
-      </div>
-
-      <div className="flex gap-2">
-        <input
-          value={url}
-          placeholder="Image URL"
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              addImage();
-            }
-          }}
-          className="min-w-0 flex-1 rounded-lg border border-white/10 bg-[#0a0a0c] px-3 py-2.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-[#FF3F3F]/60 focus:ring-1 focus:ring-[#FF3F3F]/20"
-        />
-
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-xs text-zinc-500">{images.length}/5 images</span>
         <button
           type="button"
-          onClick={addImage}
-          className="rounded-lg border border-white/10 bg-[#151518] px-3 text-zinc-400 transition hover:border-[#FF3F3F]/40 hover:text-[#ff6b6b]"
+          onClick={() => inputRef.current?.click()}
+          disabled={isUploading || images.length >= 5}
+          className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-[#151518] px-3 py-2 text-xs font-medium text-zinc-300 transition hover:border-[#FF3F3F]/40 hover:text-[#ff6b6b] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Plus className="h-4 w-4" />
+          {isUploading ? (
+            <span>Uploading...</span>
+          ) : (
+            <>
+              <ImagePlus className="h-4 w-4" />
+              Upload images
+            </>
+          )}
         </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+          multiple
+          hidden
+          onChange={(event) => void uploadImages(event)}
+        />
       </div>
 
-      {gallery.length > 0 && (
+      {error && (
+        <p className="mt-2 text-xs text-rose-400" role="alert">
+          {error}
+        </p>
+      )}
+
+      {images.length > 0 && (
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {gallery.map((image, index) => (
+          {images.map((image, index) => (
             <div
               key={`${image.url}-${index}`}
               className="group relative aspect-square overflow-hidden rounded-lg bg-[#151518]"
             >
               <img
                 src={image.url}
-                alt=""
+                alt={`Portfolio image ${index + 1}`}
                 className="h-full w-full object-cover"
               />
 
               <button
                 type="button"
-                onClick={() => removeImage(index)}
-                className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-0 transition group-hover:opacity-100"
+                onClick={() => onChange(images.filter((_, imageIndex) => imageIndex !== index))}
+                className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100"
+                aria-label={`Remove portfolio image ${index + 1}`}
               >
                 <X className="h-3 w-3" />
               </button>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Bell, CheckCheck, ChevronRight, Trash2, X } from "lucide-react";
 
 import { apiFetchJSON } from "@/src/shared/lib/api";
+import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 import { useSeo } from "@/src/shared/hooks/useSeo";
 import {
   NOTIFICATION_TYPE_LABELS,
@@ -44,6 +45,7 @@ const formatTime = (value: string) => {
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
+  const { showConfirm } = useAppDialog();
   const { unreadCount } = useNotifications();
 
   useSeo({ title: "Notifications" });
@@ -157,7 +159,12 @@ export default function NotificationsPage() {
   };
 
   const handleClearRead = async () => {
-    if (!window.confirm("Delete all read notifications?")) return;
+    if (
+      !(await showConfirm("Delete all read notifications?", {
+        title: "Clear notifications",
+        confirmLabel: "Delete all",
+      }))
+    ) return;
     setBusy(true);
     try {
       await clearRead();

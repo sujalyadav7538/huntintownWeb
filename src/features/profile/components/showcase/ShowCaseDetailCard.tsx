@@ -11,7 +11,13 @@ import {
   X,
 } from "lucide-react";
 import { ShowcaseItem } from "@/src/shared/types";
-import { formatPeriod, TYPE_CONFIG } from "@/src/features/profile/components/showcase/UserShowCase";
+import {
+  formatPeriod,
+  TYPE_CONFIG,
+} from "@/src/features/profile/components/showcase/UserShowCase";
+
+const shouldShowItemTitle = (item: ShowcaseItem) =>
+  item.type !== "feed" || !item.description.startsWith(item.title);
 
 interface ShowcaseDetailCardProps {
   item: ShowcaseItem | null;
@@ -143,6 +149,7 @@ function ShowcaseDetailDesktop({
   const Icon = config.icon;
   const period = formatPeriod(item);
   const result = item.metadata?.result;
+  const showTitle = shouldShowItemTitle(item);
 
   return (
     <div className="relative mt-6 hidden w-full max-w-3xl overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111113] shadow-2xl sm:block">
@@ -230,11 +237,13 @@ function ShowcaseDetailDesktop({
         )}
 
         <div className="p-6 lg:p-8">
-          <h2 className="text-xl font-bold tracking-tight text-white lg:text-2xl">
-            {item.title}
-          </h2>
+          {showTitle && (
+            <h2 className="text-xl font-bold tracking-tight text-white lg:text-2xl">
+              {item.title}
+            </h2>
+          )}
 
-          {item.subtitle && (
+          {item.type !== "feed" && item.subtitle && (
             <p className="mt-1 text-[10px] leading-4 text-zinc-500">
               {item.subtitle}
             </p>
@@ -373,8 +382,6 @@ function ShowcaseDetailDesktop({
   );
 }
 
-
-
 interface ShowcaseDetailMobileProps {
   item: ShowcaseItem;
   images: string[];
@@ -398,6 +405,7 @@ function ShowcaseDetailMobile({
   const Icon = config.icon;
   const period = formatPeriod(item);
   const result = item.metadata?.result;
+  const showTitle = shouldShowItemTitle(item);
 
   return (
     <div className="relative w-full h-full  overflow-hidden   theme-panel  sm:hidden">
@@ -485,9 +493,11 @@ function ShowcaseDetailMobile({
         )}
 
         <div className="p-3.5">
-          <h2 className="pr-8 text-base font-bold tracking-tight text-white">
-            {item.title}
-          </h2>
+          {showTitle && (
+            <h2 className="pr-8 text-base font-bold tracking-tight text-white">
+              {item.title}
+            </h2>
+          )}
 
           {item.subtitle && (
             <p className="mt-1 text-[9px] leading-4 text-zinc-500">

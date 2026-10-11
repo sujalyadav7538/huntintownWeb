@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, ChevronDown, LoaderCircle, Search, Star } from "lucide-react";
+import { CheckCircle2, ChevronDown, ExternalLink, LoaderCircle, Search, Star } from "lucide-react";
 import { apiFetch, apiFetchJSON } from "@/src/shared/lib/api";
 import DashboardModal from "../DashboardModal";
 import StarRatingInput from "../StarRatingInput";
 import { Avatar } from "./RequirementUI";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 interface RateableHelper {
   _id: string;
@@ -221,11 +222,11 @@ export default function RateHelpersModal({
                         </li>
                       ) : (
                         filteredHelpers.map((helper) => (
-                          <li key={helper._id} role="option" aria-selected={helper._id === selectedId}>
+                          <li key={helper._id} role="option" aria-selected={helper._id === selectedId} className="flex items-center gap-1 pr-2">
                             <button
                               type="button"
                               onClick={() => selectHelper(helper)}
-                              className={`theme-hover-soft flex w-full items-center gap-3 px-3 py-2 text-left ${helper._id === selectedId ? "bg-[#FF3F3F]/8" : ""}`}
+                              className={`theme-hover-soft flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left ${helper._id === selectedId ? "bg-[#FF3F3F]/8" : ""}`}
                             >
                               <Avatar name={helper.name} src={helper.avatar} />
                               <span className="min-w-0 flex-1">
@@ -249,6 +250,14 @@ export default function RateHelpersModal({
                                 </span>
                               )}
                             </button>
+                            <UserProfileLink
+                              userId={helper._id}
+                              aria-label={`View ${helper.name}'s profile`}
+                              title={`View ${helper.name}'s profile`}
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-zinc-500 transition hover:bg-white/5 hover:text-[#FF3F3F]"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </UserProfileLink>
                           </li>
                         ))
                       )}

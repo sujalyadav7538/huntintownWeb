@@ -352,4 +352,5 @@ export type ShowcaseType =
   | "experience"
   | "product"
   | "portfolio"
+  | "feed"
   | "other";

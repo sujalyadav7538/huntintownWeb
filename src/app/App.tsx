@@ -29,6 +29,7 @@ import Header from "@/src/shared/components/layout/Header";
 import SidePanel from "@/src/shared/components/layout/SidePanel";
 import MobileBottomNavigation from "@/src/shared/components/layout/MobileBottomNavigation";
 import AppErrorNotice from "@/src/shared/components/layout/AppErrorNotice";
+import AppDialogProvider from "@/src/shared/components/layout/AppDialogProvider";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -172,7 +173,8 @@ export default function App() {
   }, [dispatch, location.pathname, location.search]);
 
   return (
-    <div className="fixed inset-0 flex flex-col  overflow-hidden theme-page-shell antialiased select-text text-zinc-100">
+    <AppDialogProvider>
+      <div className="fixed inset-0 flex flex-col  overflow-hidden theme-page-shell antialiased select-text text-zinc-100">
       <div className="flex h-full min-h-0 flex-1 flex-col">
         <Header
           activeTab={activeTab}
@@ -224,7 +226,8 @@ export default function App() {
         onClose={() => dispatch(closeSidePanel())}
         onLogout={handleLogout}
       />
-      <AppErrorNotice />
-    </div>
+        <AppErrorNotice />
+      </div>
+    </AppDialogProvider>
   );
 }

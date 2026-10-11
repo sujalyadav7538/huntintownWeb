@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/src/shared/lib/api";
-import { Post, User } from "@/src/shared/types";
+import { Post, ShowcaseItem, User } from "@/src/shared/types";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { updateProfile } from "@/src/store/authSlice";
 import { useReputation } from "@/src/shared/hooks/useReputation";
@@ -17,19 +17,22 @@ import ProfileAbout from "@/src/features/profile/components/ProfileAbout";
 import ProfileSkills from "@/src/features/profile/components/ProfileSkills";
 import ProfileHeader from "@/src/features/profile/components/ProfileHeader";
 import UserStats from "@/src/features/profile/components/UserStats";
+import HighlightsSection from "../components/feed/HighlightsSection";
 
 type TabId =
   | "about"
   | "badges"
   | "reviews"
   | "posts"
+  | "highlights"
   | "analytics"
   | "showcase";
 
 export const TABS: { id: TabId; label: string }[] = [
   { id: "about", label: "About" },
   { id: "posts", label: "Posts" },
-  { id: "showcase", label: "ShowCase" },
+  { id: "highlights", label: "Highlights" },
+  { id: "showcase", label: "Portfolio" },
   { id: "analytics", label: "Analytics" },
   { id: "badges", label: "Badges" },
   { id: "reviews", label: "Reviews" },
@@ -50,6 +53,9 @@ export default function UserProfileView({
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [mode, setMode] = useState<"view" | "edit">("view");
+  const [initialEditSection, setInitialEditSection] = useState<
+    "basic" | "portfolio"
+  >("basic");
   const [isOwner, setIsOwner] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>("about");
   const [isSaving, setIsSaving] = useState(false);
@@ -65,7 +71,6 @@ export default function UserProfileView({
     title: currentUser?.name ? `${currentUser.name}'s Profile` : "Profile",
     type: "profile",
   });
-
 
   const { metric, badges, loading: repLoading } = useReputation();
 
@@ -106,6 +111,7 @@ export default function UserProfileView({
     avatarFile: File | null,
     coverImageFile: File | null,
     removeAvatar: boolean,
+    removeCoverImage: boolean,
   ) => {
     setIsSaving(true);
     setSaveError("");
@@ -121,6 +127,7 @@ export default function UserProfileView({
       if (avatarFile) formData.append("avatar", avatarFile);
       if (coverImageFile) formData.append("coverImage", coverImageFile);
       if (removeAvatar) formData.append("removeAvatar", "true");
+      if (removeCoverImage) formData.append("removeCoverImage", "true");
 
       const scalarFields: Record<string, string> = {
         name: profile.name ?? "",
@@ -167,28 +174,91 @@ export default function UserProfileView({
         id: data.user.id || updated.id,
       };
 
-      dispatch(updateProfile(persisted));
-      onUpdateProfile(persisted);
-      setCurrentUser(persisted);
+      let refreshedUser = persisted;
+      try {
+        const refreshUrl = id ? `/api/profile/${id}` : "/api/profile";
+        const refreshResponse = await apiFetch(refreshUrl);
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          if (refreshData.user) {
+            refreshedUser = {
+              ...persisted,
+              ...refreshData.user,
+              id:
+                refreshData.user.id ??
+                refreshData.user._id ??
+                persisted.id,
+            };
+            setPosts(refreshData.user.posts ?? []);
+          }
+        }
+      } catch {
+        // Keep the successful update response if refreshing the profile fails.
+      }
+
+      dispatch(updateProfile(refreshedUser));
+      onUpdateProfile(refreshedUser);
+      setCurrentUser(refreshedUser);
       setMode("view");
     } catch {
-      setSaveError("Unable to save your profile. Please check your connection and try again.");
+      setSaveError(
+        "Unable to save your profile. Please check your connection and try again.",
+      );
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleFeedCreated = (item: ShowcaseItem) => {
+    setCurrentUser((prev) => {
+      if (!prev) return prev;
+
+      const nextItems = [item, ...(prev.showcase?.items ?? [])];
+
+      return {
+        ...prev,
+        showcase: {
+          ...prev.showcase,
+          _id: prev.showcase?._id ?? "",
+          items: nextItems,
+        },
+      };
+    });
+  };
+
+  const handleFeedDeleted = (itemId: string) => {
+    setCurrentUser((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        showcase: {
+          ...prev.showcase,
+          _id: prev.showcase?._id ?? "",
+          items: (prev.showcase?.items ?? []).filter(
+            (item) => (item.id ?? item._id) !== itemId,
+          ),
+        },
+      };
+    });
   };
 
   if (mode === "edit" && currentUser) {
     return (
       <>
         {saveError && (
-          <p role="alert" className="mb-3 rounded-lg border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+          <p
+            role="alert"
+            className="mb-3 rounded-lg border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"
+          >
             {saveError}
           </p>
         )}
         <ProfileEditLayout
           user={currentUser}
           isSaving={isSaving}
+          initialSection={initialEditSection}
           onSave={handleSave}
           onCancel={() => {
             setSaveError("");
@@ -227,8 +297,17 @@ export default function UserProfileView({
     isOwner,
     activeTab,
     setActiveTab,
-    onEdit: () => setMode("edit"),
+    onEdit: () => {
+      setInitialEditSection("basic");
+      setMode("edit");
+    },
+    onCreatePortfolioItems: () => {
+      setInitialEditSection("portfolio");
+      setMode("edit");
+    },
     onSelectShowcase: (item: any) => setSelectedShowCase(item),
+    onFeedCreated: handleFeedCreated,
+    onFeedDeleted: handleFeedDeleted,
   };
 
   return (
@@ -260,7 +339,10 @@ interface UserProfileDesktopProps {
   activeTab: TabId;
   setActiveTab: (tab: TabId) => void;
   onEdit: () => void;
+  onCreatePortfolioItems: () => void;
   onSelectShowcase: (item: any) => void;
+  onFeedCreated: (item: ShowcaseItem) => void;
+  onFeedDeleted: (itemId: string) => void;
 }
 
 function UserProfileDesktop({
@@ -273,7 +355,10 @@ function UserProfileDesktop({
   activeTab,
   setActiveTab,
   onEdit,
+  onCreatePortfolioItems,
   onSelectShowcase,
+  onFeedCreated,
+  onFeedDeleted,
 }: UserProfileDesktopProps) {
   const visibleTabs = isOwner
     ? TABS
@@ -303,7 +388,7 @@ function UserProfileDesktop({
         </div>
       </div>
 
-      <section className="theme-panel-soft overflow-hidden rounded-2xl border border-[#1e1e22] bg-[#0e0e10] shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+      <section className="theme-panel-soft overflow-hidden rounded-2xl border border-[#1e1e22] bg-[#0e0e10] shadow-[0_0_0_1px_rgba(255,255,255,0.02)] mb-3">
         <div className="theme-divider overflow-x-auto border-b border-[#1e1e22] px-2">
           <nav className="flex gap-1">
             {visibleTabs.map((tab) => (
@@ -331,7 +416,7 @@ function UserProfileDesktop({
                 )}
 
                 {tab.id === "reviews" &&
-                  metric?.reviewMetrics?.totalReviews>0 && (
+                  metric?.reviewMetrics?.totalReviews > 0 && (
                     <span className="ml-1.5 rounded-full bg-[#1e1e22] px-1.5 py-0.5 text-[9px] text-zinc-500">
                       {metric.reviewMetrics.totalReviews}
                     </span>
@@ -379,6 +464,16 @@ function UserProfileDesktop({
                     compact
                     defaultExpanded
                     // onViewAll={() => setActiveTab("posts")}
+                  />
+                  <HighlightsSection
+                    items={(user.showcase?.items ?? []).filter(
+                      (item) => item.type === "feed",
+                    )}
+                    isOwner={isOwner}
+                    compact
+                    onCreated={onFeedCreated}
+                    onDeleted={onFeedDeleted}
+                    onSelect={onSelectShowcase}
                   />
                 </div>
               </div>
@@ -443,10 +538,25 @@ function UserProfileDesktop({
             <ProfileAnalytics metric={metric ?? user?.metric ?? null} />
           )}
 
-          {activeTab === "showcase"  && (
-            <UserShowcase
-              items={user.showcase?.items ?? []}
+          {activeTab === "highlights" && (
+            <HighlightsSection
+              items={(user.showcase?.items ?? []).filter(
+                (item) => item.type === "feed",
+              )}
               isOwner={isOwner}
+              onCreated={onFeedCreated}
+              onDeleted={onFeedDeleted}
+              onSelect={onSelectShowcase}
+            />
+          )}
+
+          {activeTab === "showcase" && (
+            <UserShowcase
+              items={(user.showcase?.items ?? []).filter(
+                (item) => item.type !== "feed",
+              )}
+              isOwner={isOwner}
+              onAdd={onCreatePortfolioItems}
               onSelect={onSelectShowcase}
             />
           )}
@@ -466,7 +576,10 @@ interface UserProfileMobileProps {
   activeTab: TabId;
   setActiveTab: (tab: TabId) => void;
   onEdit: () => void;
+  onCreatePortfolioItems: () => void;
   onSelectShowcase: (item: any) => void;
+  onFeedCreated: (item: ShowcaseItem) => void;
+  onFeedDeleted: (itemId: string) => void;
 }
 
 function UserProfileMobile({
@@ -479,7 +592,10 @@ function UserProfileMobile({
   activeTab,
   setActiveTab,
   onEdit,
+  onCreatePortfolioItems,
   onSelectShowcase,
+  onFeedCreated,
+  onFeedDeleted,
 }: UserProfileMobileProps) {
   const visibleTabs = isOwner
     ? TABS
@@ -538,7 +654,7 @@ function UserProfileMobile({
                 )}
 
                 {tab.id === "reviews" &&
-                  metric?.reviewMetrics?.totalReviews && (
+                  metric?.reviewMetrics?.totalReviews>0 && (
                     <span className="ml-1 rounded-full bg-[#1e1e22] px-1 py-0.5 text-[8px] text-zinc-500">
                       {metric.reviewMetrics.totalReviews}
                     </span>
@@ -591,10 +707,25 @@ function UserProfileMobile({
             <ProfileAnalytics metric={metric ?? user?.metric ?? null} />
           )}
 
-          {activeTab === "showcase"  && (
-            <UserShowcase
-              items={user.showcase?.items ?? []}
+          {activeTab === "highlights" && (
+            <HighlightsSection
+              items={(user.showcase?.items ?? []).filter(
+                (item) => item.type === "feed",
+              )}
               isOwner={isOwner}
+              onCreated={onFeedCreated}
+              onDeleted={onFeedDeleted}
+              onSelect={onSelectShowcase}
+            />
+          )}
+
+          {activeTab === "showcase" && (
+            <UserShowcase
+              items={(user.showcase?.items ?? []).filter(
+                (item) => item.type !== "feed",
+              )}
+              isOwner={isOwner}
+              onAdd={onCreatePortfolioItems}
               onSelect={onSelectShowcase}
             />
           )}

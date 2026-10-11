@@ -5,6 +5,7 @@ import {
   Clock,
   ChevronRight,
 } from "lucide-react";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 type MessageSidebarProps = {
   posts: any[];
   chats: any[];
@@ -271,10 +272,8 @@ const MyChatsList = ({ chats, selectedChatId, onSelectChat }) => {
         const selected = selectedChatId === chat._id;
 
         return (
-          <button
+          <div
             key={chat._id}
-            type="button"
-            onClick={() => onSelectChat?.(chat)}
             className={`group relative flex w-full items-center gap-3 px-4 py-4 text-left transition-colors ${
               selected ? "bg-white/[0.045]" : "hover:bg-white/[0.025]"
             }`}
@@ -284,7 +283,11 @@ const MyChatsList = ({ chats, selectedChatId, onSelectChat }) => {
             )}
 
             {/* Avatar */}
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.04]">
+            <UserProfileLink
+              userId={chat.otherUser?.id ?? chat.otherUser?._id}
+              aria-label={`View ${chat.otherUser?.name ?? "user"}'s profile`}
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.04] focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+            >
               {chat.otherUser?.avatar ? (
                 <img
                   src={chat.otherUser.avatar}
@@ -296,42 +299,48 @@ const MyChatsList = ({ chats, selectedChatId, onSelectChat }) => {
                   {getInitials(chat.otherUser?.name)}
                 </span>
               )}
-            </div>
+            </UserProfileLink>
 
             {/* Chat information */}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-semibold text-zinc-100">
-                {chat.otherUser?.name || "User"}
-              </p>
+            <button
+              type="button"
+              onClick={() => onSelectChat?.(chat)}
+              className="flex min-w-0 flex-1 items-center gap-3 text-left"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-semibold text-zinc-100">
+                  {chat.otherUser?.name || "User"}
+                </p>
 
-              <p className="mt-0.5 truncate text-[10px] text-zinc-600">
-                {chat.post?.title || "Post conversation"}
-              </p>
+                <p className="mt-0.5 truncate text-[10px] text-zinc-600">
+                  {chat.post?.title || "Post conversation"}
+                </p>
 
-              {chat.lastMessageAt && (
-                <div className="mt-1 flex items-center gap-1 text-[10px] text-zinc-600">
-                  <Clock className="h-2.5 w-2.5" />
+                {chat.lastMessageAt && (
+                  <div className="mt-1 flex items-center gap-1 text-[10px] text-zinc-600">
+                    <Clock className="h-2.5 w-2.5" />
 
-                  {formatDate(chat.lastMessageAt)}
-                </div>
+                    {formatDate(chat.lastMessageAt)}
+                  </div>
+                )}
+              </div>
+
+              {/* Unread */}
+              {chat.unreadCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF3F3F] px-1.5 text-[9px] font-bold text-white">
+                  {chat.unreadCount > 99 ? "99+" : chat.unreadCount}
+                </span>
               )}
-            </div>
 
-            {/* Unread */}
-            {chat.unreadCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF3F3F] px-1.5 text-[9px] font-bold text-white">
-                {chat.unreadCount > 99 ? "99+" : chat.unreadCount}
-              </span>
-            )}
-
-            <ChevronRight
-              className={`h-3.5 w-3.5 shrink-0 transition ${
-                selected
-                  ? "text-zinc-400"
-                  : "text-zinc-700 group-hover:text-zinc-400"
-              }`}
-            />
-          </button>
+              <ChevronRight
+                className={`h-3.5 w-3.5 shrink-0 transition ${
+                  selected
+                    ? "text-zinc-400"
+                    : "text-zinc-700 group-hover:text-zinc-400"
+                }`}
+              />
+            </button>
+          </div>
         );
       })}
     </div>

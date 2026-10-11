@@ -3,6 +3,7 @@ import DashboardModal from "../DashboardModal";
 import type { SubmittedResponse } from "../types";
 import { Avatar, StatusBadge } from "../requirements/RequirementUI";
 import RateOwnerSection from "./RateOwnerSection";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 interface SubmittedOfferModalProps {
   item: SubmittedResponse;
@@ -29,15 +30,24 @@ export default function SubmittedOfferModal({
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
           <section className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 items-start gap-3">
-              <Avatar
-                name={post.author?.name || "Requirement owner"}
-                src={post.author?.avatar}
-                large
-              />
+              <UserProfileLink
+                userId={post.author?._id}
+                aria-label={`View ${post.author?.name ?? "owner"}'s profile`}
+                className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+              >
+                <Avatar
+                  name={post.author?.name || "Requirement owner"}
+                  src={post.author?.avatar}
+                  large
+                />
+              </UserProfileLink>
               <div className="min-w-0">
-                <p className="theme-text-primary mt-1 text-sm font-semibold">
+                <UserProfileLink
+                  userId={post.author?._id}
+                  className="theme-text-primary mt-1 block text-sm font-semibold hover:text-[#FF3F3F]"
+                >
                   {post.author?.name || "Requirement owner"}
-                </p>
+                </UserProfileLink>
                 <p className="theme-text-primary mt-2 wrap-break-word text-sm font-bold">
                   {post.title}
                 </p>

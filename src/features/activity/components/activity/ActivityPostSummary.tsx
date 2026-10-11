@@ -6,6 +6,7 @@ import {
 import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
 import { MapPin } from "lucide-react";
 import { ActivityResponse } from "@/src/shared/types";
+import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 interface ActivityPostSummaryProps {
   offer: ActivityResponse;
@@ -62,18 +63,27 @@ export default function ActivityPostSummary({
       <div className="space-y-3 px-5 pb-5">
         {/* Author */}
         <div className="flex items-center gap-2.5">
-          <img
-            src={getAvatarUrl(post?.author?.name, post?.author?.avatar)}
-            alt={post?.author?.name}
-            className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-zinc-800"
-            onError={(e) => handleAvatarError(e, post?.author?.name)}
-            referrerPolicy="no-referrer"
-          />
+          <UserProfileLink
+            userId={post?.author?.id ?? post?.author?._id}
+            aria-label={`View ${post?.author?.name ?? "user"}'s profile`}
+            className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+          >
+            <img
+              src={getAvatarUrl(post?.author?.name, post?.author?.avatar)}
+              alt={post?.author?.name}
+              className="h-8 w-8 rounded-full object-cover ring-2 ring-zinc-800"
+              onError={(e) => handleAvatarError(e, post?.author?.name)}
+              referrerPolicy="no-referrer"
+            />
+          </UserProfileLink>
 
           <div className="min-w-0">
-            <p className="truncate text-xs font-semibold text-zinc-200">
+            <UserProfileLink
+              userId={post?.author?.id ?? post?.author?._id}
+              className="block truncate text-xs font-semibold text-zinc-200 hover:text-[#ff7777]"
+            >
               {post?.author?.name}
-            </p>
+            </UserProfileLink>
 
             {post?.address && (
               <p className="flex items-center gap-1 truncate text-[10px] text-zinc-600">

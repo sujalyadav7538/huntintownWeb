@@ -90,12 +90,14 @@ interface ProfileLayoutProps {
 interface ProfileEditLayoutProps {
   user: User;
   isSaving: boolean;
+  initialSection?: "basic" | "portfolio";
 
   onSave: (
     updated: User,
     avatarFile: File | null,
     coverImageFile: File | null,
     removeAvatar: boolean,
+    removeCoverImage: boolean,
   ) => void;
 
   onCancel: () => void;
@@ -104,6 +106,7 @@ interface ProfileEditLayoutProps {
 export default function ProfileEditLayout({
   user,
   isSaving,
+  initialSection = "basic",
   onSave,
   onCancel,
 }: ProfileEditLayoutProps) {
@@ -119,13 +122,14 @@ export default function ProfileEditLayout({
 
   const previousUserRef = useRef(user);
 
-  const [activeSection, setActiveSection] = useState<SectionId>("basic");
+  const [activeSection, setActiveSection] = useState<SectionId>(initialSection);
 
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
 
   const [pendingCoverImageFile, setPendingCoverImageFile] =
     useState<File | null>(null);
   const [removeAvatar, setRemoveAvatar] = useState(false);
+  const [removeCoverImage, setRemoveCoverImage] = useState(false);
 
   const [showcaseItems, setShowcaseItems] = useState<any[]>(
     user.showcase?.items ?? [],
@@ -189,7 +193,14 @@ export default function ProfileEditLayout({
     reader.readAsDataURL(file);
 
     setPendingCoverImageFile(file);
+    setRemoveCoverImage(false);
   }, []);
+
+  const handleCoverImageRemove = useCallback(() => {
+    dispatch({ type: "set", field: "coverImage", value: "" });
+    setPendingCoverImageFile(null);
+    setRemoveCoverImage(Boolean(user.coverImage));
+  }, [user.coverImage]);
 
   // ──────────────────────────────────────────────────
   // Mobile Bottom Navigation
@@ -237,6 +248,7 @@ export default function ProfileEditLayout({
     setPendingAvatarFile(null);
     setPendingCoverImageFile(null);
     setRemoveAvatar(false);
+    setRemoveCoverImage(false);
     setShowcaseItems(user.showcase?.items ?? []);
   }, [user]);
 
@@ -291,7 +303,7 @@ export default function ProfileEditLayout({
 
       avatar: removeAvatar ? "" : pendingAvatarFile ? draft.avatar : user.avatar,
 
-      coverImage: pendingCoverImageFile ? draft.coverImage : user.coverImage,
+      coverImage: removeCoverImage ? "" : pendingCoverImageFile ? draft.coverImage : user.coverImage,
 
       skills: draft.skillsRaw
         .split(",")
@@ -305,8 +317,14 @@ export default function ProfileEditLayout({
 
       socialLinks: draft.socialLinks,
     } as User;
-    onSave(updated, pendingAvatarFile, pendingCoverImageFile, removeAvatar);
-  }, [user, draft, pendingAvatarFile, pendingCoverImageFile, removeAvatar, onSave]);
+    onSave(
+      updated,
+      pendingAvatarFile,
+      pendingCoverImageFile,
+      removeAvatar,
+      removeCoverImage,
+    );
+  }, [user, draft, pendingAvatarFile, pendingCoverImageFile, removeAvatar, removeCoverImage, onSave]);
 
   // ──────────────────────────────────────────────────
   // Discard
@@ -321,6 +339,7 @@ export default function ProfileEditLayout({
     setPendingAvatarFile(null);
     setPendingCoverImageFile(null);
     setRemoveAvatar(false);
+    setRemoveCoverImage(false);
 
     dispatch({
       type: "reset",
@@ -361,6 +380,7 @@ export default function ProfileEditLayout({
             onAvatarChange={handleAvatarChange}
             onRemoveAvatar={handleAvatarRemove}
             onCoverImageChange={handleCoverImageChange}
+            onRemoveCoverImage={handleCoverImageRemove}
           />
         );
 
