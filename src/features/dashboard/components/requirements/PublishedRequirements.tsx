@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
 import useDebounce from "@/src/shared/hooks/useDebounce";
@@ -41,6 +42,8 @@ export default function PublishedRequirements({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedPost, setSelectedPost] = useState<DashboardPost | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedPostId = searchParams.get("postId");
   const [ratingPost, setRatingPost] = useState<DashboardPost | null>(null);
   const closeRating = useCallback(() => setRatingPost(null), []);
   const [search, setSearch] = useState("");
@@ -87,6 +90,20 @@ export default function PublishedRequirements({
     void loadPosts();
     return () => abortRef.current?.abort();
   }, [loadPosts]);
+
+  useEffect(() => {
+    if (!requestedPostId || loading) return;
+
+    const requestedPost = posts.find(
+      (post) => post._id === requestedPostId || post?.id === requestedPostId,
+    );
+
+    if (requestedPost) setSelectedPost(requestedPost);
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("postId");
+    setSearchParams(nextParams, { replace: true });
+  }, [loading, posts, requestedPostId, searchParams, setSearchParams]);
 
   const filteredPosts = posts;
   const refreshRequirements = useCallback(async () => {

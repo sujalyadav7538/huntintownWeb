@@ -26,24 +26,43 @@ export default function ProfileReviews({ userId, metric, metricLoading, compact 
   const [error, setError] = useState<string | null>(null);
   const [shown, setShown] = useState(3);
 
-  // useEffect(() => {
-  //   if (!userId) return;
-  //   const fetchReviews = async () => {
-  //     setLoading(true);
-  //     try {
-  //       const res = await apiFetch(`/api/rating/user/${userId}`);
-  //       if (!res.ok) throw new Error('Failed to load reviews');
-  //       const data = await res.json();
-  //       setReviews(data.reviews ?? []);
-  //     } catch {
-  //       // fail silently — reviews aren't critical
-  //       setReviews([]);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchReviews();
-  // }, [userId]);
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchReviews = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await apiFetch(
+          `/api/rating/user/${encodeURIComponent(userId)}`,
+          { signal: controller.signal },
+        );
+        if (!res.ok) throw new Error("Failed to load reviews");
+
+        const data: {
+          reviews?: Array<Omit<Review, "id"> & { _id?: string; id?: string }>;
+        } = await res.json();
+
+        setReviews(
+          (data.reviews ?? []).map((review) => ({
+            ...review,
+            id: String(review._id ?? review.id ?? review.createdAt),
+          })),
+        );
+      } catch {
+        if (controller.signal.aborted) return;
+        setReviews([]);
+        setError("Could not load reviews. Please try again.");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+
+    void fetchReviews();
+
+    return () => controller.abort();
+  }, [userId]);
 
   const avgRating = metric?.reviewMetrics.averageRating ?? 0;
   const totalReviews = metric?.reviewMetrics.totalReviews ?? 0;
@@ -100,6 +119,10 @@ export default function ProfileReviews({ userId, metric, metricLoading, compact 
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-xs">Loading reviews…</span>
         </div>
+      ) : error ? (
+        <p className="theme-text-muted py-4 text-center text-[11px]" role="status">
+          {error}
+        </p>
       ) : reviews.length === 0 ? (
         <div className="flex flex-col items-center py-4 text-center">
           <MessageSquare className="theme-icon-muted h-6 w-6" />

@@ -69,12 +69,14 @@ export default function MessagingPage() {
   const [postsLoading, setPostsLoading] = useState(false);
   const [chatsLoading, setChatsLoading] = useState(false);
   const [convsLoading, setConvsLoading] = useState(false);
+  const [pageError, setPageError] = useState("");
 
   const loadConversationsByPost = async (postId: string) => {
     if (!token || !postId) return;
 
     dispatch(setActiveConversationId(null));
     setConvsLoading(true);
+    setPageError("");
 
     try {
       const res = await apiFetch(`/api/chat/posts/${postId}/conversations`, {
@@ -85,9 +87,10 @@ export default function MessagingPage() {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Unable to load conversations.");
       dispatch(setConversations(data?.data ?? []));
-    } catch (error) {
-      console.error("Failed to load conversations:", error);
+    } catch {
+      setPageError("Could not load conversations. Please try again.");
       dispatch(setConversations([]));
     } finally {
       setConvsLoading(false);
@@ -117,6 +120,7 @@ export default function MessagingPage() {
 
     const loadPosts = async () => {
       setPostsLoading(true);
+      setPageError("");
 
       try {
         const res = await apiFetch("/api/chat/posts", {
@@ -127,10 +131,11 @@ export default function MessagingPage() {
         });
 
         const data = await res.json();
+        if (!res.ok) throw new Error(data?.message || "Unable to load your posts.");
 
         dispatch(setChatPosts(data?.data ?? []));
-      } catch (error) {
-        console.error("Failed to load chat posts:", error);
+      } catch {
+        setPageError("Could not load your posts. Please try again.");
         dispatch(setChatPosts([]));
       } finally {
         setPostsLoading(false);
@@ -170,6 +175,7 @@ export default function MessagingPage() {
 
     const loadMyChats = async () => {
       setChatsLoading(true);
+      setPageError("");
       dispatch(setActiveConversationId(null));
 
       try {
@@ -181,10 +187,11 @@ export default function MessagingPage() {
         });
 
         const data = await res.json();
+        if (!res.ok) throw new Error(data?.message || "Unable to load your chats.");
 
         setMyChats(data?.data ?? []);
-      } catch (error) {
-        console.error("Failed to load my chats:", error);
+      } catch {
+        setPageError("Could not load your chats. Please try again.");
         setMyChats([]);
       } finally {
         setChatsLoading(false);
@@ -263,7 +270,9 @@ export default function MessagingPage() {
         activeConversationId,
         (response: any) => {
           if (!response?.success) {
-            console.error("Join conversation failed:", response?.message);
+            setPageError(
+              response?.message || "Could not join this conversation.",
+            );
           }
         },
       );
@@ -400,7 +409,7 @@ export default function MessagingPage() {
   const handleSelectChat = async (chat: any) => {
     setMode("chats");
     const conversationId = chat._id;
-    console.log(chat);
+    setPageError("");
 
     dispatch(setActiveConversationId(conversationId));
     dispatch(handleHideMobileBottomNav(true));
@@ -408,16 +417,22 @@ export default function MessagingPage() {
     /*
      * Keep postId as well because the chat belongs to a post.
      */
-    const messages = await fetch(`/api/chat/${conversationId}/messages`, {
-      method: "GET",
-      headers: {
-        Authorization: `${token}`,
-      },
-    });
-    const data = await messages.json();
-    dispatch(
-      setConversationMessages({ conversationId, messages: data?.data ?? [] }),
-    );
+    try {
+      const messages = await fetch(`/api/chat/${conversationId}/messages`, {
+        method: "GET",
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+      const data = await messages.json();
+      if (!messages.ok) throw new Error(data?.message || "Unable to load messages.");
+      dispatch(
+        setConversationMessages({ conversationId, messages: data?.data ?? [] }),
+      );
+    } catch {
+      setPageError("Could not load this conversation. Please try again.");
+      dispatch(setConversationMessages({ conversationId, messages: [] }));
+    }
   };
   /*
    * ---------------------------------------------------------
@@ -519,14 +534,26 @@ export default function MessagingPage() {
     />
   );
 
-  return isTablet ? (
-    <MessagingDesktop sidebar={sidebar} chatPanel={chatPanel} />
-  ) : (
-    <MessagingMobile
-      sidebar={sidebar}
-      chatPanel={chatPanel}
-      hasActiveConversation={Boolean(activeConversationId)}
-    />
+  return (
+    <>
+      {pageError && (
+        <div
+          role="alert"
+          className="shrink-0 border-b border-rose-500/20 bg-rose-500/10 px-4 py-2 text-sm text-rose-300"
+        >
+          {pageError}
+        </div>
+      )}
+      {isTablet ? (
+        <MessagingDesktop sidebar={sidebar} chatPanel={chatPanel} />
+      ) : (
+        <MessagingMobile
+          sidebar={sidebar}
+          chatPanel={chatPanel}
+          hasActiveConversation={Boolean(activeConversationId)}
+        />
+      )}
+    </>
   );
 }
 

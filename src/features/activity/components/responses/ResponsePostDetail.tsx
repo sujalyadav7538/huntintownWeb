@@ -195,7 +195,11 @@ export default function ResponsePostDetail({
         ),
       );
     } catch (error) {
-      console.error(error);
+      setResponsesError(
+        error instanceof Error
+          ? error.message
+          : "Could not update this response. Please try again.",
+      );
     } finally {
       setActionLoading(null);
     }

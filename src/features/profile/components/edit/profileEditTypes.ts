@@ -27,7 +27,6 @@ export const SECTION_DEFINITIONS = [
   { id: "services", label: "Services" },
   { id: "portfolio", label: "Portfolio" },
   { id: "verification", label: "Verification" },
-  { id: "preferences", label: "Preferences" },
 ] as const;
 
 export type SectionId = (typeof SECTION_DEFINITIONS)[number]["id"];

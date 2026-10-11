@@ -28,6 +28,7 @@ import {
 import Header from "@/src/shared/components/layout/Header";
 import SidePanel from "@/src/shared/components/layout/SidePanel";
 import MobileBottomNavigation from "@/src/shared/components/layout/MobileBottomNavigation";
+import AppErrorNotice from "@/src/shared/components/layout/AppErrorNotice";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -78,34 +79,20 @@ export default function App() {
   // Initialize socket connection if user is authenticated
   useEffect(() => {
     const token = authToken;
-    console.log("[App] Socket init effect:", {
-      isAuthenticated,
-      hasToken: !!token,
-      tokenLength: token?.length,
-      socketConnected: socket.connected,
-    });
 
     if (isAuthenticated && token) {
       if (!socket.connected) {
-        console.log("[App] Setting socket auth and connecting...");
         setSocketAuth(token);
         socket.connect();
-      } else {
-        console.log("[App] Socket already connected");
       }
     } else if (!isAuthenticated && socket.connected) {
-      console.log("[App] Disconnecting socket (not authenticated)");
       socket.disconnect();
-    } else if (!isAuthenticated && !token) {
-      console.log("[App] No token available, socket remains disconnected");
     }
   }, [authToken, isAuthenticated]);
 
   const handleLogin = useCallback(
     (user: User, token: string) => {
-      console.log("[App.handleLogin] Logging in, setting socket auth");
       setSocketAuth(token);
-      console.log("[App.handleLogin] Connecting socket...");
       socket.connect();
       dispatch(login({ user, token }));
       dispatch(closeSidePanel());
@@ -237,6 +224,7 @@ export default function App() {
         onClose={() => dispatch(closeSidePanel())}
         onLogout={handleLogout}
       />
+      <AppErrorNotice />
     </div>
   );
 }

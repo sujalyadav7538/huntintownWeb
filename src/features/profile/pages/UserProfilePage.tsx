@@ -55,6 +55,9 @@ export default function UserProfileView({
   const [isSaving, setIsSaving] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedShowCase, setSelectedShowCase] = useState<any>(null);
+  const [profileError, setProfileError] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
 
   // Profiles sit behind auth, so this is for the tab title — isNoIndexPath
   // keeps /profile out of the index either way.
@@ -67,34 +70,45 @@ export default function UserProfileView({
   const { metric, badges, loading: repLoading } = useReputation();
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchCurrentUser = async () => {
+      setProfileError("");
       try {
         const url = id ? `/api/profile/${id}` : `/api/profile`;
         const res = await apiFetch(url);
 
         if (!res.ok) {
-          throw new Error("Failed to fetch user profile");
+          throw new Error("Unable to load this profile. Please try again.");
         }
 
         const data = await res.json();
 
+        if (cancelled) return;
         setCurrentUser(data.user);
         setPosts(data?.user?.posts ?? []);
         setIsOwner(id ? id === authUser?.id : true);
-      } catch (error) {
-        console.error(error);
+      } catch {
+        if (!cancelled) {
+          setProfileError("Unable to load this profile. Please try again.");
+        }
       }
     };
 
-    fetchCurrentUser();
-  }, [id, authUser]);
+    void fetchCurrentUser();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, authUser, retryCount]);
 
   const handleSave = async (
     updated: User,
     avatarFile: File | null,
     coverImageFile: File | null,
+    removeAvatar: boolean,
   ) => {
     setIsSaving(true);
+    setSaveError("");
 
     try {
       const formData = new FormData();
@@ -106,6 +120,7 @@ export default function UserProfileView({
 
       if (avatarFile) formData.append("avatar", avatarFile);
       if (coverImageFile) formData.append("coverImage", coverImageFile);
+      if (removeAvatar) formData.append("removeAvatar", "true");
 
       const scalarFields: Record<string, string> = {
         name: profile.name ?? "",
@@ -156,6 +171,8 @@ export default function UserProfileView({
       onUpdateProfile(persisted);
       setCurrentUser(persisted);
       setMode("view");
+    } catch {
+      setSaveError("Unable to save your profile. Please check your connection and try again.");
     } finally {
       setIsSaving(false);
     }
@@ -163,16 +180,43 @@ export default function UserProfileView({
 
   if (mode === "edit" && currentUser) {
     return (
-      <ProfileEditLayout
-        user={currentUser}
-        isSaving={isSaving}
-        onSave={handleSave}
-        onCancel={() => setMode("view")}
-      />
+      <>
+        {saveError && (
+          <p role="alert" className="mb-3 rounded-lg border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+            {saveError}
+          </p>
+        )}
+        <ProfileEditLayout
+          user={currentUser}
+          isSaving={isSaving}
+          onSave={handleSave}
+          onCancel={() => {
+            setSaveError("");
+            setMode("view");
+          }}
+        />
+      </>
     );
   }
 
-  if (!currentUser) return null;
+  if (!currentUser) {
+    if (!profileError) return null;
+
+    return (
+      <div className="theme-card mx-auto mt-8 max-w-md rounded-xl border p-6 text-center">
+        <p role="alert" className="theme-text-secondary text-sm">
+          {profileError}
+        </p>
+        <button
+          type="button"
+          onClick={() => setRetryCount((count) => count + 1)}
+          className="theme-btn-accent mt-4 rounded-lg px-4 py-2 text-sm font-semibold"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   const commonProps = {
     user: currentUser,
@@ -334,7 +378,7 @@ function UserProfileDesktop({
                     isOwner={isOwner}
                     compact
                     defaultExpanded
-                    userId={user.id}
+                    // onViewAll={() => setActiveTab("posts")}
                   />
                 </div>
               </div>
@@ -349,7 +393,7 @@ function UserProfileDesktop({
                     isOwner={isOwner}
                     compact
                     defaultExpanded
-                    userId={user.id}
+                    // onViewAll={() => setActiveTab("posts")}
                   />
                 </div>
 
@@ -391,7 +435,7 @@ function UserProfileDesktop({
               posts={posts}
               total={posts.length}
               isOwner={isOwner}
-              userId={user.id}
+              showAll
             />
           )}
 
@@ -517,7 +561,7 @@ function UserProfileMobile({
                 isOwner={isOwner}
                 compact
                 defaultExpanded
-                userId={user.id}
+                // onViewAll={() => setActiveTab("posts")}
               />
             </div>
           )}
@@ -539,7 +583,7 @@ function UserProfileMobile({
               posts={posts}
               total={posts.length}
               isOwner={isOwner}
-              userId={user.id}
+              showAll
             />
           )}
 

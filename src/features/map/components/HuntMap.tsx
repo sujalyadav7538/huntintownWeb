@@ -31,7 +31,6 @@ export default function HuntMap({
     // if (!mapReady || !map.current ) return;
     // 1. Browser GPS
     if (location) {
-      console.log("Rendering GPS location");
       map.current.flyTo({
         center: [location.longitude, location.latitude],
         zoom: 14,
@@ -42,7 +41,6 @@ export default function HuntMap({
     const userCoordinates = currentUser?.location?.coordinates;
     // 2. Saved profile location
     if (userCoordinates) {
-      console.log("Rendering User location");
       map.current.flyTo({
         center: [userCoordinates[0], userCoordinates[1]],
         zoom: 14,
@@ -68,9 +66,7 @@ export default function HuntMap({
         hasPosts = true;
       }
     });
-    console.log(bounds);
     if (hasPosts) {
-      console.log("Rendering Cluster location");
       map.current.fitBounds(bounds, {
         padding: {
           top: 80,

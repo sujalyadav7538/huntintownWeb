@@ -1,11 +1,12 @@
-import AvatarUploader from "@/src/features/profile/components/AvatarUploader";
 import { DraftAction, DraftState } from "@/src/features/profile/components/edit/profileEditTypes";
+import AvatarUploader from "../AvatarUploader";
 
 
 interface SectionBasicProps {
   draft: DraftState;
   dispatch: React.Dispatch<DraftAction>;
   onAvatarChange: (file: File) => void;
+  onRemoveAvatar: () => void;
   onCoverImageChange: (file: File) => void;
 }
 const labelCls = "block text-xs font-medium text-zinc-400 mb-2";
@@ -16,6 +17,7 @@ export default function BasicSection({
   draft,
   dispatch,
   onAvatarChange,
+  onRemoveAvatar,
   onCoverImageChange,
 }: SectionBasicProps) {
   return (
@@ -25,6 +27,7 @@ export default function BasicSection({
           draft={draft}
           dispatch={dispatch}
           onAvatarChange={onAvatarChange}
+          onRemoveAvatar={onRemoveAvatar}
           onCoverImageChange={onCoverImageChange}
         />
       </div>
@@ -34,6 +37,7 @@ export default function BasicSection({
           draft={draft}
           dispatch={dispatch}
           onAvatarChange={onAvatarChange}
+          onRemoveAvatar={onRemoveAvatar}
           onCoverImageChange={onCoverImageChange}
         />
       </div>
@@ -45,6 +49,7 @@ interface SectionBasicDesktopProps {
   draft: DraftState;
   dispatch: React.Dispatch<DraftAction>;
   onAvatarChange: (file: File) => void;
+  onRemoveAvatar: () => void;
   onCoverImageChange: (file: File) => void;
 }
 
@@ -52,6 +57,7 @@ function SectionBasicDesktop({
   draft,
   dispatch,
   onAvatarChange,
+  onRemoveAvatar,
   onCoverImageChange,
 }: SectionBasicDesktopProps) {
   return (
@@ -65,6 +71,7 @@ function SectionBasicDesktop({
             avatar={draft.avatar}
             name={draft.name}
             onChange={onAvatarChange}
+            onRemove={onRemoveAvatar}
             size="md"
           />
 
@@ -74,7 +81,7 @@ function SectionBasicDesktop({
             </p>
 
             <p className="mt-0.5 text-xs text-zinc-500">
-              JPG, PNG · Recommended 400×400px
+              Zoom and crop · saved as 400 × 400 px
             </p>
           </div>
         </div>
@@ -169,6 +176,7 @@ interface SectionBasicMobileProps {
   draft: DraftState;
   dispatch: React.Dispatch<DraftAction>;
   onAvatarChange: (file: File) => void;
+  onRemoveAvatar: () => void;
   onCoverImageChange: (file: File) => void;
 }
 
@@ -176,6 +184,7 @@ function SectionBasicMobile({
   draft,
   dispatch,
   onAvatarChange,
+  onRemoveAvatar,
   onCoverImageChange,
 }: SectionBasicMobileProps) {
   return (
@@ -189,6 +198,7 @@ function SectionBasicMobile({
             avatar={draft.avatar}
             name={draft.name}
             onChange={onAvatarChange}
+            onRemove={onRemoveAvatar}
             size="md"
           />
 
@@ -198,7 +208,7 @@ function SectionBasicMobile({
             </p>
 
             <p className="mt-0.5 text-xs text-zinc-500">
-              JPG, PNG · 400×400px recommended
+              Zoom and crop · saved as 400 × 400 px
             </p>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import maplibregl from "maplibre-gl";
 import { Post } from "@/src/shared/types";
+import { reportAppError } from "@/src/shared/lib/appErrors";
 
 interface PostsLayerProps {
   map: maplibregl.Map | null;
@@ -164,7 +165,7 @@ export default function PostsLayer({
           duration: 500,
         });
       } catch (err) {
-        console.error(err);
+        reportAppError(err, "Could not expand this map cluster. Please try again.");
       }
     };
 

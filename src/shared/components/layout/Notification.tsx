@@ -15,6 +15,7 @@ import {
   resolveNotificationLink,
   useNotifications,
 } from "../../hooks/useNotifications";
+import { reportAppError } from "@/src/shared/lib/appErrors";
 
 interface NotificationViewProps {
   notifications: NotificationItem[];
@@ -459,7 +460,7 @@ const Notification = () => {
 
       setPermission(window.Notification.permission);
     } catch (error) {
-      console.error("[Notifications] Push setup failed:", error);
+      reportAppError(error, "Could not set up browser notifications.");
     }
   };
 
@@ -473,14 +474,14 @@ const Notification = () => {
 
     if (!notification.isRead) {
       markAsRead(notification._id).catch((error) =>
-        console.error("[Notifications] Failed to mark as read:", error),
+        reportAppError(error, "Could not mark this notification as read."),
       );
     }
   };
 
   const handleMarkAllRead = () => {
     markAllAsRead().catch((error) =>
-      console.error("[Notifications] Failed to mark all as read:", error),
+      reportAppError(error, "Could not mark notifications as read."),
     );
   };
 

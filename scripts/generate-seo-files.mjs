@@ -62,4 +62,3 @@ fs.mkdirSync(PUBLIC_DIR, { recursive: true });
 fs.writeFileSync(path.join(PUBLIC_DIR, "robots.txt"), robots);
 fs.writeFileSync(path.join(PUBLIC_DIR, "sitemap.xml"), sitemap);
 
-console.log(`[seo] wrote robots.txt and sitemap.xml for ${siteUrl}`);

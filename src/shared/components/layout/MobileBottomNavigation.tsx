@@ -45,7 +45,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: "landing", label: "Den", icon: Trees },
   { id: "explore", label: "Jungle", icon: BowArrow },
-  { id: "activity", label: "Tracks", icon: Footprints, auth: true },
+  { id: "activity", label: "Activity", icon: Footprints, auth: true },
   { id: "profile", label: "Profile", icon: User, auth: true },
 ];
 

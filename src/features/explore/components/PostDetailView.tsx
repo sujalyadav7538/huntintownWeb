@@ -44,6 +44,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 interface PostDetailProps {
   post: Post;
+  hasApplied?: boolean;
   onBack: () => void;
   onViewProfile?: (author: Post["author"]) => void;
   onResponseSubmit: (postId: string) => void;
@@ -51,6 +52,7 @@ interface PostDetailProps {
 
 export default function PostDetail({
   post,
+  hasApplied = false,
   onBack,
   onViewProfile,
   onResponseSubmit,
@@ -81,31 +83,25 @@ export default function PostDetail({
     message: string;
     answers: { question: string; answer: string }[];
   }): Promise<void> => {
-    try {
-      await apiFetchJSON("/api/responses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          postId,
-          message,
-          answers,
-        }),
-      });
+    await apiFetchJSON("/api/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        postId,
+        message,
+        answers,
+      }),
+    });
 
-      setIsApplyModalOpen(false);
-      onResponseSubmit(postId); // Close the modal and navigate back to the post detail view
-
-      // Optional: refresh responses
-      // fetchResponses();
-    } catch (error) {
-      console.error("Error submitting response:", error);
-      throw error;
-    }
+    setIsApplyModalOpen(false);
+    onResponseSubmit(postId);
   };
 
   const handleResponseOpen = () => {
+    if (hasApplied) return;
+
     if (isAuthenticated) {
       setIsApplyModalOpen(true);
       dispatch(handleHideUpperNavigation(true));
@@ -131,6 +127,7 @@ export default function PostDetail({
               onViewProfile={onViewProfile}
               onApply={handleResponseOpen}
               expired={expired}
+              hasApplied={hasApplied}
               isUrgent={isUrgent}
               accent={accent}
               expiryLabel={expiryLabel}
@@ -143,6 +140,7 @@ export default function PostDetail({
               onViewProfile={onViewProfile}
               onApply={handleResponseOpen}
               expired={expired}
+              hasApplied={hasApplied}
               isUrgent={isUrgent}
               accent={accent}
               expiryLabel={expiryLabel}
@@ -152,6 +150,7 @@ export default function PostDetail({
             <aside className="hidden min-h-0 border-l border-white/5.5 lg:flex lg:w-90 lg:flex-col lg:py-6 lg:pl-4">
               <ResponsesPanel
                 post={post}
+                hasApplied={hasApplied}
                 onViewProfile={onViewProfile}
                 onApply={handleResponseOpen}
               />
@@ -176,6 +175,7 @@ interface LeftPanelProps {
   onViewProfile?: (user: User) => void;
   onApply: () => void;
   expired: boolean;
+  hasApplied: boolean;
   isUrgent: boolean;
   accent: string;
   expiryLabel?: string;
@@ -390,6 +390,7 @@ function LeftPanelMobile({
   onViewProfile,
   onApply,
   expired,
+  hasApplied,
   isUrgent,
   accent,
   expiryLabel,
@@ -417,11 +418,15 @@ function LeftPanelMobile({
         <button
           type="button"
           onClick={onApply}
-          disabled={expired}
+          disabled={expired || hasApplied}
           className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF3F3F] px-3.5 py-2 text-[10px] font-bold text-white transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <Plus className="h-3.5 w-3.5" />
-          Apply
+          {hasApplied ? (
+            <BadgeCheck className="h-3.5 w-3.5" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}
+          {hasApplied ? "Applied" : "Apply"}
         </button>
       </div>
 

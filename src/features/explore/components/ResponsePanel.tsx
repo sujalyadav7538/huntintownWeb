@@ -1,9 +1,8 @@
 import { Post, User } from "@/src/shared/types";
 import { isPostExpired } from "@/src/shared/utils";
-import { Filter, MessageSquare, Users } from "lucide-react";
+import { Filter, MessageSquare, RefreshCw, Users } from "lucide-react";
 import ResponseItem from "@/src/features/explore/components/ResponseItem";
 import { useEffect, useState } from "react";
-import { useAppSelector } from "@/src/store/hooks";
 import { apiFetchJSON } from "@/src/shared/lib/api";
 
 type ResponseFilter = "trust" | "earliest" | "latest";
@@ -28,12 +27,14 @@ interface ResponseData {
 
 interface ResponsesPanelProps {
   post: Post;
+  hasApplied?: boolean;
   onViewProfile?: (author: User) => void;
   onApply?: () => void;
 }
 
 export default function ResponsesPanel({
   post,
+  hasApplied = false,
   onViewProfile,
   onApply,
 }: ResponsesPanelProps) {
@@ -42,13 +43,13 @@ export default function ResponsesPanel({
   const [responses, setResponses] = useState<ResponseData[]>([]);
   const [filter, setFilter] = useState<ResponseFilter>("trust");
   const [loading, setLoading] = useState(false);
-
-  const { token } = useAppSelector((state) => state.auth);
+  const [responsesError, setResponsesError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
 
   const postId = post.id ?? post._id;
 
   useEffect(() => {
-    if (!postId || !token) {
+    if (!postId) {
       setResponses([]);
       return;
     }
@@ -58,6 +59,7 @@ export default function ResponsesPanel({
     const fetchResponses = async () => {
       try {
         setLoading(true);
+        setResponsesError("");
 
         const params = new URLSearchParams({
           sort: filter,
@@ -70,8 +72,13 @@ export default function ResponsesPanel({
 
         if (!cancelled) setResponses(data?.responses ?? []);
       } catch (error) {
-        console.error("Error fetching responses:", error);
-        if (!cancelled) setResponses([]);
+        if (!cancelled) {
+          setResponsesError(
+            error instanceof Error
+              ? error.message
+              : "Could not load responses. Please try again.",
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -82,7 +89,7 @@ export default function ResponsesPanel({
     return () => {
       cancelled = true;
     };
-  }, [postId, token, filter]);
+  }, [postId, filter, retryCount]);
 
   return (
     <aside className="flex h-full min-h-0 flex-col">
@@ -153,6 +160,26 @@ export default function ResponsesPanel({
               </div>
             ))}
           </div>
+        ) : responsesError ? (
+          <div
+            role="alert"
+            className="flex h-full min-h-[220px] flex-col items-center justify-center px-4 text-center"
+          >
+            <p className="text-xs font-semibold text-zinc-300">
+              Responses couldn&apos;t be loaded
+            </p>
+            <p className="mt-1 text-[10px] leading-relaxed text-zinc-500">
+              {responsesError}
+            </p>
+            <button
+              type="button"
+              onClick={() => setRetryCount((count) => count + 1)}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 text-[10px] font-semibold text-zinc-300 transition hover:border-[#FF3F3F]/40 hover:text-white"
+            >
+              <RefreshCw className="h-3 w-3" />
+              Retry
+            </button>
+          </div>
         ) : responses.length === 0 ? (
           <div className="flex h-full min-h-[220px] items-center justify-center px-4 text-center">
             <div>
@@ -185,10 +212,14 @@ export default function ResponsesPanel({
         <button
           type="button"
           onClick={onApply}
-          disabled={expired}
+          disabled={expired || hasApplied}
           className="h-10 w-full cursor-pointer rounded-full theme-btn-accent text-[11px] font-bold transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {expired ? "Requirement Expired" : "Apply for Requirement"}
+          {hasApplied
+            ? "Applied"
+            : expired
+              ? "Requirement Expired"
+              : "Apply for Requirement"}
         </button>
       </div>
     </aside>

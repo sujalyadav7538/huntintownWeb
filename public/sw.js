@@ -8,7 +8,6 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("push", (event) => {
   if (!event.data) {
-    console.warn("[ServiceWorker] Push event had no data");
     return;
   }
 
@@ -16,17 +15,11 @@ self.addEventListener("push", (event) => {
 
   try {
     data = event.data.json();
-  } catch (error) {
-    console.error("[ServiceWorker] Invalid push payload:", error);
+  } catch {
     return;
   }
 
   const notificationId = String(data.notificationId || data.id || "");
-
-  console.info("[ServiceWorker] Push received", {
-    notificationId,
-    title: data.title,
-  });
 
   const notification = {
     _id: notificationId,
@@ -56,11 +49,7 @@ self.addEventListener("push", (event) => {
     Promise.all([
       self.registration
         .showNotification(data.title || "HuntInTown", options)
-        .catch((error) => {
-          console.error("[ServiceWorker] Failed to show notification:", error);
-
-          throw error;
-        }),
+        .catch(() => undefined),
 
       self.clients
         .matchAll({

@@ -1,22 +1,20 @@
-import { ArrowUpRight, Briefcase, ChevronRight } from "lucide-react";
+import {
+  ArrowUpRight,
+  Briefcase,
+  Clock3,
+  IndianRupee,
+  MapPin,
+} from "lucide-react";
 import { Post } from "@/src/shared/types";
-import PostGridCard from "@/src/shared/components/post/PostGridCard";
 import { useNavigate } from "react-router-dom";
 
 interface ProfileRecentPostsProps {
   posts: Post[];
   total: number;
-  onViewAll?: () => void;
   isOwner?: boolean;
   compact?: boolean;
   defaultExpanded?: boolean;
-
-  /**
-   * Required when viewing another user's profile.
-   * Used for:
-   * /explore/:userId
-   */
-  userId?: string;
+  showAll?: boolean;
 }
 
 export default function ProfileRecentPosts({
@@ -25,7 +23,7 @@ export default function ProfileRecentPosts({
   isOwner = false,
   compact = false,
   defaultExpanded = false,
-  userId,
+  showAll = false,
 }: ProfileRecentPostsProps) {
   const navigate = useNavigate();
 
@@ -34,7 +32,7 @@ export default function ProfileRecentPosts({
   ============================================================ */
 
   const getPostId = (post: Post) => {
-    return post.id;
+    return post.id ?? post._id;
   };
 
   const handlePostSelect = (post: Post) => {
@@ -49,7 +47,8 @@ export default function ProfileRecentPosts({
      * /dashboard/response/:postId
      */
     if (isOwner) {
-      navigate(`/responses/${postId}`);
+      const params = new URLSearchParams({ postId });
+      navigate(`/dashboard?${params.toString()}`);
       return;
     }
 
@@ -58,17 +57,7 @@ export default function ProfileRecentPosts({
      *
      * /post/:postId
      */
-    navigate(`/post/${postId}`);
-  };
-
-  const handleViewAll = () => {
-    if (isOwner) {
-      navigate("/responses");
-      return;
-    } else {
-      navigate(`/explore/${userId}`);
-      return;
-    }
+    navigate(`/post/${encodeURIComponent(postId)}`);
   };
 
   /* ============================================================
@@ -83,7 +72,7 @@ export default function ProfileRecentPosts({
      POSTS
   ============================================================ */
 
-  const visiblePosts = posts.slice(0, compact ? 2 : 3);
+  const visiblePosts = showAll ? posts : posts.slice(0, compact ? 2 : 3);
 
   const sectionTitle = isOwner ? "My Posts" : "Recent Posts";
 
@@ -154,33 +143,6 @@ export default function ProfileRecentPosts({
           )}
         </div>
 
-        {/* ======================================================
-            HEADER VIEW ALL
-        ====================================================== */}
-
-        {total > 0 && (
-          <button
-            type="button"
-            onClick={handleViewAll}
-            className={`
-              group flex shrink-0 items-center gap-1
-              font-semibold text-[#FF3F3F]
-              transition hover:text-[#ff6262]
-              ${compact ? "text-[9px]" : "text-[10px]"}
-            `}
-          >
-            {compact ? "All" : "View All"}
-
-            <ArrowUpRight
-              className={`
-                transition-transform
-                group-hover:-translate-y-0.5
-                group-hover:translate-x-0.5
-                ${compact ? "h-2.5 w-2.5" : "h-3 w-3"}
-              `}
-            />
-          </button>
-        )}
       </div>
 
       {/* ========================================================
@@ -223,17 +185,12 @@ export default function ProfileRecentPosts({
             `}
           >
             {visiblePosts.map((post) => (
-              <PostGridCard
+              <ProfilePostCard
                 key={getPostId(post)}
                 post={post}
+                isOwner={isOwner}
+                compact={compact}
                 onSelect={() => handlePostSelect(post)}
-                meta={
-                  isOwner ? (
-                    <span className="text-[9px] font-medium text-zinc-500">
-                      Manage
-                    </span>
-                  ) : undefined
-                }
               />
             ))}
           </div>
@@ -259,16 +216,11 @@ export default function ProfileRecentPosts({
                   ${compact ? "w-[78vw] max-w-68" : "w-[82vw] max-w-75"}
                 `}
               >
-                <PostGridCard
+                <ProfilePostCard
                   post={post}
+                  isOwner={isOwner}
+                  compact={compact}
                   onSelect={() => handlePostSelect(post)}
-                  meta={
-                    isOwner ? (
-                      <span className="text-[9px] font-medium text-zinc-500">
-                        Manage
-                      </span>
-                    ) : undefined
-                  }
                 />
               </div>
             ))}
@@ -294,35 +246,102 @@ export default function ProfileRecentPosts({
         </>
       )}
 
-      {/* ========================================================
-          BOTTOM CTA
-      ======================================================== */}
+    </section>
+  );
+}
 
-      {total > 3 && (
+function ProfilePostCard({
+  post,
+  isOwner,
+  compact,
+  onSelect,
+}: {
+  post: Post;
+  isOwner: boolean;
+  compact: boolean;
+  onSelect: () => void;
+}) {
+  const statusStyles: Record<Post["status"], string> = {
+    live: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
+    in_progress: "border-sky-500/20 bg-sky-500/10 text-sky-400",
+    completed: "border-blue-500/20 bg-blue-500/10 text-blue-400",
+    expired: "border-zinc-500/20 bg-zinc-500/10 text-zinc-400",
+    cancelled: "border-rose-500/20 bg-rose-500/10 text-rose-400",
+  };
+
+  const statusLabels: Record<Post["status"], string> = {
+    live: "Open",
+    in_progress: "In progress",
+    completed: "Completed",
+    expired: "Expired",
+    cancelled: "Cancelled",
+  };
+
+  return (
+    <article className="theme-card group flex h-full min-w-0 flex-col rounded-xl border p-3.5 transition-colors hover:border-[#FF3F3F]/30 sm:p-4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="theme-chip max-w-[65%] truncate rounded-md border px-2 py-1 text-[9px] font-semibold">
+          {post.category || "Local request"}
+        </span>
+        <span
+          className={`shrink-0 rounded-md border px-2 py-1 text-[9px] font-medium ${
+            statusStyles[post.status] ?? statusStyles.live
+          }`}
+        >
+          {statusLabels[post.status] ?? "Open"}
+        </span>
+      </div>
+
+      <h4 className="theme-text-primary mt-3 line-clamp-2 text-sm font-semibold leading-5">
+        {post.title || "Untitled requirement"}
+      </h4>
+
+      {post.description && (
+        <p className="theme-text-muted mt-1.5 line-clamp-2 text-[11px] leading-5">
+          {post.description}
+        </p>
+      )}
+
+      <div className="theme-text-muted mt-3 flex flex-wrap gap-x-3 gap-y-2 text-[10px]">
+        {post.address && (
+          <span className="inline-flex min-w-0 items-center gap-1">
+            <MapPin className="h-3 w-3 shrink-0 text-[#FF3F3F]" />
+            <span className="max-w-40 truncate">{post.address}</span>
+          </span>
+        )}
+        {post.budget && (
+          <span className="inline-flex items-center gap-1">
+            <IndianRupee className="h-3 w-3 shrink-0 text-emerald-400" />
+            {post.budget}
+          </span>
+        )}
+        {post.timeline && (
+          <span className="inline-flex items-center gap-1">
+            <Clock3 className="h-3 w-3 shrink-0 text-amber-400" />
+            {post.timeline}
+          </span>
+        )}
+      </div>
+
+      <div className="theme-divider mt-auto flex items-center justify-between gap-2 border-t pt-3">
+        <span className="theme-text-muted truncate text-[9px]">
+          {post.createdAt
+            ? new Date(post.createdAt).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : ""}
+        </span>
         <button
           type="button"
-          onClick={handleViewAll}
-          className={`
-            group flex w-full
-            items-center justify-center gap-1.5
-            border-t border-[#1e1e22]
-            font-semibold text-zinc-500
-            transition
-            hover:bg-white/[0.02]
-            hover:text-[#FF3F3F]
-            ${compact ? "py-2 text-[9px]" : "py-3 text-[10px]"}
-          `}
+          onClick={onSelect}
+          className="theme-btn-accent inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold"
         >
-          View all {total} posts
-          <ChevronRight
-            className={`
-              transition-transform
-              group-hover:translate-x-0.5
-              ${compact ? "h-2.5 w-2.5" : "h-3 w-3"}
-            `}
-          />
+          {isOwner ? (compact ? "Manage" : "Manage post") : "View post"}
+          <ArrowUpRight className="h-3 w-3" />
         </button>
-      )}
-    </section>
+      </div>
+    </article>
   );
 }

@@ -139,23 +139,21 @@ export default function PostGridCard({
           <span />
         )}
 
-        {/* Category */}
-        {post?.category && (
-          <span
-            className="
-        shrink-0 rounded-full
-        border px-2 py-1
-        text-[8px] font-bold uppercase tracking-wider
-      "
-            style={{
-              backgroundColor: `${accent}0d`,
-              borderColor: `${accent}22`,
-              color: accent,
-            }}
-          >
-            {post.category}
-          </span>
-        )}
+        <div className="flex shrink-0 items-center gap-1.5">
+          {post?.category && (
+            <span
+              className="max-w-28 truncate rounded-full border px-2 py-1 text-[8px] font-bold uppercase tracking-wider"
+              style={{
+                backgroundColor: `${accent}0d`,
+                borderColor: `${accent}22`,
+                color: accent,
+              }}
+            >
+              {post.category}
+            </span>
+          )}
+          {badge}
+        </div>
       </header>
 
       {/* Title */}
@@ -234,11 +232,9 @@ export default function PostGridCard({
       </div>
 
       {/* Optional badge / meta */}
-      {(badge || meta) && (
+      {meta && (
         <div className="mt-3 flex items-center justify-between gap-2">
-          {badge && <div>{badge}</div>}
-
-          {meta && <div className="ml-auto">{meta}</div>}
+          <div className="ml-auto">{meta}</div>
         </div>
       )}
 

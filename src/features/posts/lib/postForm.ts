@@ -20,7 +20,7 @@ export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 // Must match backend/models/postSchema.js limits.
 export const TITLE_MAX = 100;
-export const DESCRIPTION_MAX = 300;
+export const DESCRIPTION_MAX = 800;
 export const BUDGET_MAX = 40;
 export const TIMELINE_MAX = 40;
 export const MAX_QUESTIONS = 3;

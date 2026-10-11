@@ -28,7 +28,7 @@ interface DesktopNavigationProps {
 const NAV_ITEMS = [
   { id: "landing", label: "Den", icon: Trees },
   { id: "explore", label: "Jungle", icon: Compass },
-  { id: "activity", label: "Tracks", icon: Footprints, auth: true },
+  { id: "activity", label: "Activity", icon: Footprints, auth: true },
   { id: "messaging", label: "Chat", icon: MessageSquare, auth: true },
 ];
 

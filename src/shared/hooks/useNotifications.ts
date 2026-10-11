@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { apiFetch, apiFetchJSON } from "../lib/api";
 import { useAppSelector } from "../../store/hooks";
+import { reportAppError } from "../lib/appErrors";
 
 export interface NotificationItem {
   _id: string;
@@ -141,11 +142,6 @@ const registerBrowserPush = async (forceRenew = false) => {
     });
   }
 
-  console.info("[Notifications] Push subscription ready", {
-    endpoint: subscription.endpoint,
-    permission,
-  });
-
   const response = await apiFetch("/api/notifications/subscribe", {
     method: "POST",
     headers: {
@@ -164,7 +160,6 @@ const registerBrowserPush = async (forceRenew = false) => {
     );
   }
 
-  console.info("[Notifications] Push subscription saved");
 };
 
 export const enableBrowserPush = async () => {
@@ -203,7 +198,7 @@ const initializeNotificationSystem = (userId: string) => {
       );
     })
     .catch((error) => {
-      console.error("[Notifications] Failed to load notifications:", error);
+      reportAppError(error, "Could not load notifications. Please try again.");
     });
 
   return initialization;

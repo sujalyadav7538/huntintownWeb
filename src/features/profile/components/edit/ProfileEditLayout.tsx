@@ -16,7 +16,6 @@ import {
   Link2,
   Briefcase,
   LayoutGrid,
-  Settings2,
   ChevronRight,
   ChevronLeft,
   ArrowLeft,
@@ -28,7 +27,6 @@ import AboutSection from "@/src/features/profile/components/edit/AboutSection";
 import BasicSection from "@/src/features/profile/components/edit/BasicSection";
 import LocationSection from "@/src/features/profile/components/edit/LocationSection";
 import PortfolioSection from "@/src/features/profile/components/edit/PortfolioSection";
-import PreferencesSection from "@/src/features/profile/components/edit/PreferencesSection";
 import ServicesSection from "@/src/features/profile/components/edit/ServicesSection";
 import SkillsSection from "@/src/features/profile/components/edit/SkillsSection";
 import SocialSection from "@/src/features/profile/components/edit/SocialSection";
@@ -55,7 +53,6 @@ const SECTIONS = [
   { id: "services", label: "Services", icon: Briefcase },
   { id: "portfolio", label: "Portfolio", icon: LayoutGrid },
   { id: "verification", label: "Verification", icon: Shield },
-  { id: "preferences", label: "Preferences", icon: Settings2 },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -98,6 +95,7 @@ interface ProfileEditLayoutProps {
     updated: User,
     avatarFile: File | null,
     coverImageFile: File | null,
+    removeAvatar: boolean,
   ) => void;
 
   onCancel: () => void;
@@ -127,6 +125,7 @@ export default function ProfileEditLayout({
 
   const [pendingCoverImageFile, setPendingCoverImageFile] =
     useState<File | null>(null);
+  const [removeAvatar, setRemoveAvatar] = useState(false);
 
   const [showcaseItems, setShowcaseItems] = useState<any[]>(
     user.showcase?.items ?? [],
@@ -154,7 +153,19 @@ export default function ProfileEditLayout({
     });
 
     setPendingAvatarFile(file);
+    setRemoveAvatar(false);
   }, []);
+
+  const handleAvatarRemove = useCallback(() => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+
+    dispatch({ type: "set", field: "avatar", value: "" });
+    setPendingAvatarFile(null);
+    setRemoveAvatar(Boolean(user.avatar));
+  }, [user.avatar]);
 
   // ──────────────────────────────────────────────────
   // Cover Image
@@ -225,6 +236,7 @@ export default function ProfileEditLayout({
 
     setPendingAvatarFile(null);
     setPendingCoverImageFile(null);
+    setRemoveAvatar(false);
     setShowcaseItems(user.showcase?.items ?? []);
   }, [user]);
 
@@ -277,7 +289,7 @@ export default function ProfileEditLayout({
       bio: draft.bio,
       about: draft.about,
 
-      avatar: pendingAvatarFile ? draft.avatar : user.avatar,
+      avatar: removeAvatar ? "" : pendingAvatarFile ? draft.avatar : user.avatar,
 
       coverImage: pendingCoverImageFile ? draft.coverImage : user.coverImage,
 
@@ -293,9 +305,8 @@ export default function ProfileEditLayout({
 
       socialLinks: draft.socialLinks,
     } as User;
-    console.log(updated);
-    onSave(updated, pendingAvatarFile, pendingCoverImageFile);
-  }, [user, draft, pendingAvatarFile, pendingCoverImageFile, onSave]);
+    onSave(updated, pendingAvatarFile, pendingCoverImageFile, removeAvatar);
+  }, [user, draft, pendingAvatarFile, pendingCoverImageFile, removeAvatar, onSave]);
 
   // ──────────────────────────────────────────────────
   // Discard
@@ -309,6 +320,7 @@ export default function ProfileEditLayout({
 
     setPendingAvatarFile(null);
     setPendingCoverImageFile(null);
+    setRemoveAvatar(false);
 
     dispatch({
       type: "reset",
@@ -347,6 +359,7 @@ export default function ProfileEditLayout({
             draft={draft}
             dispatch={dispatch}
             onAvatarChange={handleAvatarChange}
+            onRemoveAvatar={handleAvatarRemove}
             onCoverImageChange={handleCoverImageChange}
           />
         );
@@ -376,9 +389,6 @@ export default function ProfileEditLayout({
 
       case "verification":
         return <VerificationSection user={user} />;
-
-      case "preferences":
-        return <PreferencesSection />;
 
       default:
         return null;

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl, { LngLatBoundsLike, LngLatLike } from "maplibre-gl";
 import { MAP_OPTIONS } from "@/src/shared/lib/map";
+import { reportAppError } from "@/src/shared/lib/appErrors";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 export default function useMap() {
@@ -57,8 +58,14 @@ export default function useMap() {
         map.touchZoomRotate.disableRotation();
       } catch (_) {}
 
-      map.on("error", (e) => {
-        console.error("🗺️ MapLibre Error:", e);
+      let hasReportedMapError = false;
+      map.on("error", (event) => {
+        if (hasReportedMapError) return;
+        hasReportedMapError = true;
+        reportAppError(
+          event.error,
+          "Some map data could not be loaded. Check your connection and try again.",
+        );
       });
 
       setMapReady(true);

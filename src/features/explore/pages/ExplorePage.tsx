@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { SlidersHorizontal, LogIn, Compass, BowArrow } from "lucide-react";
+import {
+  BadgeCheck,
+  SlidersHorizontal,
+  LogIn,
+  Compass,
+  BowArrow,
+} from "lucide-react";
 
 import CategoryFilterRow from "@/src/features/explore/components/CategoryFilterRow";
 import PostGridCard from "@/src/shared/components/post/PostGridCard";
@@ -10,7 +16,6 @@ import ExploreSearch from "@/src/features/explore/components/ExploreSearch";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { Post } from "@/src/shared/types";
 import {
-  deletePost,
   fetchPosts,
   fetchPostsPage,
   normalizePost,
@@ -65,6 +70,9 @@ export default function ExplorePage() {
   );
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [appliedPostIds, setAppliedPostIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const debouncedSearch = useDebounce(searchTerm.trim(), 400);
   const isSearchMode = debouncedSearch.length > 0 || selectedCategory !== "All";
@@ -92,6 +100,44 @@ export default function ExplorePage() {
 
   // Sentinel div ref for IntersectionObserver
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setAppliedPostIds(new Set());
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchAppliedPosts = async () => {
+      try {
+        const response = await apiFetch("/api/responses/my-activity");
+        if (!response.ok) return;
+
+        const data: {
+          data?: { postId?: string | { id?: string; _id?: string } }[];
+        } = await response.json();
+
+        const postIds = (data.data ?? [])
+          .map((activity) =>
+            typeof activity.postId === "string"
+              ? activity.postId
+              : activity.postId?.id ?? activity.postId?._id,
+          )
+          .filter((postId): postId is string => Boolean(postId));
+
+        if (!cancelled) setAppliedPostIds(new Set(postIds));
+      } catch {
+        // Keep Explore usable if activity history is temporarily unavailable.
+      }
+    };
+
+    fetchAppliedPosts();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   // Support opening a specific post from external navigation (e.g. map click)
   useEffect(() => {
@@ -264,8 +310,7 @@ export default function ExplorePage() {
 
   const handleResponseSubmit = (postId: string) => {
     handleClosePost();
-    dispatch(deletePost(postId));
-    setSearchResults((prev) => prev.filter((p) => p.id !== postId));
+    setAppliedPostIds((current) => new Set(current).add(postId));
   };
 
   const handleClearFilters = () => {
@@ -278,6 +323,7 @@ export default function ExplorePage() {
     return (
       <PostDetailView
         post={selectedPost}
+        hasApplied={appliedPostIds.has(selectedPost.id ?? selectedPost._id)}
         onBack={handleClosePost}
         onViewProfile={() => {
           navigate(`/profile/${selectedPost.author?.id ?? selectedPost.author?._id}`);
@@ -290,6 +336,7 @@ export default function ExplorePage() {
   const viewProps: ExploreViewProps = {
     isAuthenticated,
     posts: isSearchMode ? searchResults : posts,
+    appliedPostIds,
     loading: isSearchMode ? searchLoading : loading,
     loadingMore,
     hasMore: isSearchMode ? searchHasMore : hasMore,
@@ -315,6 +362,7 @@ export default function ExplorePage() {
 interface ExploreViewProps {
   isAuthenticated: boolean;
   posts: Post[];
+  appliedPostIds: Set<string>;
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
@@ -336,6 +384,7 @@ interface ExploreViewProps {
 function ExploreDesktop({
   isAuthenticated,
   posts,
+  appliedPostIds,
   loading,
   loadingMore,
   hasMore,
@@ -393,6 +442,14 @@ function ExploreDesktop({
             <PostGridCard
               key={post.id ?? post._id}
               post={post}
+              badge={
+                appliedPostIds.has(post.id ?? post._id) ? (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">
+                    <BadgeCheck className="h-3 w-3" />
+                    Applied
+                  </span>
+                ) : undefined
+              }
               onSelect={() => onSelectPost(post)}
             />
           ))}
@@ -417,6 +474,7 @@ function ExploreDesktop({
 function ExploreMobile({
   isAuthenticated,
   posts,
+  appliedPostIds,
   loading,
   loadingMore,
   hasMore,
@@ -464,6 +522,14 @@ function ExploreMobile({
             <PostGridCard
               key={post.id ?? post._id}
               post={post}
+              badge={
+                appliedPostIds.has(post.id ?? post._id) ? (
+                  <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">
+                    <BadgeCheck className="h-3 w-3" />
+                    Applied
+                  </span>
+                ) : undefined
+              }
               onSelect={() => onSelectPost(post)}
             />
           ))}

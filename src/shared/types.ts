@@ -3,6 +3,9 @@
   linkedin?: string;
   twitter?: string;
   website?: string;
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
 }
 
 export interface UserLocation {
@@ -39,6 +42,7 @@ export interface User {
   // Contact
   phone?: string;
   website?: string;
+  socialLinks?: UserSocialLinks;
 
   // Skills
   skills?: string[];

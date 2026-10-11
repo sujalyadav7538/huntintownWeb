@@ -26,15 +26,3 @@ export function setSocketAuth(token: string) {
   socket.auth = { token };
 }
 
-socket.on("connect", () => {
-  console.log("✅ Connected");
-  console.log("Socket ID:", socket.id);
-});
-
-socket.on("disconnect", (reason) => {
-  console.log("❌ Disconnected:", reason);
-});
-
-socket.on("connect_error", (err) => {
-  console.error("❌ Connect Error:", err.message);
-});
