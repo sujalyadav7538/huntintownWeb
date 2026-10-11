@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import {
+  Link,
   Navigate,
   Route,
   Routes,
+  useLocation,
   useNavigate,
   useParams,
 } from "react-router-dom";
@@ -13,7 +15,6 @@ import Dashboard from "@/src/features/dashboard/pages/DashboardPage";
 import Messaging from "@/src/features/messaging/pages/MessagingPage";
 import LoginPage from "@/src/features/auth/pages/LoginPage";
 import ExplorePage from "@/src/features/explore/pages/ExplorePage";
-import MobileHomePage from "@/src/features/home/pages/MobileHomePage";
 
 import UserProfileView from "@/src/features/profile/pages/UserProfilePage";
 import PostDetailView from "@/src/features/explore/components/PostDetailView";
@@ -24,6 +25,7 @@ import PublicRoutes from "@/src/app/routes/PublicRoutes";
 import type { Post, User } from "@/src/shared/types";
 import AboutPage from "@/src/features/home/pages/AboutPage";
 import NotificationsPage from "@/src/features/notifications/pages/NotificationsPage";
+import TermsAndConditionsPage from "@/src/features/auth/pages/TermsAndConditionsPage";
 import { apiFetchJSON } from "@/src/shared/lib/api";
 import { normalizePost } from "@/src/store/postsSlice";
 import { useSeo } from "@/src/shared/hooks/useSeo";
@@ -261,13 +263,71 @@ export default function AppRoutes({
 
       {/* About Page */}
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/legal" element={<LegalPage />} />
 
       {/* =========================================================
           FALLBACK
       ========================================================== */}
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
+  );
+}
+
+function LegalPage() {
+  const location = useLocation();
+
+  useSeo({
+    title: "Terms & Privacy",
+    description:
+      "Read the HuntInTown Terms & Conditions and Privacy Policy, including how the platform handles accounts, user content, safety, and personal information.",
+    path: "/legal",
+  });
+
+  useEffect(() => {
+    const sectionId = location.hash.slice(1);
+    if (!sectionId) return;
+
+    requestAnimationFrame(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ block: "start" });
+    });
+  }, [location.hash]);
+
+  return <TermsAndConditionsPage mode="page" />;
+}
+
+function NotFoundPage() {
+  useSeo({
+    title: "Page Not Found",
+    description: "The page you requested could not be found on HuntInTown.",
+    noIndex: true,
+  });
+
+  return (
+    <main className="theme-page-shell flex min-h-[60vh] flex-col items-center justify-center px-5 py-16 text-center">
+      <p className="landing-eyebrow text-sm font-semibold uppercase">404</p>
+      <h1 className="theme-text-primary mt-3 text-3xl font-bold">
+        Page not found
+      </h1>
+      <p className="theme-text-muted mt-3 max-w-md text-sm leading-6">
+        This link may be outdated, or the page may have moved. Explore local
+        requirements or return to the HuntInTown homepage.
+      </p>
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <Link
+          to="/explore"
+          className="theme-btn-accent rounded-lg px-4 py-2 text-sm font-semibold"
+        >
+          Browse requirements
+        </Link>
+        <Link
+          to="/"
+          className="landing-btn-secondary rounded-lg px-4 py-2 text-sm font-semibold"
+        >
+          Go home
+        </Link>
+      </div>
+    </main>
   );
 }
 

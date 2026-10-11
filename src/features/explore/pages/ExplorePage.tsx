@@ -60,7 +60,9 @@ export default function ExplorePage() {
   });
 
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState(initialSearchTerm ?? "");
+  const [searchTerm, setSearchTerm] = useState(
+    () => new URLSearchParams(location.search).get("q") ?? initialSearchTerm ?? "",
+  );
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
@@ -348,7 +350,7 @@ function ExploreDesktop({
   onSignIn,
 }: ExploreViewProps) {
   return (
-    <div className="theme-page-shell mx-auto w-full max-w-7xl space-y-6 pt-4">
+    <div className=" mx-auto w-full max-w-7xl space-y-6 pt-4">
       {/* The page's only h1 — the design has no visible heading here. */}
       <h1 className="sr-only">Explore local requirements near you</h1>
 

@@ -1,13 +1,15 @@
 import { X } from "lucide-react";
 
 interface TermsAndConditionsPageProps {
-  onClose: () => void;
-  onAccept: () => void;
+  onClose?: () => void;
+  onAccept?: () => void;
+  mode?: "modal" | "page";
 }
 
 export default function TermsAndConditionsPage({
   onClose,
   onAccept,
+  mode = "modal",
 }: TermsAndConditionsPageProps) {
 
   const content = (
@@ -436,7 +438,7 @@ export default function TermsAndConditionsPage({
       </div>
 
       {/* Accept */}
-      <div className="mt-9 border-t border-white/10 pt-6">
+      {mode === "modal" && <div className="mt-9 border-t border-white/10 pt-6">
         <button
           type="button"
           onClick={onAccept}
@@ -444,9 +446,19 @@ export default function TermsAndConditionsPage({
         >
           Accept and continue
         </button>
-      </div>
+      </div>}
     </div>
   );
+
+  if (mode === "page") {
+    return (
+      <main className="theme-page-shell min-h-screen px-4 py-10 text-white sm:px-6">
+        <article className="mx-auto max-w-3xl rounded-xl border border-white/10 bg-black px-4 py-6 sm:px-8 sm:py-8">
+          {content}
+        </article>
+      </main>
+    );
+  }
 
   return (
     <div

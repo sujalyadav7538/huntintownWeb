@@ -42,7 +42,7 @@ const PRINCIPLES = [
 
 export default function CommunityPrinciples() {
   return (
-    <section className="py-8 sm:py-12">
+    <section id="community-principles" className="py-8 sm:py-12 scroll-mt-20">
       <div className="">
         <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-12">
           <p className="uppercase tracking-[0.2em] landing-eyebrow text-sm font-semibold">

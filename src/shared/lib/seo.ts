@@ -75,6 +75,8 @@ export const NOINDEX_PREFIXES = [
   "/create-post",
   "/profile",
   "/login",
+  "/notifications",
+  "/post",
 ];
 
 export function isNoIndexPath(pathname: string): boolean {

@@ -9,6 +9,7 @@ import {
   Instagram,
   Linkedin,
   Twitter,
+  Facebook,
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
@@ -16,14 +17,14 @@ import { Link } from "react-router-dom";
 const exploreLinks = [
   { label: "Browse Requirements", to: "/explore" },
   { label: "Become a Helper", to: "/explore" },
-  { label: "Post a Requirement", to: "/createPost" },
+  { label: "Post a Requirement", to: "/create-post" },
 ];
 
 const communityLinks = [
-  { label: "Trust Score", to: "/" },
-  { label: "Achievement Badges", to: "/" },
-  { label: "Community Guidelines", to: "/aboutUs" },
-  { label: "Safety Tips", to: "/" },
+  { label: "Trust Score", to: "/#trust-system" },
+  { label: "Achievement Badges", to: "/#trust-system" },
+  { label: "Community Guidelines", to: "/#community-principles" },
+  { label: "Safety Tips", to: "/#community-principles" },
 ];
 
 const supportLinks = [
@@ -31,19 +32,20 @@ const supportLinks = [
   { label: "Contact Us", href: "mailto:hello@huntintown.com" },
   {
     label: "Privacy Policy",
-    href: "mailto:legal@huntintown.com?subject=Privacy%20Policy",
+    to: "/legal#privacy",
   },
   {
     label: "Terms & Conditions",
-    href: "mailto:legal@huntintown.com?subject=Terms%20and%20Conditions",
+    to: "/legal#terms",
   },
 ];
 
 const socialLinks = [
-  { label: "GitHub", href: "https://github.com", icon: Github },
-  { label: "LinkedIn", href: "https://www.linkedin.com", icon: Linkedin },
-  { label: "Twitter", href: "https://x.com", icon: Twitter },
-  { label: "Instagram", href: "https://www.instagram.com", icon: Instagram },
+  // { label: "GitHub", href: "https://github.com", icon: Github },
+  { label: "Facebook", href: "https://www.facebook.com/huntintown", icon: Facebook },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/hunt-in-town", icon: Linkedin },
+  { label: "Twitter", href: "https://twitter.com/huntintown", icon: Twitter },
+  { label: "Instagram", href: "https://www.instagram.com/huntintown", icon: Instagram },
 ];
 
 export default function Footer() {
@@ -220,6 +222,16 @@ export default function Footer() {
                       <Link
                         key={link.label}
                         to={link.to}
+                        onClick={() => {
+                          const sectionId = link.to?.split("#")[1];
+                          if (!sectionId) return;
+
+                          requestAnimationFrame(() => {
+                            document
+                              .getElementById(sectionId)
+                              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          });
+                        }}
                         className="
                         block text-sm text-zinc-400
                         transition
@@ -289,7 +301,7 @@ export default function Footer() {
               );
             })}
 
-            <button
+            {/* <button
               type="button"
               onClick={scrollToTop}
               className="
@@ -303,7 +315,7 @@ export default function Footer() {
             >
               Top
               <ChevronUp className="h-4 w-4" />
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

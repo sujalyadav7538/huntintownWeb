@@ -60,7 +60,7 @@ const TRUST_FEATURES = [
 
 export default function TrustSystem() {
   return (
-    <section className="py-8 sm:py-12">
+    <section id="trust-system" className="py-8 sm:py-12 scroll-mt-20">
       <div className="">
 
         <div className="max-w-3xl mx-auto text-center mb-6 sm:mb-12">

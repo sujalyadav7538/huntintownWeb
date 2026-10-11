@@ -415,7 +415,7 @@ html[data-theme="light"] [class*="text-yellow-5"] {
 }
 
 .theme-page-shell {
-  background: var(--app-bg);
+  /* background: var(--app-bg); */
   color: var(--app-text);
 }
 
