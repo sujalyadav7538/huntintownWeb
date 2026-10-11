@@ -8,6 +8,11 @@ import { useSeo } from "@/src/shared/hooks/useSeo";
 import type { AuthNavigationState, SignupFormData } from "../types";
 import SignInForm from "./SignInForm";
 import SignUpForm from "./SignUpForm";
+import {
+  isPasswordValid,
+  PASSWORD_POLICY_MESSAGE,
+} from "../passwordPolicy";
+
 import TermsAndConditionsPage from "./TermsAndConditionsPage";
 
 interface LoginPageProps {
@@ -46,27 +51,33 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   const [error, setError] = useState("");
 
+  const completeGoogleSignin = async (accessToken: string) => {
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await apiFetch("/api/user/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: accessToken }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Google sign-in failed");
+      }
+
+      onLogin?.(data.user, data.access_token ?? "");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      setError("");
-      setLoading(true);
-      try {
-        const res = await apiFetch("/api/user/google", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            access_token: tokenResponse.access_token,
-            acceptedTerms: isSignup && termsAccepted,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Google sign-in failed");
-        onLogin?.(data.user, data.access_token ?? "");
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Google sign-in failed");
-      } finally {
-        setLoading(false);
-      }
+      await completeGoogleSignin(tokenResponse.access_token);
     },
     onError: () => setError("Google sign-in was cancelled or failed."),
   });
@@ -93,6 +104,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     if (isSignup) {
       if (!formData.name.trim()) {
         setError("Please enter your name.");
+        return;
+      }
+
+      if (!isPasswordValid(formData.password)) {
+        setError(PASSWORD_POLICY_MESSAGE);
         return;
       }
 
@@ -326,7 +342,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <button
               type="button"
               onClick={() => googleLogin()}
-              disabled={loading || (isSignup && !termsAccepted)}
+              disabled={loading}
               className="
               flex w-full
               items-center justify-center

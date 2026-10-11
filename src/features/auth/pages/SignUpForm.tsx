@@ -1,4 +1,6 @@
 import type { SignupFormData } from "../types";
+import { Check, Circle } from "lucide-react";
+import { PASSWORD_REQUIREMENTS } from "../passwordPolicy";
 
 interface SignUpFormProps {
   formData: SignupFormData;
@@ -61,8 +63,32 @@ export default function SignUpForm({
               placeholder="Password"
               value={formData.password}
               onChange={onChange}
+              autoComplete="new-password"
+              aria-describedby="signup-password-checklist"
               className="w-full rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-700 focus:border-[#FF3F3F]/50 focus:bg-white/[0.04]"
             />
+            <ul
+              id="signup-password-checklist"
+              aria-label="Password requirements"
+              className="mt-2 space-y-1"
+            >
+              {PASSWORD_REQUIREMENTS.map((requirement) => {
+                const isMet = requirement.isMet(formData.password);
+                const Icon = isMet ? Check : Circle;
+
+                return (
+                  <li
+                    key={requirement.label}
+                    className={`flex items-center gap-1.5 text-[11px] ${
+                      isMet ? "text-emerald-400" : "text-zinc-500"
+                    }`}
+                  >
+                    <Icon aria-hidden="true" className="h-3.5 w-3.5" />
+                    {requirement.label}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
           <div>
             <label className="mb-1.5 block text-[11px] font-medium text-zinc-500">
@@ -74,6 +100,7 @@ export default function SignUpForm({
               placeholder="Confirm"
               value={formData.confirmPassword}
               onChange={onChange}
+              autoComplete="new-password"
               className="w-full rounded-xl border border-white/[0.08] bg-white/[0.025] px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-700 focus:border-[#FF3F3F]/50 focus:bg-white/[0.04]"
             />
           </div>
