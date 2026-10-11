@@ -195,7 +195,7 @@ export default function ResponsesPanel({
             </div>
           </div>
         ) : (
-          <div>
+          <div className="space-y-2.5">
             {responses.map((response) => (
               <ResponseItem
                 key={response.id}

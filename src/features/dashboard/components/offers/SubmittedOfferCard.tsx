@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle, MoreHorizontal, Search } from "lucide-react";
+import { Eye, MessageCircle, MoreHorizontal, Search } from "lucide-react";
 import { getCategoryPresentation } from "@/src/shared/lib/postConstants";
 import type { SubmittedResponse } from "../types";
 import { StatusBadge } from "../requirements/RequirementUI";
@@ -86,7 +86,7 @@ export default function SubmittedOfferCard({
             title="Explore requirement"
             className="theme-divider theme-icon-muted flex h-8 w-8 list-none items-center justify-center rounded-md border transition hover:bg-white/5 [&::-webkit-details-marker]:hidden"
           >
-            <MoreHorizontal className="h-3.5 w-3.5" />
+            <Eye className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

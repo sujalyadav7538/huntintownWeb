@@ -84,7 +84,7 @@ export default function PostGridCard({
   return (
     <article
       className="
-        group relative flex min-w-0 cursor-pointer flex-col
+        group relative flex h-[292px] min-w-0 cursor-pointer flex-col
         overflow-hidden rounded-2xl
         theme-post-card
         border border-white/[0.07]
@@ -242,7 +242,7 @@ export default function PostGridCard({
       {showFooter && (
         <div
           className="
-            mt-4 flex items-center justify-between gap-3
+            mt-auto flex items-center justify-between gap-3
             border-t border-white/5.5
             pt-3
           "
