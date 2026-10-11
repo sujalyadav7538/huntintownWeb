@@ -90,7 +90,7 @@ export default function HuntMap({
     >
       <div
         ref={mapContainer}
-        className="absolute inset-0 h-full w-full touch-none sm:touch-auto"
+        className="absolute inset-0 h-full w-full touch-auto"
       />
 
       {mapReady && (

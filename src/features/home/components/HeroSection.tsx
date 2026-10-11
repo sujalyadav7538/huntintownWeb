@@ -46,7 +46,7 @@ export default function HeroSection({
 
         {/* Map */}
         <section
-          className="hero-animate hero-delay-3 space-y-3"
+          className="space-y-3"
           aria-labelledby="hero-map-title"
         >
           <div className="flex items-end justify-between gap-4 px-1">
@@ -98,7 +98,7 @@ function HeroSectionDesktop({
   return (
     <div className="space-y-7">
       <div className="space-y-4">
-        <h1 className="hero-animate font-black leading-none tracking-tight theme-text-primary text-5xl xl:text-6xl">
+        <h1 className="hero-reveal-left-to-right font-black leading-none tracking-tight theme-text-primary text-5xl xl:text-6xl">
           Find Help.
           <br />
           <span className="landing-eyebrow">Offer Skills.</span>
@@ -106,14 +106,14 @@ function HeroSectionDesktop({
           Build Local Trust.
         </h1>
 
-        <p className="hero-animate hero-delay-1 max-w-xl text-base leading-7 theme-text-muted">
+        <p className="max-w-xl text-base leading-7 theme-text-muted">
           HuntInTown connects people within local communities to post
           requirements, discover skilled helpers, collaborate securely, and
           build lasting reputation through verified interactions.
         </p>
       </div>
 
-      <div className="hero-animate hero-delay-2 flex flex-row gap-3">
+      <div className="flex flex-row gap-3">
         <button
           type="button"
           onClick={onPostRequirement}
@@ -148,21 +148,21 @@ function HeroSectionMobile({ onExplore }: HeroActionsProps) {
 
         <div className="space-y-8 text-center">
           <h1 className="theme-text-primary flex flex-col gap-4 text-[3.2rem] font-black leading-[0.9] tracking-[-0.045em]">
-            <span className="hero-animate hero-delay-1 block">Spot It.</span>
+            <span className="block">Spot It.</span>
 
-            <span className="hero-animate hero-delay-2 block text-red-600">
+            <span className="block text-red-600">
               Lock It.
             </span>
 
-            <span className="hero-animate hero-delay-3 block">Help Out.</span>
+            <span className="block">Help Out.</span>
           </h1>
 
-          <p className="hero-animate hero-delay-3 mx-auto max-w-[290px] text-sm leading-6 theme-text-muted">
+          <p className="mx-auto max-w-[290px] text-sm leading-6 theme-text-muted">
             Find what you need. Find who needs you.
           </p>
         </div>
 
-        <div className="hero-animate hero-delay-4 mt-7">
+        <div className="mt-7">
           <button
             type="button"
             onClick={onExplore}
@@ -178,7 +178,7 @@ function HeroSectionMobile({ onExplore }: HeroActionsProps) {
           </button>
         </div>
 
-        <div className="hero-fade hero-delay-5 mt-6 flex flex-col items-center">
+        <div className="mt-6 flex flex-col items-center">
           <span className="text-[9px] font-bold uppercase tracking-[0.35em] theme-text-muted">
             Explore nearby
           </span>

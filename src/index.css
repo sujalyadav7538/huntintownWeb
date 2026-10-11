@@ -70,6 +70,16 @@
   }
 }
 
+@keyframes heroRevealLeftToRight {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
 /* "both" fill hides content only while the animation runs, so text never stays invisible if keyframes fail */
 .hero-animate {
   animation: heroFadeUp 0.7s ease-out both;
@@ -77,6 +87,10 @@
 
 .hero-fade {
   animation: heroFade 0.7s ease-out both;
+}
+
+.hero-reveal-left-to-right {
+  animation: heroRevealLeftToRight 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .reveal {
@@ -92,7 +106,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hero-animate,
-  .hero-fade {
+  .hero-fade,
+  .hero-reveal-left-to-right {
     animation: none;
   }
 

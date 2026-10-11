@@ -331,7 +331,7 @@ function UserProfileDesktop({
                 )}
 
                 {tab.id === "reviews" &&
-                  metric?.reviewMetrics?.totalReviews && (
+                  metric?.reviewMetrics?.totalReviews>0 && (
                     <span className="ml-1.5 rounded-full bg-[#1e1e22] px-1.5 py-0.5 text-[9px] text-zinc-500">
                       {metric.reviewMetrics.totalReviews}
                     </span>
