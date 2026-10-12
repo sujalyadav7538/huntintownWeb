@@ -43,8 +43,17 @@ export const resolveNotificationLink = (
 
   switch (notification.action) {
     case "NEW_MESSAGE":
+      if (link.startsWith("/") && !link.startsWith("//")) return link;
       return data.conversationId
-        ? `/messaging?conversationId=${encodeURIComponent(String(data.conversationId))}`
+        ? `/messaging?${new URLSearchParams({
+            ...(data.postId
+              ? { postId: String(data.postId) }
+              : {}),
+            conversationId: String(data.conversationId),
+            ...(data.chatMode
+              ? { chatMode: String(data.chatMode) }
+              : {}),
+          }).toString()}`
         : "/messaging";
     case "NEW_RESPONSE":
     case "OFFER_RECEIVED":
