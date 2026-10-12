@@ -65,6 +65,7 @@ export default function MessagingPage() {
   const [mode, setMode] = useState<ChatMode>("posts");
 
   const [myChats, setMyChats] = useState<any[]>([]);
+  const [linkedConversation, setLinkedConversation] = useState<any | null>(null);
 
   const [postsLoading, setPostsLoading] = useState(false);
   const [chatsLoading, setChatsLoading] = useState(false);
@@ -236,10 +237,56 @@ export default function MessagingPage() {
    */
 
   useEffect(() => {
-    if (!activeConversationFromUrl) return;
+    if (!activeConversationFromUrl || !token) {
+      setLinkedConversation(null);
+      return;
+    }
 
+    let cancelled = false;
+    setMode(activePostId ? "posts" : "chats");
+    setPageError("");
     dispatch(setActiveConversationId(activeConversationFromUrl));
-  }, [activeConversationFromUrl, dispatch]);
+
+    const loadLinkedConversation = async () => {
+      try {
+        const res = await apiFetch(
+          `/api/chat/${activeConversationFromUrl}/messages`,
+          {
+            method: "GET",
+            headers: { Authorization: `${token}` },
+          },
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.message || "Unable to load messages.");
+        }
+        if (cancelled) return;
+
+        setLinkedConversation(data?.conversation ?? null);
+        dispatch(
+          setConversationMessages({
+            conversationId: activeConversationFromUrl,
+            messages: data?.data ?? [],
+          }),
+        );
+      } catch {
+        if (cancelled) return;
+        setPageError("Could not load this conversation. Please try again.");
+        dispatch(
+          setConversationMessages({
+            conversationId: activeConversationFromUrl,
+            messages: [],
+          }),
+        );
+      }
+    };
+
+    void loadLinkedConversation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeConversationFromUrl, activePostId, token, dispatch]);
 
   useEffect(() => {
     // Show bottom nav when no conversation is currently open.
@@ -406,33 +453,14 @@ export default function MessagingPage() {
    * ---------------------------------------------------------
    */
 
-  const handleSelectChat = async (chat: any) => {
+  const handleSelectChat = (chat: any) => {
     setMode("chats");
     const conversationId = chat._id;
     setPageError("");
 
     dispatch(setActiveConversationId(conversationId));
     dispatch(handleHideMobileBottomNav(true));
-
-    /*
-     * Keep postId as well because the chat belongs to a post.
-     */
-    try {
-      const messages = await fetch(`/api/chat/${conversationId}/messages`, {
-        method: "GET",
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
-      const data = await messages.json();
-      if (!messages.ok) throw new Error(data?.message || "Unable to load messages.");
-      dispatch(
-        setConversationMessages({ conversationId, messages: data?.data ?? [] }),
-      );
-    } catch {
-      setPageError("Could not load this conversation. Please try again.");
-      dispatch(setConversationMessages({ conversationId, messages: [] }));
-    }
+    navigate(`/messaging?conversationId=${conversationId}`, { replace: true });
   };
   /*
    * ---------------------------------------------------------
@@ -478,7 +506,11 @@ export default function MessagingPage() {
   const activeConversation =
     conversations.find(
       (conversation) => conversation._id === activeConversationId,
-    ) ?? myChats.find((chat) => chat._id === activeConversationId);
+    ) ??
+    myChats.find((chat) => chat._id === activeConversationId) ??
+    (linkedConversation?._id === activeConversationId
+      ? linkedConversation
+      : null);
 
   /*
    * ---------------------------------------------------------

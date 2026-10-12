@@ -7,9 +7,7 @@ import {
   Clock,
 } from "lucide-react";
 import { handleAvatarError } from "@/src/shared/utils";
-import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import { apiFetch } from "@/src/shared/lib/api";
-import { setConversationMessages } from "@/src/store/conversationsSlice";
+import { useAppSelector } from "@/src/store/hooks";
 import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 export default function ChatList({
@@ -25,9 +23,8 @@ export default function ChatList({
   loading?: boolean;
 }) {
   const [channelsSearch, setChannelsSearch] = useState("");
-  const dispatch = useAppDispatch();
 
-  const { currentUser, token } = useAppSelector((s) => s.auth);
+  const { currentUser } = useAppSelector((s) => s.auth);
   const { conversations, activeConversationId } = useAppSelector(
     (s) => s.conversations,
   );
@@ -42,20 +39,7 @@ export default function ChatList({
     return otherUser.name.toLowerCase().includes(channelsSearch.toLowerCase());
   });
 
-  const handleActiveChatClick = async (convId: string) => {
-    const res = await apiFetch(`/api/chat/${convId}/messages`, {
-      method: "GET",
-      headers: {
-        Authorization: `${token}`,
-      },
-    });
-    const mesagesData = await res.json();
-    dispatch(
-      setConversationMessages({
-        conversationId: convId,
-        messages: mesagesData?.data,
-      }),
-    );
+  const handleActiveChatClick = (convId: string) => {
     setActiveConversationId(convId);
   };
   return (
