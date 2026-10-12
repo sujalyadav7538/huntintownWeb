@@ -303,7 +303,7 @@ function ProfilePostCard({
   };
 
   return (
-    <article className="theme-card group flex h-full min-w-0 flex-col rounded-xl border p-3.5 transition-colors hover:border-[#FF3F3F]/30 sm:p-4">
+    <article className="theme-card group flex h-52 min-w-0 flex-col overflow-hidden rounded-xl border p-3.5 transition-colors hover:border-[#FF3F3F]/30 sm:p-4">
       <div className="flex items-center justify-between gap-2">
         <span className="theme-chip max-w-[65%] truncate rounded-md border px-2 py-1 text-[9px] font-semibold">
           {post.category || "Local request"}
@@ -327,7 +327,7 @@ function ProfilePostCard({
         </p>
       )}
 
-      <div className="theme-text-muted mt-3 flex flex-wrap gap-x-3 gap-y-2 text-[10px]">
+      <div className="theme-text-muted mt-3 flex max-h-10 min-h-8 flex-wrap content-start gap-x-3 gap-y-2 overflow-hidden text-[10px]">
         {post.address && (
           <span className="inline-flex min-w-0 items-center gap-1">
             <MapPin className="h-3 w-3 shrink-0 text-[#FF3F3F]" />

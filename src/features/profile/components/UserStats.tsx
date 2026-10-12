@@ -155,18 +155,14 @@ const UserStats = ({
           COMPACT STATS
       ====================================================== */}
 
-      <div className="theme-card grid grid-cols-2 overflow-hidden rounded-xl border sm:grid-cols-4">
-        {stats.map((stat, index) => {
+      <div className="theme-profile-stats grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {stats.map((stat) => {
           const Icon = stat.icon;
 
           return (
             <div
               key={stat.label}
-              className={`theme-divider min-w-0 px-3 py-3.5 flex flex-row items-center gap-3 sm:justify-center sm:px-4 ${
-                index % 2 !== 0 ? "border-l" : ""
-              } ${index > 1 ? "border-t sm:border-t-0" : ""} ${
-                index > 0 ? "sm:border-l" : ""
-              }`}
+              className="theme-profile-stat flex min-w-0 flex-row items-center gap-3 rounded-lg border px-3 py-3.5 sm:justify-center sm:px-4"
             >
               <div className=" flex h-8 w-8 shrink-0 items-center justify-center sm:h-9 sm:w-9">
                 <Icon className={`h-6 w-6 ${stat.iconClass}`} />

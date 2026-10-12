@@ -36,6 +36,11 @@
   --app-surface-2: #111113;
   --app-surface-3: #17171b;
   --app-surface-soft: #15161a;
+  --app-card: #19191d;
+  --app-card-subtle: #15171b;
+  --app-card-raised: #1d1d22;
+  --app-card-hover: #242429;
+  --app-card-border: #323238;
   --app-border: #1e1e22;
   --app-border-strong: #242428;
   --app-text: #f4f4f5;
@@ -93,17 +98,6 @@
   animation: heroRevealLeftToRight 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
-}
-
-.reveal.is-visible {
-  opacity: 1;
-  transform: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .hero-animate,
   .hero-fade,
@@ -111,11 +105,6 @@
     animation: none;
   }
 
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
 }
 
 .hero-glow {
@@ -234,6 +223,11 @@ html[data-theme="light"] {
   --app-surface-2: #fffdfd;
   --app-surface-3: #fff2f2;
   --app-surface-soft: #fff7f7;
+  --app-card: #fffdfd;
+  --app-card-subtle: #fffbfb;
+  --app-card-raised: #f7f3f3;
+  --app-card-hover: #f4eeee;
+  --app-card-border: #e7dede;
   --app-border: #eadede;
   --app-border-strong: #e3d3d3;
   --app-text: #18181b;
@@ -437,7 +431,7 @@ html[data-theme="light"] [class*="text-yellow-5"] {
 .theme-panel {
   background: var(--app-surface);
   border-color: var(--app-border);
-  box-shadow: var(--app-shadow);
+  /* box-shadow: var(--app-shadow); */
 }
 
 .theme-panel-soft {
@@ -451,18 +445,33 @@ html[data-theme="light"] [class*="text-yellow-5"] {
 }
 
 .theme-card {
-  background: var(--app-surface-2);
-  border-color: var(--app-border);
+  background: var(--app-card);
+  border-color: var(--app-card-border);
   box-shadow: var(--app-shadow);
 }
 
+.theme-profile-stats {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.theme-profile-stat {
+  background: var(--app-card);
+  border-color: var(--app-card-border);
+}
+
 .theme-card-subtle {
-  background: var(--app-surface-soft);
+  background: var(--app-card-subtle);
   border-color: color-mix(in srgb, var(--app-border) 88%, transparent);
 }
 
 .theme-divider {
   border-color: var(--app-border);
+}
+
+.theme-card > .theme-divider {
+  border-color: var(--app-card-border);
 }
 
 .theme-text-primary {
@@ -530,14 +539,28 @@ html[data-theme="light"] [class*="text-yellow-5"] {
 }
 
 .theme-post-card {
-  background: var(--app-surface-2) !important;
+  background: var(--app-card) !important;
   border-color: color-mix(in srgb, var(--app-border) 85%, transparent) !important;
   box-shadow: var(--app-shadow);
 }
 
 .theme-post-card:hover {
-  background: var(--app-surface-soft) !important;
+  background: var(--app-card-hover) !important;
   border-color: color-mix(in srgb, var(--app-red) 22%, var(--app-border)) !important;
+}
+
+/* Give rounded, explicitly colored cards the same separation as theme-card. */
+[class~="bg-[#0e0e10]"][class*="rounded"][class*="border"]:not(input):not(button):not(select):not(textarea):not(.theme-panel):not(.theme-panel-soft),
+[class~="bg-[#111113]"][class*="rounded"][class*="border"]:not(input):not(button):not(select):not(textarea):not(.theme-panel):not(.theme-panel-soft) {
+  background-color: var(--app-card) !important;
+}
+
+[class~="bg-[#151518]"][class*="rounded"][class*="border"]:not(input):not(button):not(select):not(textarea):not(.theme-panel):not(.theme-panel-soft) {
+  background-color: var(--app-card-raised) !important;
+}
+
+[class~="hover:bg-[#18181c]"]:hover {
+  background-color: var(--app-card-hover) !important;
 }
 
 .theme-explore-skeleton {
