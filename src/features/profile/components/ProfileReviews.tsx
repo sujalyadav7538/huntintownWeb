@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Star, Loader2, MessageSquare } from "lucide-react";
 import { UserMetric } from "@/src/shared/types";
 import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
@@ -21,6 +21,8 @@ interface ProfileReviewsProps {
   defaultExpanded?: boolean; // defaultExpanded=true hides the component if there are no reviews and not loading
 }
 
+const PAGE_SIZE = 10;
+
 export default function ProfileReviews({
   userId,
   metric,
@@ -31,10 +33,22 @@ export default function ProfileReviews({
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [shown, setShown] = useState(3);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState("");
+  const [hasMore, setHasMore] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const loadingMoreRef = useRef(false);
+  const loadMoreControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
+    loadMoreControllerRef.current?.abort();
+    loadMoreControllerRef.current = null;
+    loadingMoreRef.current = false;
+    setLoadingMore(false);
+    setLoadMoreError("");
+    setReviews([]);
+    setHasMore(false);
 
     const fetchReviews = async () => {
       setLoading(true);
@@ -42,21 +56,23 @@ export default function ProfileReviews({
 
       try {
         const res = await apiFetch(
-          `/api/rating/user/${encodeURIComponent(userId)}`,
+          `/api/rating/user/${encodeURIComponent(userId)}?skip=0&limit=${PAGE_SIZE}`,
           { signal: controller.signal },
         );
         if (!res.ok) throw new Error("Failed to load reviews");
 
         const data: {
           reviews?: Array<Omit<Review, "id"> & { _id?: string; id?: string }>;
+          total?: number;
+          hasMore?: boolean;
         } = await res.json();
 
-        setReviews(
-          (data.reviews ?? []).map((review) => ({
-            ...review,
-            id: String(review._id ?? review.id ?? review.createdAt),
-          })),
-        );
+        const nextReviews = (data.reviews ?? []).map((review) => ({
+          ...review,
+          id: String(review._id ?? review.id ?? review.createdAt),
+        }));
+        setReviews(nextReviews);
+        setHasMore(data.hasMore ?? nextReviews.length < (data.total ?? 0));
       } catch {
         if (controller.signal.aborted) return;
         setReviews([]);
@@ -68,14 +84,72 @@ export default function ProfileReviews({
 
     void fetchReviews();
 
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      loadMoreControllerRef.current?.abort();
+      loadMoreControllerRef.current = null;
+      loadingMoreRef.current = false;
+    };
   }, [userId]);
+
+  const loadMoreReviews = async () => {
+    if (loadingMoreRef.current || !hasMore) return;
+
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    setLoadMoreError("");
+    const controller = new AbortController();
+    loadMoreControllerRef.current = controller;
+    try {
+      const res = await apiFetch(
+        `/api/rating/user/${encodeURIComponent(userId)}?skip=${reviews.length}&limit=${PAGE_SIZE}`,
+        { signal: controller.signal },
+      );
+      const data: {
+        reviews?: Array<Omit<Review, "id"> & { _id?: string; id?: string }>;
+        total?: number;
+        hasMore?: boolean;
+      } = await res.json();
+      if (!res.ok) throw new Error("Failed to load more reviews");
+      if (controller.signal.aborted) return;
+
+      const nextReviews = (data.reviews ?? []).map((review) => ({
+        ...review,
+        id: String(review._id ?? review.id ?? review.createdAt),
+      }));
+      setReviews((current) => [...current, ...nextReviews]);
+      setHasMore(
+        data.hasMore ?? reviews.length + nextReviews.length < (data.total ?? 0),
+      );
+    } catch {
+      if (controller.signal.aborted) return;
+      setLoadMoreError("Could not load more reviews.");
+    } finally {
+      if (loadMoreControllerRef.current === controller) {
+        loadMoreControllerRef.current = null;
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || compact || !hasMore || loadingMore || loadMoreError) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) void loadMoreReviews();
+      },
+      { rootMargin: "240px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [compact, hasMore, loadingMore, loadMoreError, reviews.length, userId]);
 
   const avgRating = metric?.reviewMetrics.averageRating ?? 0;
   const totalReviews = metric?.reviewMetrics.totalReviews ?? 0;
-  const displayedReviews = compact
-    ? reviews.slice(0, 1)
-    : reviews.slice(0, shown);
+  const displayedReviews = compact ? reviews.slice(0, 1) : reviews;
 
   if (
     defaultExpanded &&
@@ -92,11 +166,6 @@ export default function ProfileReviews({
         <h3 className="theme-text-muted text-xs font-bold uppercase tracking-wider">
           Reviews{totalReviews > 0 ? ` (${totalReviews})` : ""}
         </h3>
-        {!compact && totalReviews > 0 && (
-          <button className="text-[10px] font-medium text-[#FF3F3F] hover:underline">
-            View All
-          </button>
-        )}
       </div>
 
       {/* Rating summary */}
@@ -215,12 +284,20 @@ export default function ProfileReviews({
               </div>
             ))}
           </div>
-          {!compact && reviews.length > shown && (
+          {!compact && hasMore && (
+            <div ref={loadMoreRef} className="mt-4 text-center">
+              {loadingMore && (
+                <span className="text-xs text-zinc-500">Loading more reviews...</span>
+              )}
+            </div>
+          )}
+          {!compact && loadMoreError && (
             <button
-              onClick={() => setShown((s) => s + 3)}
+              type="button"
+              onClick={() => void loadMoreReviews()}
               className="theme-card-subtle theme-text-muted mt-4 w-full rounded-xl border py-2 text-[12px] transition hover:text-(--app-text)"
             >
-              Show more reviews
+              Retry loading reviews
             </button>
           )}
         </>

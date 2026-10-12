@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { ShowcaseItem, ShowcaseType } from "@/src/shared/types";
 import {
   Award,
@@ -79,7 +80,29 @@ export default function UserShowcase({
   onSelect,
   maxItems = 10,
 }: UserShowcaseProps) {
-  const visibleItems = items.slice(0, maxItems);
+  const [visibleCount, setVisibleCount] = useState(maxItems);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const visibleItems = items.slice(0, visibleCount);
+
+  useEffect(() => {
+    setVisibleCount(maxItems);
+  }, [items.length, maxItems]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || items.length <= visibleCount) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((count) => Math.min(count + 10, items.length));
+        }
+      },
+      { rootMargin: "240px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [items.length, visibleCount]);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-[#1e1e22] bg-[#111113]">
@@ -149,15 +172,8 @@ export default function UserShowcase({
         </>
       )}
 
-      {items.length > maxItems && (
-        <div className="border-t border-[#1e1e22] px-4 py-3 text-center sm:px-5">
-          <button
-            type="button"
-            className="text-[9px] font-semibold text-zinc-500 transition-colors hover:text-zinc-200"
-          >
-            View all {items.length} showcase items
-          </button>
-        </div>
+      {items.length > visibleCount && (
+        <div ref={loadMoreRef} className="h-1" aria-hidden="true" />
       )}
     </section>
   );

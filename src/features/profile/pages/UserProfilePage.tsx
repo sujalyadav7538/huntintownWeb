@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/src/shared/lib/api";
 import { Post, ShowcaseItem, User } from "@/src/shared/types";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
@@ -60,6 +60,10 @@ export default function UserProfileView({
   const [activeTab, setActiveTab] = useState<TabId>("about");
   const [isSaving, setIsSaving] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [postsTotal, setPostsTotal] = useState(0);
+  const [loadingMorePosts, setLoadingMorePosts] = useState(false);
+  const [postsLoadError, setPostsLoadError] = useState("");
+  const postsPageAbortRef = useRef<AbortController | null>(null);
   const [selectedShowCase, setSelectedShowCase] = useState<any>(null);
   const [profileError, setProfileError] = useState("");
   const [saveError, setSaveError] = useState("");
@@ -72,10 +76,23 @@ export default function UserProfileView({
     type: "profile",
   });
 
-  const { metric, badges, loading: repLoading } = useReputation();
+  const {
+    metric: signedInMetric,
+    badges: signedInBadges,
+    loading: reputationLoading,
+  } = useReputation();
+  const profileMetric =
+    currentUser?.metric ?? (isOwner ? signedInMetric : null);
+  const profileBadges =
+    currentUser?.badges ?? (isOwner ? signedInBadges : []);
+  const profileReputationLoading = isOwner ? reputationLoading : false;
 
   useEffect(() => {
     let cancelled = false;
+    postsPageAbortRef.current?.abort();
+    postsPageAbortRef.current = null;
+    setLoadingMorePosts(false);
+    setPostsLoadError("");
 
     const fetchCurrentUser = async () => {
       setProfileError("");
@@ -92,6 +109,7 @@ export default function UserProfileView({
         if (cancelled) return;
         setCurrentUser(data.user);
         setPosts(data?.user?.posts ?? []);
+        setPostsTotal(data?.user?.postsTotal ?? data?.user?.posts?.length ?? 0);
         setIsOwner(id ? id === authUser?.id : true);
       } catch {
         if (!cancelled) {
@@ -103,8 +121,51 @@ export default function UserProfileView({
     void fetchCurrentUser();
     return () => {
       cancelled = true;
+      postsPageAbortRef.current?.abort();
+      postsPageAbortRef.current = null;
     };
   }, [id, authUser, retryCount]);
+
+  const loadMorePosts = useCallback(async () => {
+    if (loadingMorePosts || posts.length >= postsTotal) return;
+
+    setLoadingMorePosts(true);
+    setPostsLoadError("");
+    const controller = new AbortController();
+    postsPageAbortRef.current = controller;
+    try {
+      const endpoint = id
+        ? `/api/profile/${encodeURIComponent(id)}/posts`
+        : "/api/profile/posts";
+      const res = await apiFetch(`${endpoint}?skip=${posts.length}&limit=10`, {
+        signal: controller.signal,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.message || "Unable to load more posts.");
+      }
+      if (controller.signal.aborted) return;
+
+      setPosts((current) => {
+        const existingIds = new Set(current.map((post) => post.id ?? post._id));
+        return [
+          ...current,
+          ...(data.posts ?? []).filter(
+            (post: Post) => !existingIds.has(post.id ?? post._id),
+          ),
+        ];
+      });
+      setPostsTotal(data.total ?? postsTotal);
+    } catch {
+      if (controller.signal.aborted) return;
+      setPostsLoadError("Could not load more posts. Please try again.");
+    } finally {
+      if (postsPageAbortRef.current === controller) {
+        postsPageAbortRef.current = null;
+        setLoadingMorePosts(false);
+      }
+    }
+  }, [id, loadingMorePosts, posts.length, postsTotal]);
 
   const handleSave = async (
     updated: User,
@@ -191,6 +252,9 @@ export default function UserProfileView({
                 persisted.id,
             };
             setPosts(refreshData.user.posts ?? []);
+            setPostsTotal(
+              refreshData.user.postsTotal ?? refreshData.user.posts?.length ?? 0,
+            );
           }
         }
       } catch {
@@ -290,10 +354,14 @@ export default function UserProfileView({
 
   const commonProps = {
     user: currentUser,
-    metric,
-    badges,
-    repLoading,
+    metric: profileMetric,
+    badges: profileBadges,
+    repLoading: profileReputationLoading,
     posts,
+    postsTotal,
+    loadingMorePosts,
+    postsLoadError,
+    onLoadMorePosts: loadMorePosts,
     isOwner,
     activeTab,
     setActiveTab,
@@ -335,6 +403,10 @@ interface UserProfileDesktopProps {
   badges: any[];
   repLoading: boolean;
   posts: Post[];
+  postsTotal: number;
+  loadingMorePosts: boolean;
+  postsLoadError: string;
+  onLoadMorePosts: () => void;
   isOwner: boolean;
   activeTab: TabId;
   setActiveTab: (tab: TabId) => void;
@@ -351,6 +423,10 @@ function UserProfileDesktop({
   badges,
   repLoading,
   posts,
+  postsTotal,
+  loadingMorePosts,
+  postsLoadError,
+  onLoadMorePosts,
   isOwner,
   activeTab,
   setActiveTab,
@@ -379,7 +455,7 @@ function UserProfileDesktop({
           <UserStats
             metric={metric ?? user?.metric}
             isOwner={isOwner}
-            myPostsCount={posts.length}
+            myPostsCount={postsTotal}
             onMyPosts={() => setActiveTab("posts")}
             onApplications={() => setActiveTab("reviews")}
             onSavedPosts={() => setActiveTab("badges")}
@@ -388,8 +464,8 @@ function UserProfileDesktop({
         </div>
       </div>
 
-      <section className="theme-panel-soft overflow-hidden rounded-2xl border border-[#1e1e22] bg-[#0e0e10] shadow-[0_0_0_1px_rgba(255,255,255,0.02)] mb-3">
-        <div className="theme-divider overflow-x-auto border-b border-[#1e1e22] px-2">
+      <section className="theme-panel-soft overflow-hidden rounded-2xl border border-[#1e1e22]  shadow-[0_0_0_1px_rgba(255,255,255,0.02)] mb-3">
+        <div className=" overflow-x-auto border-b border-[#1e1e22] px-2">
           <nav className="flex gap-1">
             {visibleTabs.map((tab) => (
               <button
@@ -409,9 +485,9 @@ function UserProfileDesktop({
                   </span>
                 )}
 
-                {tab.id === "posts" && posts.length > 0 && (
+                {tab.id === "posts" && postsTotal > 0 && (
                   <span className="ml-1.5 rounded-full bg-[#1e1e22] px-1.5 py-0.5 text-[9px] text-zinc-500">
-                    {posts.length}
+                    {postsTotal}
                   </span>
                 )}
 
@@ -459,10 +535,14 @@ function UserProfileDesktop({
 
                   <ProfileRecentPosts
                     posts={posts}
-                    total={posts.length}
+                    total={postsTotal}
                     isOwner={isOwner}
                     compact
                     defaultExpanded
+                    onLoadMore={onLoadMorePosts}
+                    hasMore={posts.length < postsTotal}
+                    loadingMore={loadingMorePosts}
+                    loadMoreError={postsLoadError}
                     // onViewAll={() => setActiveTab("posts")}
                   />
                   <HighlightsSection
@@ -484,10 +564,14 @@ function UserProfileDesktop({
 
                   <ProfileRecentPosts
                     posts={posts}
-                    total={posts.length}
+                    total={postsTotal}
                     isOwner={isOwner}
                     compact
                     defaultExpanded
+                    onLoadMore={onLoadMorePosts}
+                    hasMore={posts.length < postsTotal}
+                    loadingMore={loadingMorePosts}
+                    loadMoreError={postsLoadError}
                     // onViewAll={() => setActiveTab("posts")}
                   />
                 </div>
@@ -528,9 +612,13 @@ function UserProfileDesktop({
           {activeTab === "posts" && (
             <ProfileRecentPosts
               posts={posts}
-              total={posts.length}
+              total={postsTotal}
               isOwner={isOwner}
               showAll
+              onLoadMore={onLoadMorePosts}
+              hasMore={posts.length < postsTotal}
+              loadingMore={loadingMorePosts}
+              loadMoreError={postsLoadError}
             />
           )}
 
@@ -572,6 +660,10 @@ interface UserProfileMobileProps {
   badges: any[];
   repLoading: boolean;
   posts: Post[];
+  postsTotal: number;
+  loadingMorePosts: boolean;
+  postsLoadError: string;
+  onLoadMorePosts: () => void;
   isOwner: boolean;
   activeTab: TabId;
   setActiveTab: (tab: TabId) => void;
@@ -588,6 +680,10 @@ function UserProfileMobile({
   badges,
   repLoading,
   posts,
+  postsTotal,
+  loadingMorePosts,
+  postsLoadError,
+  onLoadMorePosts,
   isOwner,
   activeTab,
   setActiveTab,
@@ -616,7 +712,7 @@ function UserProfileMobile({
           <UserStats
             metric={metric ?? user?.metric}
             isOwner={isOwner}
-            myPostsCount={posts.length}
+            myPostsCount={postsTotal}
             onMyPosts={() => setActiveTab("posts")}
             onApplications={() => setActiveTab("reviews")}
             onSavedPosts={() => setActiveTab("badges")}
@@ -647,9 +743,9 @@ function UserProfileMobile({
                   </span>
                 )}
 
-                {tab.id === "posts" && posts.length > 0 && (
+                {tab.id === "posts" && postsTotal > 0 && (
                   <span className="ml-1 rounded-full bg-[#1e1e22] px-1 py-0.5 text-[8px] text-zinc-500">
-                    {posts.length}
+                    {postsTotal}
                   </span>
                 )}
 
@@ -673,10 +769,14 @@ function UserProfileMobile({
 
               <ProfileRecentPosts
                 posts={posts}
-                total={posts.length}
+                total={postsTotal}
                 isOwner={isOwner}
                 compact
                 defaultExpanded
+                onLoadMore={onLoadMorePosts}
+                hasMore={posts.length < postsTotal}
+                loadingMore={loadingMorePosts}
+                loadMoreError={postsLoadError}
                 // onViewAll={() => setActiveTab("posts")}
               />
             </div>
@@ -697,9 +797,13 @@ function UserProfileMobile({
           {activeTab === "posts" && (
             <ProfileRecentPosts
               posts={posts}
-              total={posts.length}
+              total={postsTotal}
               isOwner={isOwner}
               showAll
+              onLoadMore={onLoadMorePosts}
+              hasMore={posts.length < postsTotal}
+              loadingMore={loadingMorePosts}
+              loadMoreError={postsLoadError}
             />
           )}
 

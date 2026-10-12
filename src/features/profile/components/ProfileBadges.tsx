@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import {
   Zap,
   CheckCircle2,
@@ -59,6 +60,29 @@ export default function ProfileBadges({
   compact = false,
   defaultExpanded = false,
 }: ProfileBadgesProps) {
+  const [visibleCount, setVisibleCount] = useState(10);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [badges.length]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || compact || badges.length <= visibleCount) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((count) => Math.min(count + 10, badges.length));
+        }
+      },
+      { rootMargin: "240px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [badges.length, compact, visibleCount]);
+
   if (defaultExpanded && badges.length === 0 && !loading) return null;
   return (
     <div className="rounded-xl border border-[#1e1e22] bg-[#111113] p-4 sm:p-5">
@@ -66,11 +90,6 @@ export default function ProfileBadges({
         <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
           Badges
         </h3>
-        {badges.length > 0 && (
-          <button className="text-[10px] font-medium text-[#FF3F3F] hover:underline">
-            View All
-          </button>
-        )}
       </div>
 
       {loading ? (
@@ -112,7 +131,7 @@ export default function ProfileBadges({
       ) : (
         // Full grid — used in badges tab
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {badges.map((badge) => {
+          {badges.slice(0, visibleCount).map((badge) => {
             const style = RARITY_STYLE[badge.rarity] ?? RARITY_STYLE.common;
             const Icon = BADGE_ICON_MAP[badge.icon] ?? Zap;
             const earnedDate = badge.earnedAt
@@ -155,6 +174,9 @@ export default function ProfileBadges({
             );
           })}
         </div>
+      )}
+      {!compact && badges.length > visibleCount && (
+        <div ref={loadMoreRef} className="h-1" aria-hidden="true" />
       )}
     </div>
   );

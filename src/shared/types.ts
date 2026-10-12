@@ -73,6 +73,7 @@ export interface User {
 
   // Metrics
   metric?: UserMetric;
+  badges?: UserBadgeItem[];
 
   // Timestamps
   createdAt?: string;
@@ -91,6 +92,7 @@ export interface UserMetric {
   };
   profileMetrics: {
     completion: number;
+    calculationVersion?: number;
     score: number;
   };
   helperMetrics: {
@@ -100,6 +102,7 @@ export interface UserMetric {
     completedResponses: number;
     cancelledResponses: number;
     completionScore: number;
+    score?: number;
   };
   hunterMetrics: {
     postsCreated: number;
@@ -109,17 +112,29 @@ export interface UserMetric {
     responsesReceived: number;
     responsesAccepted: number;
     acceptanceScore: number;
+    score?: number;
   };
   responseMetrics: {
-    totalResponseRequests: number;
-    totalResponses: number;
-    averageResponseTime: number;
-    responseRate: number;
     responseScore: number;
+    hunter: {
+      totalResponseTime: number;
+      totalResponses: number;
+      averageResponseTime: number;
+      responseScore?: number;
+    };
+    helper: {
+      totalResponseTime: number;
+      totalResponses: number;
+      averageResponseTime: number;
+      responseScore?: number;
+    };
   };
   activityMetrics: {
     activeDays: number;
-    score: number;
+    postsCreated?: number;
+    responsesSubmitted?: number;
+    conversationsStarted?: number;
+    lastActiveAt?: string | null;
   };
   trustScore: number;
 }

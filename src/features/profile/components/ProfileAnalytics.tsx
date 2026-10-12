@@ -123,12 +123,15 @@ export default function ProfileAnalytics({ metric, defaultExpanded = false }: Pr
   const postCompletionRate =
     postsCreated > 0 ? (postsCompleted / postsCreated) * 100 : 0;
 
-  const responseMetrics = (metric as any)?.responseMetrics;
+  const responseMetrics = metric?.responseMetrics;
+  const totalResponses =
+    (responseMetrics?.hunter.totalResponses ?? 0) +
+    (responseMetrics?.helper.totalResponses ?? 0);
+  const totalResponseTime =
+    (responseMetrics?.hunter.totalResponseTime ?? 0) +
+    (responseMetrics?.helper.totalResponseTime ?? 0);
   const avgResponseMins =
-    responseMetrics?.averageResponseTime ??
-    responseMetrics?.hunter?.averageResponseTime ??
-    responseMetrics?.helper?.averageResponseTime ??
-    0;
+    totalResponses > 0 ? totalResponseTime / totalResponses : 0;
 
   return (
     <section className="space-y-4">

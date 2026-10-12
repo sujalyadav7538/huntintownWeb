@@ -1,12 +1,18 @@
 import {
   ArrowUpRight,
   Briefcase,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   IndianRupee,
   MapPin,
 } from "lucide-react";
+import type { Swiper as SwiperInstance } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
 import { Post } from "@/src/shared/types";
 import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
 
 interface ProfileRecentPostsProps {
   posts: Post[];
@@ -15,6 +21,10 @@ interface ProfileRecentPostsProps {
   compact?: boolean;
   defaultExpanded?: boolean;
   showAll?: boolean;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  loadMoreError?: string;
 }
 
 export default function ProfileRecentPosts({
@@ -24,8 +34,13 @@ export default function ProfileRecentPosts({
   compact = false,
   defaultExpanded = false,
   showAll = false,
+  onLoadMore,
+  hasMore = false,
+  loadingMore = false,
+  loadMoreError = "",
 }: ProfileRecentPostsProps) {
   const navigate = useNavigate();
+  const swiperRef = useRef<SwiperInstance | null>(null);
 
   /* ============================================================
      NAVIGATION
@@ -142,7 +157,26 @@ export default function ProfileRecentPosts({
             </p>
           )}
         </div>
-
+        {visiblePosts.length > 1 && (
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => swiperRef.current?.slidePrev()}
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 text-zinc-400 transition hover:bg-white/5 hover:text-white"
+              aria-label="Previous posts"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => swiperRef.current?.slideNext()}
+              className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 text-zinc-400 transition hover:bg-white/5 hover:text-white"
+              aria-label="Next posts"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ========================================================
@@ -173,74 +207,65 @@ export default function ProfileRecentPosts({
         </div>
       ) : (
         <>
-          {/* ======================================================
-              DESKTOP / TABLET
-          ====================================================== */}
-
-          <div
-            className={`
-              hidden sm:grid
-              ${compact ? "sm:grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-3"}
-              ${compact ? "gap-2.5 p-3" : "gap-3 p-4"}
-            `}
-          >
-            {visiblePosts.map((post) => (
-              <ProfilePostCard
-                key={getPostId(post)}
-                post={post}
-                isOwner={isOwner}
-                compact={compact}
-                onSelect={() => handlePostSelect(post)}
-              />
-            ))}
-          </div>
-
-          {/* ======================================================
-              MOBILE
-          ====================================================== */}
-
-          <div
-            className={`
-              flex overflow-x-auto
-              scrollbar-none
-              sm:hidden
-              [&::-webkit-scrollbar]:hidden
-              ${compact ? "gap-2.5 p-3" : "gap-3 p-4"}
-            `}
-          >
-            {visiblePosts.map((post) => (
-              <div
-                key={getPostId(post)}
-                className={`
-                  shrink-0
-                  ${compact ? "w-[78vw] max-w-68" : "w-[82vw] max-w-75"}
-                `}
-              >
-                <ProfilePostCard
-                  post={post}
-                  isOwner={isOwner}
-                  compact={compact}
-                  onSelect={() => handlePostSelect(post)}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* ======================================================
-              MOBILE SCROLL INDICATOR
-          ====================================================== */}
-
-          {visiblePosts.length > 1 && (
-            <div className="flex justify-center gap-1 pb-3 sm:hidden">
-              {visiblePosts.map((post, index) => (
-                <span
-                  key={getPostId(post)}
-                  className={`
-                    h-1 rounded-full transition-all
-                    ${index === 0 ? "w-4 bg-[#FF3F3F]" : "w-1 bg-zinc-700"}
-                  `}
-                />
+          <div className={compact ? "p-3" : "p-4"}>
+            <Swiper
+              onSwiper={(swiper) => {
+                swiperRef.current = swiper;
+              }}
+              slidesPerView={1}
+              spaceBetween={compact ? 10 : 12}
+              breakpoints={
+                compact
+                  ? {}
+                  : {
+                      640: { slidesPerView: 2 },
+                      1024: { slidesPerView: 4 },
+                    }
+              }
+              watchOverflow
+              onReachEnd={() => {
+                if (
+                  showAll &&
+                  hasMore &&
+                  !loadingMore &&
+                  !loadMoreError
+                ) {
+                  onLoadMore?.();
+                }
+              }}
+            >
+              {visiblePosts.map((post) => (
+                <SwiperSlide key={getPostId(post)} className="h-auto">
+                  <ProfilePostCard
+                    post={post}
+                    isOwner={isOwner}
+                    compact={compact}
+                    onSelect={() => handlePostSelect(post)}
+                  />
+                </SwiperSlide>
               ))}
+            </Swiper>
+          </div>
+
+          {showAll && hasMore && (
+            <div className="px-4 pb-3 text-center">
+              {loadingMore && (
+                <span className="text-xs text-zinc-500">Loading more posts...</span>
+              )}
+            </div>
+          )}
+          {showAll && loadMoreError && (
+            <div className="px-4 py-3 text-center">
+              <p role="status" className="text-xs text-rose-400">
+                {loadMoreError}
+              </p>
+              <button
+                type="button"
+                onClick={onLoadMore}
+                className="mt-2 text-xs font-semibold text-[#ff6b6b] hover:text-white"
+              >
+                Retry
+              </button>
             </div>
           )}
         </>

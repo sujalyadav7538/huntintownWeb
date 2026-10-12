@@ -52,7 +52,7 @@ const SECTIONS = [
   { id: "social", label: "Social Links", icon: Link2 },
   { id: "services", label: "Services", icon: Briefcase },
   { id: "portfolio", label: "Portfolio", icon: LayoutGrid },
-  { id: "verification", label: "Verification", icon: Shield },
+  // { id: "verification", label: "Verification", icon: Shield },
 ] as const;
 
 type SectionId = (typeof SECTIONS)[number]["id"];
@@ -407,8 +407,8 @@ export default function ProfileEditLayout({
           />
         );
 
-      case "verification":
-        return <VerificationSection user={user} />;
+      // case "verification":
+      //   return <VerificationSection user={user} />;
 
       default:
         return null;
