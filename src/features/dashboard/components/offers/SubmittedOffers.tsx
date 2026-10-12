@@ -25,7 +25,11 @@ const RESPONSE_FILTERS = [
 
 interface SubmittedOffersProps {
   onDataChange: (responses: SubmittedResponse[]) => void;
-  onInitiateChat: (postId: string, conversationId?: string) => void;
+  onInitiateChat: (
+    postId: string,
+    conversationId?: string,
+    chatMode?: "chats",
+  ) => void;
 }
 
 export default function SubmittedOffers({
@@ -210,7 +214,7 @@ export default function SubmittedOffers({
                 item={item}
                 onExplore={() => setSelected(item)}
                 onChat={() =>
-                  onInitiateChat(item.postId._id, item.conversationId)
+                  onInitiateChat(item.postId._id, item.conversationId, "chats")
                 }
               />
             ))}
@@ -229,7 +233,11 @@ export default function SubmittedOffers({
           onClose={() => setSelected(null)}
           onChat={() => {
             setSelected(null);
-            onInitiateChat(selected.postId._id, selected.conversationId);
+            onInitiateChat(
+              selected.postId._id,
+              selected.conversationId,
+              "chats",
+            );
           }}
         />
       )}

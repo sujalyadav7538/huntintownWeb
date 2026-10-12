@@ -24,7 +24,11 @@ interface DashboardProps {
   onDeleteListing: (postId: string) => void;
   onSelectPost: (postId: string) => void;
   setActiveTab: (tab: string) => void;
-  onInitiateChat: (postId: string, conversationId?: string) => void;
+  onInitiateChat: (
+    postId: string,
+    conversationId?: string,
+    chatMode?: "chats",
+  ) => void;
 }
 
 export default function DashboardPage({

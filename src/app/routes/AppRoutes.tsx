@@ -141,10 +141,11 @@ export default function AppRoutes({
               onDeleteListing={onDeleteListing}
               onSelectPost={() => setActiveTab("explore")}
               setActiveTab={setActiveTab}
-              onInitiateChat={(postId, conversationId) => {
+              onInitiateChat={(postId, conversationId, chatMode) => {
                 const params = new URLSearchParams({ postId });
                 if (conversationId)
                   params.set("conversationId", conversationId);
+                if (chatMode) params.set("chatMode", chatMode);
                 navigate(`/messaging?${params.toString()}`);
               }}
             />

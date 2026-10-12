@@ -55,6 +55,7 @@ export default function MessagingPage() {
 
   const activePostId = searchParams.get("postId");
   const activeConversationFromUrl = searchParams.get("conversationId");
+  const requestedMode = searchParams.get("chatMode");
 
   /*
    * ---------------------------------------------------------
@@ -62,7 +63,9 @@ export default function MessagingPage() {
    * ---------------------------------------------------------
    */
 
-  const [mode, setMode] = useState<ChatMode>("posts");
+  const [mode, setMode] = useState<ChatMode>(() =>
+    requestedMode === "chats" ? "chats" : "posts",
+  );
 
   const [myChats, setMyChats] = useState<any[]>([]);
   const [linkedConversation, setLinkedConversation] = useState<any | null>(null);
@@ -243,7 +246,9 @@ export default function MessagingPage() {
     }
 
     let cancelled = false;
-    setMode(activePostId ? "posts" : "chats");
+    setMode(
+      requestedMode === "chats" || !activePostId ? "chats" : "posts",
+    );
     setPageError("");
     dispatch(setActiveConversationId(activeConversationFromUrl));
 
@@ -286,7 +291,7 @@ export default function MessagingPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeConversationFromUrl, activePostId, token, dispatch]);
+  }, [activeConversationFromUrl, activePostId, requestedMode, token, dispatch]);
 
   useEffect(() => {
     // Show bottom nav when no conversation is currently open.
