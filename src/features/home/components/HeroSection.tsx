@@ -133,7 +133,7 @@ function HeroSectionDesktop({
             alt=""
             className="h-6 w-6 transition-transform duration-300 group-hover:scale-130"
           />
-          Explore Needs
+          Find Hunter
         </button>
       </div>
     </div>
@@ -174,7 +174,7 @@ function HeroSectionMobile({ onExplore }: HeroActionsProps) {
               className="h-7 w-7 transition-transform duration-300 group-hover:scale-130"
             />
 
-            <span>HUNT Growl...</span>
+            <span>Find Hunter</span>
           </button>
         </div>
 

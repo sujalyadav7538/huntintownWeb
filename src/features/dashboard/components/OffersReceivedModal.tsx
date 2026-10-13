@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { apiFetch } from '@/src/shared/lib/api';
 import { Post, User } from '@/src/shared/types';
-import { getAvatarUrl, handleAvatarError } from '@/src/shared/utils';
+import UserAvatar from '@/src/shared/components/UserAvatar';
 import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
 interface BackendResponse {
@@ -176,12 +176,11 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
                         aria-label={`View ${r.respondedBy.name}'s profile`}
                         className="shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
                       >
-                        <img
-                          src={getAvatarUrl(r.respondedBy.name, r.respondedBy.avatar)}
-                          alt={r.respondedBy.name}
-                          className="mt-0.5 h-9 w-9 rounded-full object-cover ring-2 ring-[#1e1e22]"
-                          onError={(e) => handleAvatarError(e, r.respondedBy.name)}
-                          referrerPolicy="no-referrer"
+                        <UserAvatar
+                          name={r.respondedBy.name}
+                          src={r.respondedBy.avatar}
+                          className="mt-0.5 h-9 w-9 rounded-full ring-2 ring-[#1e1e22]"
+                          imageClassName="object-cover"
                         />
                       </UserProfileLink>
                       <div className="flex-1 min-w-0">

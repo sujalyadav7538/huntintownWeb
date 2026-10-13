@@ -10,11 +10,10 @@ import {
 
 import { Post, User } from "@/src/shared/types";
 import {
-  getAvatarUrl,
-  handleAvatarError,
   isPostExpired,
   getPostExpiryLabel,
 } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 import { apiFetchJSON } from "@/src/shared/lib/api";
 
 import { CATEGORY_COLORS } from "@/src/shared/lib/postConstants";
@@ -26,6 +25,7 @@ import ApplyRequirementModal from "@/src/features/explore/components/ApplyRequir
 import { handleHideUpperNavigation } from "@/src/store/uiSlice";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { useNavigate } from "react-router-dom";
+import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 
 const STATUS_DOT: Record<string, string> = {
   live: "bg-emerald-500",
@@ -97,6 +97,13 @@ export default function PostDetail({
 
     setIsApplyModalOpen(false);
     onResponseSubmit(postId);
+    notifySuccess(
+      "Your offer was submitted successfully. Track its status on your Dashboard.",
+      {
+        label: "Go to dashboard",
+        onClick: () => navigate("/dashboard?view=submitted"),
+      },
+    );
   };
 
   const handleResponseOpen = () => {
@@ -220,15 +227,11 @@ function LeftPanelDesktop({
             onClick={() => onViewProfile?.(post.author)}
             className="group flex min-w-0 items-center gap-3 text-left"
           >
-            <img
-              src={getAvatarUrl(
-                post.author.name,
-                post.author.avatar ?? undefined,
-              )}
-              alt={post.author.name}
-              className="h-10 w-10 shrink-0 rounded-full object-cover"
-              onError={(e) => handleAvatarError(e, post.author.name)}
-              referrerPolicy="no-referrer"
+            <UserAvatar
+              name={post.author.name}
+              src={post.author.avatar}
+              className="h-10 w-10 shrink-0 rounded-full"
+              imageClassName="object-cover"
             />
 
             <div className="min-w-0">
@@ -439,15 +442,11 @@ function LeftPanelMobile({
             onClick={() => onViewProfile?.(post.author)}
             className="group flex min-w-0 items-center gap-2.5 text-left"
           >
-            <img
-              src={getAvatarUrl(
-                post.author.name,
-                post.author.avatar ?? undefined,
-              )}
-              alt={post.author.name}
-              className="h-9 w-9 shrink-0 rounded-full object-cover"
-              onError={(e) => handleAvatarError(e, post.author.name)}
-              referrerPolicy="no-referrer"
+            <UserAvatar
+              name={post.author.name}
+              src={post.author.avatar}
+              className="h-9 w-9 shrink-0 rounded-full"
+              imageClassName="object-cover"
             />
 
             <div className="min-w-0">

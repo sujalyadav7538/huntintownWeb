@@ -17,6 +17,7 @@ import ExtraDetailsStep from "@/src/features/posts/components/steps/ExtraDetails
 import LocationStep from "@/src/features/posts/components/steps/LocationStep";
 import { apiFetch } from "@/src/shared/lib/api";
 import { useNavigate } from "react-router-dom";
+import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -79,9 +80,11 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   previewsRef.current = form.imagePreviews;
 
   const [publishing, setPublishing] = useState(false);
+  const [confirmingPublish, setConfirmingPublish] = useState(false);
 
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { showConfirm } = useAppDialog();
   const isDesktop = useIsDesktop();
 
   useSeo({ title: "Post a Requirement" });
@@ -190,6 +193,8 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   ============================================================ */
 
   const handlePublish = async () => {
+    if (publishing || confirmingPublish) return;
+
     if (
       !form.category ||
       !form.title.trim() ||
@@ -207,10 +212,22 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       return;
     }
 
-    setPublishing(true);
+    setConfirmingPublish(true);
     setError("");
 
     try {
+      const confirmed = await showConfirm(
+        "Once published, you won't be able to edit this requirement. Do you want to publish it now?",
+        {
+          title: "Publish this requirement?",
+          confirmLabel: "Publish",
+          cancelLabel: "Go back",
+        },
+      );
+
+      if (!confirmed) return;
+
+      setPublishing(true);
       const formData = new FormData();
 
       // Required fields
@@ -306,6 +323,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
           : "Unable to publish your requirement. Please try again.",
       );
     } finally {
+      setConfirmingPublish(false);
       setPublishing(false);
     }
   };
@@ -334,7 +352,11 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
 
   const stepContent = (
     <>
-      <div className="mt-7">
+      <fieldset
+        disabled={publishing}
+        aria-busy={publishing}
+        className={`mt-7 min-w-0 border-0 p-0 ${publishing ? "pointer-events-none opacity-60" : ""}`}
+      >
         {/* STEP 1 */}
 
         {step === 1 && (
@@ -394,7 +416,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
             onExpiryChange={(value) => updateForm("expiryDays", value)}
           />
         )}
-      </div>
+      </fieldset>
 
       {/* ==================================================
                 ERROR
@@ -439,7 +461,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
         <button
           type="button"
           onClick={handlePublish}
-          disabled={publishing}
+          disabled={publishing || confirmingPublish}
           className="theme-btn-accent inline-flex h-10 items-center gap-1.5 rounded-lg border px-4 text-[11px] font-bold transition disabled:cursor-not-allowed disabled:opacity-60"
         >
           {publishing ? (

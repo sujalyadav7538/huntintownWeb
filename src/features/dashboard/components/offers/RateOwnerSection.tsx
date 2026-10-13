@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, LoaderCircle } from "lucide-react";
 import { apiFetch, apiFetchJSON } from "@/src/shared/lib/api";
 import StarRatingInput from "../StarRatingInput";
+import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 
 interface ReviewStatus {
   hasReviewedOwner: boolean;
@@ -51,6 +52,7 @@ export default function RateOwnerSection({
         ownerHasReviewedYou: prev?.ownerHasReviewedYou ?? false,
         hasReviewedOwner: true,
       }));
+      notifySuccess(`${ownerName} has been rated.`);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not submit rating.");
     } finally {

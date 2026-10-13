@@ -18,6 +18,7 @@ import ProfileSkills from "@/src/features/profile/components/ProfileSkills";
 import ProfileHeader from "@/src/features/profile/components/ProfileHeader";
 import UserStats from "@/src/features/profile/components/UserStats";
 import HighlightsSection from "../components/feed/HighlightsSection";
+import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 
 type TabId =
   | "about"
@@ -38,6 +39,16 @@ export const TABS: { id: TabId; label: string }[] = [
   { id: "reviews", label: "Reviews" },
 ];
 
+const TAB_DESCRIPTIONS: Record<TabId, string> = {
+  about: "View profile details, skills, and an overview.",
+  posts: "Browse requirements posted by this member.",
+  highlights: "See quick updates and photo highlights.",
+  showcase: "Explore portfolio work, projects, and services.",
+  analytics: "Review your activity and profile performance.",
+  badges: "See earned badges and reputation achievements.",
+  reviews: "Read ratings and feedback from the community.",
+};
+
 interface ProfileViewProps {
   onUpdateProfile: (updated: User) => void;
   onLogout?: () => void;
@@ -49,9 +60,11 @@ export default function UserProfileView({
 }: ProfileViewProps) {
   const dispatch = useAppDispatch();
   const authUser = useAppSelector((s) => s.auth.currentUser);
+  const authUserId = authUser?.id;
   const { id } = useParams();
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [initialEditSection, setInitialEditSection] = useState<
     "basic" | "portfolio"
@@ -89,6 +102,7 @@ export default function UserProfileView({
 
   useEffect(() => {
     let cancelled = false;
+    setIsProfileLoading(true);
     postsPageAbortRef.current?.abort();
     postsPageAbortRef.current = null;
     setLoadingMorePosts(false);
@@ -110,11 +124,13 @@ export default function UserProfileView({
         setCurrentUser(data.user);
         setPosts(data?.user?.posts ?? []);
         setPostsTotal(data?.user?.postsTotal ?? data?.user?.posts?.length ?? 0);
-        setIsOwner(id ? id === authUser?.id : true);
+        setIsOwner(id ? id === authUserId : true);
       } catch {
         if (!cancelled) {
           setProfileError("Unable to load this profile. Please try again.");
         }
+      } finally {
+        if (!cancelled) setIsProfileLoading(false);
       }
     };
 
@@ -124,7 +140,7 @@ export default function UserProfileView({
       postsPageAbortRef.current?.abort();
       postsPageAbortRef.current = null;
     };
-  }, [id, authUser, retryCount]);
+  }, [id, authUserId, retryCount]);
 
   const loadMorePosts = useCallback(async () => {
     if (loadingMorePosts || posts.length >= postsTotal) return;
@@ -265,6 +281,7 @@ export default function UserProfileView({
       onUpdateProfile(refreshedUser);
       setCurrentUser(refreshedUser);
       setMode("view");
+      notifySuccess("Your profile has been updated.");
     } catch {
       setSaveError(
         "Unable to save your profile. Please check your connection and try again.",
@@ -333,6 +350,8 @@ export default function UserProfileView({
     );
   }
 
+  if (isProfileLoading) return <ProfileSkeleton />;
+
   if (!currentUser) {
     if (!profileError) return null;
 
@@ -394,6 +413,54 @@ export default function UserProfileView({
         onClose={() => setSelectedShowCase(null)}
       />
     </>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label="Loading profile"
+      className="theme-page-shell mx-auto w-full max-w-7xl animate-pulse space-y-4 pt-3"
+    >
+      <span className="sr-only">Loading profile</span>
+      <section className="theme-panel overflow-hidden rounded-xl border sm:rounded-2xl">
+        <div className="h-28 bg-white/5 sm:h-36" />
+        <div className="flex items-end justify-between gap-4 px-4 pb-4 sm:px-6">
+          <div className="-mt-8 flex min-w-0 items-end gap-3">
+            <div className="h-16 w-16 shrink-0 rounded-full border-4 border-(--app-surface) bg-white/10 sm:h-20 sm:w-20" />
+            <div className="space-y-2 pb-1">
+              <div className="h-4 w-36 rounded bg-white/10 sm:w-48" />
+              <div className="h-3 w-24 rounded bg-white/6 sm:w-32" />
+            </div>
+          </div>
+          <div className="mb-1 h-9 w-24 rounded-lg bg-white/8" />
+        </div>
+        <div className="grid grid-cols-3 gap-3 border-t border-white/5 px-4 py-3 sm:px-6">
+          <div className="h-8 rounded bg-white/5" />
+          <div className="h-8 rounded bg-white/5" />
+          <div className="h-8 rounded bg-white/5" />
+        </div>
+      </section>
+      <section className="theme-panel-soft overflow-hidden rounded-xl border sm:rounded-2xl">
+        <div className="flex gap-4 overflow-hidden border-b border-white/5 px-4 py-3">
+          <div className="h-4 w-12 shrink-0 rounded bg-white/8" />
+          <div className="h-4 w-12 shrink-0 rounded bg-white/5" />
+          <div className="h-4 w-16 shrink-0 rounded bg-white/5" />
+          <div className="h-4 w-14 shrink-0 rounded bg-white/5" />
+          <div className="hidden h-4 w-12 shrink-0 rounded bg-white/5 sm:block" />
+        </div>
+        <div className="space-y-4 p-4 sm:p-6">
+          <div className="h-4 w-28 rounded bg-white/8" />
+          <div className="h-20 rounded-lg bg-white/5" />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="h-24 rounded-lg bg-white/5" />
+            <div className="h-24 rounded-lg bg-white/5" />
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -471,6 +538,8 @@ function UserProfileDesktop({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                title={TAB_DESCRIPTIONS[tab.id]}
+                aria-label={`${tab.label}: ${TAB_DESCRIPTIONS[tab.id]}`}
                 className={`whitespace-nowrap px-4 py-3 text-xs font-semibold transition ${
                   activeTab === tab.id
                     ? "border-b-2 border-[#FF3F3F] text-white"
@@ -729,6 +798,8 @@ function UserProfileMobile({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                title={TAB_DESCRIPTIONS[tab.id]}
+                aria-label={`${tab.label}: ${TAB_DESCRIPTIONS[tab.id]}`}
                 className={`whitespace-nowrap px-3 py-2.5 text-[10px] font-semibold transition ${
                   activeTab === tab.id
                     ? "border-b-2 border-[#FF3F3F] text-white"

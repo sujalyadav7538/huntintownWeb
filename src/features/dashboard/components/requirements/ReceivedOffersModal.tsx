@@ -19,6 +19,7 @@ import OfferStatusFilter, {
   type OfferStatusFilterValue,
 } from "./OfferStatusFilter";
 import Pagination from "./Pagination";
+import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 import {
   Avatar,
   EmptyState,
@@ -133,6 +134,17 @@ export default function ReceivedOffersModal({
     );
     await loadOffers();
     await onChanged();
+    notifySuccess(
+      action === "accept"
+        ? "Offer accepted. You can now start a conversation."
+        : "Offer declined.",
+      action === "accept" && conversationId
+        ? {
+            label: "Open chat",
+            onClick: () => onInitiateChat(post._id, conversationId),
+          }
+        : undefined,
+    );
   };
 
   const reconsiderOffer = async (responseId: string) => {
@@ -150,6 +162,7 @@ export default function ReceivedOffersModal({
       else setPage(1);
       await onChanged();
       setSelectedResponse(null);
+      notifySuccess("Offer moved back to pending.");
     } catch (cause) {
       setRowActionError(
         cause instanceof Error

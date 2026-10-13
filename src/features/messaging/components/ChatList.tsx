@@ -6,7 +6,7 @@ import {
   MessageSquare,
   Clock,
 } from "lucide-react";
-import { handleAvatarError } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 import { useAppSelector } from "@/src/store/hooks";
 import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
@@ -141,21 +141,15 @@ export default function ChatList({
                   <UserProfileLink
                     userId={otherUser?.id ?? otherUser?._id}
                     aria-label={`View ${otherUser?.name ?? "user"}'s profile`}
-                    className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/4 focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+                    className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full  bg-white/4 focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
                   >
-                    {otherUser?.avatar ? (
-                      <img
-                        src={otherUser.avatar}
-                        alt={otherUser.name || "User"}
-                        onError={(e) => handleAvatarError(e, otherUser?.name)}
-                        referrerPolicy="no-referrer"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs font-bold text-zinc-500">
-                        {getInitials(otherUser?.name)}
-                      </span>
-                    )}
+                    <UserAvatar
+                      name={otherUser?.name}
+                      src={otherUser?.avatar}
+                      className="h-full w-full"
+                      imageClassName="object-cover"
+                      fallbackClassName="text-xs font-bold"
+                    />
 
                     {/* Online indicator */}
                     {otherUser?.isOnline && (
@@ -228,16 +222,4 @@ const formatDate = (date) => {
     day: "numeric",
     month: "short",
   });
-};
-
-const getInitials = (name = "") => {
-  return (
-    name
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "?"
-  );
 };

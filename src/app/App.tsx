@@ -30,6 +30,9 @@ import SidePanel from "@/src/shared/components/layout/SidePanel";
 import MobileBottomNavigation from "@/src/shared/components/layout/MobileBottomNavigation";
 import AppErrorNotice from "@/src/shared/components/layout/AppErrorNotice";
 import AppDialogProvider from "@/src/shared/components/layout/AppDialogProvider";
+import ToastProvider, {
+  notifySuccess,
+} from "@/src/shared/components/layout/ToastProvider";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -133,6 +136,10 @@ export default function App() {
 
   const handlePostCreated = useCallback(
     (_postId: string) => {
+      notifySuccess(
+        "Requirement published. Find it under Published requirements on your Dashboard.",
+        { label: "View dashboard", onClick: () => navigate("/dashboard") },
+      );
       dispatch(closeCreatePost());
       // Explore hides the user's own posts, so show it in the Dashboard instead.
       navigate("/dashboard");
@@ -143,6 +150,14 @@ export default function App() {
   const handleUpdateStatus = useCallback(
     async (postId: string, status: Post["status"]) => {
       await dispatch(updatePostStatusThunk(postId, status) as any);
+      const labels: Record<Post["status"], string> = {
+        live: "Requirement reopened.",
+        in_progress: "Requirement marked in progress.",
+        completed: "Requirement marked complete.",
+        expired: "Requirement expired.",
+        cancelled: "Requirement cancelled.",
+      };
+      notifySuccess(labels[status]);
     },
     [dispatch],
   );
@@ -150,6 +165,7 @@ export default function App() {
   const handleDeleteListing = useCallback(
     async (postId: string) => {
       await dispatch(deletePostThunk(postId) as any);
+      notifySuccess("Requirement deleted.");
     },
     [dispatch],
   );
@@ -174,6 +190,7 @@ export default function App() {
 
   return (
     <AppDialogProvider>
+      <ToastProvider>
       <div className="fixed inset-0 flex flex-col  overflow-hidden theme-page-shell antialiased select-text text-zinc-100">
       <div className="flex h-full min-h-0 flex-1 flex-col">
         <Header
@@ -228,6 +245,7 @@ export default function App() {
       />
         <AppErrorNotice />
       </div>
+      </ToastProvider>
     </AppDialogProvider>
   );
 }

@@ -25,6 +25,7 @@ import type { ChangeEvent, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/src/shared/lib/api";
 import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
+import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 
 /* =========================================================
    TYPES
@@ -504,6 +505,7 @@ export default function PortfolioSection({
 
       updateItems(nextItems);
       setEditingItem(null);
+      notifySuccess(exists ? "Portfolio item updated." : "Portfolio item added.");
     } catch (saveError) {
       setError(
         saveError instanceof Error
@@ -541,6 +543,7 @@ export default function PortfolioSection({
       }
 
       updateItems(items.filter((item) => item.id !== id));
+      notifySuccess("Portfolio item deleted.");
     } catch (deleteError) {
       setError(
         deleteError instanceof Error

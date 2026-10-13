@@ -608,7 +608,13 @@ function DesktopProfileEditLayout({
                 {activeLabel}
               </h2>
 
-              {renderSection()}
+              <fieldset
+                disabled={isSaving}
+                aria-busy={isSaving}
+                className={`min-w-0 border-0 p-0 ${isSaving ? "pointer-events-none opacity-60" : ""}`}
+              >
+                {renderSection()}
+              </fieldset>
             </div>
           </div>
 
@@ -742,7 +748,13 @@ function MobileProfileEditLayout({
         <div className="p-5">
           <h2 className="text-base font-bold text-white mb-6">{activeLabel}</h2>
 
-          {renderSection()}
+          <fieldset
+            disabled={isSaving}
+            aria-busy={isSaving}
+            className={`min-w-0 border-0 p-0 ${isSaving ? "pointer-events-none opacity-60" : ""}`}
+          >
+            {renderSection()}
+          </fieldset>
         </div>
       </div>
 

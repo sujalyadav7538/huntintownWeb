@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { getAvatarUrl, getUserId, handleAvatarError } from "@/src/shared/utils";
+import { getUserId } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 
 type Tab =
   | "landing"
@@ -98,18 +99,13 @@ export default function MobileBottomNavigation({
       >
         {isProfile ? (
           isAuthenticated ? (
-            <img
-              src={getAvatarUrl(
-                currentUser?.name || "Profile",
-                currentUser?.avatar,
-              )}
-              alt={currentUser?.name || "Profile"}
-              onError={(event) =>
-                handleAvatarError(event, currentUser?.name || "Profile")
-              }
-              className={`h-5 w-5 rounded-full object-cover ${
+            <UserAvatar
+              name={currentUser?.name || "Profile"}
+              src={currentUser?.avatar}
+              className={`h-5 w-5 rounded-full ${
                 active ? "ring-1 ring-[#FF3F3F]" : ""
               }`}
+              imageClassName="object-cover"
             />
           ) : (
             <UserRound className="h-5 w-5" />

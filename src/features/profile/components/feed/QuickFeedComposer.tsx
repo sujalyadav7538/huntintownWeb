@@ -5,6 +5,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { apiFetch } from "@/src/shared/lib/api";
 import type { ShowcaseItem } from "@/src/shared/types";
+import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 
 interface QuickFeedComposerProps {
   onCreated?: (item: ShowcaseItem) => void;
@@ -101,6 +102,7 @@ export default function QuickFeedComposer({
       const item = payload.item as ShowcaseItem;
       onCreated?.(item);
       resetForm();
+      notifySuccess("Your highlight has been shared on your profile.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -123,6 +125,11 @@ export default function QuickFeedComposer({
         </div>
       </div>
 
+      <fieldset
+        disabled={isSubmitting}
+        aria-busy={isSubmitting}
+        className={`min-w-0 border-0 p-0 ${isSubmitting ? "pointer-events-none opacity-60" : ""}`}
+      >
       <label
         htmlFor="highlight-title"
         className="mb-1.5 block text-xs font-medium text-zinc-300"
@@ -259,6 +266,7 @@ export default function QuickFeedComposer({
         <Send className="h-4 w-4" />
         {isSubmitting ? "Posting..." : "Post"}
       </button>
+      </fieldset>
     </section>
   );
 }

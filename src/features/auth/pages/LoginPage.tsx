@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useLocation } from "react-router-dom";
 import type { User } from "@/src/shared/types";
-import { getAvatarUrl } from "@/src/shared/utils";
 import { apiFetch } from "@/src/shared/lib/api";
 import { useSeo } from "@/src/shared/hooks/useSeo";
 import type { AuthNavigationState, SignupFormData } from "../types";
@@ -154,7 +153,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           _id: fallbackId,
           id: fallbackId,
           name: formData.name || "User",
-          avatar: getAvatarUrl(formData.name || "User", ""),
+          avatar: "",
           role: "Member",
           address: "",
         };

@@ -1,4 +1,5 @@
 import { AlertCircle, LoaderCircle } from "lucide-react";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 
 export function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
@@ -31,22 +32,14 @@ export function Avatar({
   large?: boolean;
 }) {
   const size = large ? "h-11 w-11" : "h-9 w-9";
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt=""
-        className={`theme-chip ${size} shrink-0 rounded-full object-cover`}
-      />
-    );
-  }
   return (
-    <span
-      aria-hidden="true"
-      className={`theme-chip ${size} ${large ? "text-base" : "text-sm"} flex shrink-0 items-center justify-center rounded-full font-bold`}
-    >
-      {name.trim().charAt(0).toUpperCase()}
-    </span>
+    <UserAvatar
+      name={name}
+      src={src}
+      className={`theme-chip ${size} rounded-full`}
+      imageClassName="object-cover"
+      fallbackClassName={`${large ? "text-base" : "text-sm"} font-bold`}
+    />
   );
 }
 

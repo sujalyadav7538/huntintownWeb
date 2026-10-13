@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Camera, Check, Trash2, X } from "lucide-react";
 import Cropper, { type Area } from "react-easy-crop";
-
-import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 
 interface AvatarUploaderProps {
   avatar: string;
@@ -140,12 +139,11 @@ export default function AvatarUploader({
         <label className="group relative block w-fit cursor-pointer">
           <span className="absolute -inset-0.5 rounded-full bg-linear-to-br from-[#FF3F3F] via-rose-400 to-violet-500 opacity-70 blur-[1px] transition-opacity group-hover:opacity-100" />
           <span className="relative block rounded-full bg-linear-to-br from-[#FF3F3F] to-violet-500 p-0.5">
-            <img
-              src={getAvatarUrl(name, avatar)}
-              alt={name}
-              className={`${dim} block rounded-full bg-zinc-900 object-cover`}
-              onError={(event) => handleAvatarError(event, name)}
-              referrerPolicy="no-referrer"
+            <UserAvatar
+              name={name}
+              src={avatar}
+              className={`${dim} block rounded-full bg-zinc-900`}
+              imageClassName="object-cover"
             />
           </span>
           <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">

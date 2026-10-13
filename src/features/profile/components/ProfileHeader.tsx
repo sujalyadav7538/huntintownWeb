@@ -3,14 +3,11 @@ import {
   MapPin,
   Edit3,
   Settings,
-  MessageSquare,
-  UserPlus,
   CheckCircle2,
   Shield,
-  MoreHorizontal,
   ArrowLeft,
 } from "lucide-react";
-import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 
 interface ProfileHeaderProps {
   user: User;
@@ -29,8 +26,6 @@ export default function ProfileHeader({
   metric,
   isOwner,
   onEdit,
-  onMessage,
-  onFollow,
   onBack,
   trustScore,
 }: ProfileHeaderProps) {
@@ -115,35 +110,14 @@ export default function ProfileHeader({
                   <span>Edit Profile</span>
                 </button>
               </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={onMessage}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#ef4444] px-3 text-[10px] font-bold text-white transition hover:bg-[#dc2626] sm:h-9 sm:px-3.5 sm:text-[11px]"
-                >
-                  <MessageSquare className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                  Message
-                </button>
-
-                <button
-                  type="button"
-                  onClick={onFollow}
-                  className="hidden h-8 items-center gap-1.5 rounded-lg border border-white/15 bg-[#151b25]/90 px-3 text-[10px] font-semibold text-white backdrop-blur-md transition hover:bg-[#1d2532] sm:inline-flex sm:h-9 sm:px-3.5 sm:text-[11px]"
-                >
-                  <UserPlus className="h-3.5 w-3.5" />
-                  Follow
-                </button>
-
-                <button
-                  type="button"
-                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/15 bg-[#151b25]/90 text-zinc-300 backdrop-blur-md transition hover:bg-[#1d2532] sm:hidden"
-                  aria-label="More options"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </>
-            )}
+            ) : null}
+            {/* Temporarily hidden profile actions:
+            <>
+              <button type="button" onClick={onMessage}>Message</button>
+              <button type="button" onClick={onFollow}>Follow</button>
+              <button type="button" aria-label="More options">More</button>
+            </>
+            */}
           </div>
         </div>
       </div>
@@ -154,12 +128,11 @@ export default function ProfileHeader({
           {/* Desktop */}
           <div className="hidden sm:flex sm:items-start sm:gap-5 md:gap-6">
             <div className="relative h-24 w-24 shrink-0 md:h-28 md:w-28">
-              <img
-                src={getAvatarUrl(user.name, user.avatar)}
-                alt={user.name}
-                onError={(e) => handleAvatarError(e, user.name)}
-                referrerPolicy="no-referrer"
-                className="h-full w-full rounded-full border-4 border-[#0d1118] bg-zinc-900 object-cover shadow-xl"
+              <UserAvatar
+                name={user.name}
+                src={user.avatar}
+                className="h-full w-full rounded-full border-4 border-[#0d1118] bg-zinc-900 shadow-xl"
+                imageClassName="object-cover"
               />
 
               {user.isOnline && (
@@ -228,12 +201,11 @@ export default function ProfileHeader({
           <div className="sm:hidden ">
             <div className="flex flex-row gap-5">
               <div className="relative h-20 w-20 shrink-0">
-                <img
-                  src={getAvatarUrl(user.name, user.avatar)}
-                  alt={user.name}
-                  onError={(e) => handleAvatarError(e, user.name)}
-                  referrerPolicy="no-referrer"
-                  className="h-full w-full rounded-full border-4 border-[#0d1118] bg-zinc-900 object-cover shadow-xl"
+                <UserAvatar
+                  name={user.name}
+                  src={user.avatar}
+                  className="h-full w-full rounded-full border-4 border-[#0d1118] bg-zinc-900 shadow-xl"
+                  imageClassName="object-cover"
                 />
 
                 {user.isOnline && (
@@ -276,6 +248,7 @@ export default function ProfileHeader({
               </div>
             </div>
 
+            {/* Temporarily hidden profile actions:
             {!isOwner && (
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
@@ -297,6 +270,7 @@ export default function ProfileHeader({
                 </button>
               </div>
             )}
+            */}
           </div>
         </div>
       </div>

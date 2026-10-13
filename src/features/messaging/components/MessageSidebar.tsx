@@ -6,6 +6,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import UserProfileLink from "@/src/shared/components/UserProfileLink";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 type MessageSidebarProps = {
   posts: any[];
   chats: any[];
@@ -286,19 +287,15 @@ const MyChatsList = ({ chats, selectedChatId, onSelectChat }) => {
             <UserProfileLink
               userId={chat.otherUser?.id ?? chat.otherUser?._id}
               aria-label={`View ${chat.otherUser?.name ?? "user"}'s profile`}
-              className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/[0.07] bg-white/[0.04] focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
+              className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/[0.07] bg-white/[0.04] focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
             >
-              {chat.otherUser?.avatar ? (
-                <img
-                  src={chat.otherUser.avatar}
-                  alt={chat.otherUser.name || "User"}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-xs font-bold text-zinc-500">
-                  {getInitials(chat.otherUser?.name)}
-                </span>
-              )}
+              <UserAvatar
+                name={chat.otherUser?.name}
+                src={chat.otherUser?.avatar}
+                className="h-full w-full"
+                imageClassName="object-cover"
+                fallbackClassName="text-xs font-bold"
+              />
             </UserProfileLink>
 
             {/* Chat information */}
@@ -378,16 +375,5 @@ const formatDate = (date) => {
   });
 };
 
-const getInitials = (name = "") => {
-  return (
-    name
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "?"
-  );
-};
 
 export default MessageSidebar;

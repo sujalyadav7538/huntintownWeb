@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BadgeCheck, ChevronDown, ChevronUp, Star } from "lucide-react";
-import { handleAvatarError, getAvatarUrl } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 
 interface ResponseItemProps {
   response: any;
@@ -27,12 +27,11 @@ export default function ResponseItem({
           onClick={() => onViewProfile?.(user)}
           className="shrink-0"
         >
-          <img
-            src={getAvatarUrl(user?.name || "User", user?.avatar ?? undefined)}
-            alt={user?.name || "User"}
-            className="h-7 w-7 rounded-full border border-white/[0.08] object-cover"
-            onError={(e) => handleAvatarError(e, user?.name || "User")}
-            referrerPolicy="no-referrer"
+          <UserAvatar
+            name={user?.name || "User"}
+            src={user?.avatar}
+            className="h-7 w-7 rounded-full border border-white/[0.08]"
+            imageClassName="object-cover"
           />
         </button>
 

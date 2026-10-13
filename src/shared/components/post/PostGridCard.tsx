@@ -8,11 +8,10 @@
 } from "lucide-react";
 
 import {
-  getAvatarUrl,
   getPostExpiryLabel,
-  handleAvatarError,
   isPostExpired,
 } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 import { CATEGORY_COLORS } from "@/src/shared/lib/postConstants";
 import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
@@ -119,12 +118,11 @@ export default function PostGridCard({
             aria-label={`View ${post.author.name}'s profile`}
             className="flex min-w-0 items-center gap-2 rounded-sm focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
           >
-            <img
-              src={getAvatarUrl(post.author.name, post.author.avatar ?? undefined)}
-              alt={post.author.name}
-              className="h-7 w-7 shrink-0 rounded-full object-cover"
-              onError={(e) => handleAvatarError(e, post.author.name)}
-              referrerPolicy="no-referrer"
+            <UserAvatar
+              name={post.author.name}
+              src={post.author.avatar}
+              className="h-7 w-7 shrink-0 rounded-full"
+              imageClassName="object-cover"
             />
             <span className="truncate text-[10px] font-medium text-zinc-400 hover:text-zinc-100">
               {post.author.name}

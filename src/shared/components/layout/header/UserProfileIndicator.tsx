@@ -2,7 +2,7 @@
 import React from 'react';
 import { LogOut, UserCircle } from 'lucide-react';
 import { useAppSelector } from '@/src/store/hooks';
-import { getAvatarUrl, handleAvatarError } from '@/src/shared/utils';
+import UserAvatar from '@/src/shared/components/UserAvatar';
 
 interface UserProfileIndicatorProps {
   setActiveTab: (tab: string) => void;
@@ -37,12 +37,11 @@ export default function UserProfileIndicator({
         onClick={() => setActiveTab('profile')}
         className="flex items-center gap-2 cursor-pointer text-left focus:outline-hidden"
       >
-        <img
-          src={getAvatarUrl(currentUser.name, currentUser.avatar)}
-          alt={currentUser.name}
-          className="w-8.5 h-8.5 rounded-full object-cover border-2 border-[#FF3F3F]/40 hover:border-[#FF3F3F] transition bg-[#18181b]"
-          onError={(e) => handleAvatarError(e, currentUser.name)}
-          referrerPolicy="no-referrer"
+        <UserAvatar
+          name={currentUser.name}
+          src={currentUser.avatar}
+          className="w-8.5 h-8.5 rounded-full border-2 border-[#FF3F3F]/40 bg-[#18181b] transition hover:border-[#FF3F3F]"
+          imageClassName="object-cover"
         />
         <div className="hidden xl:block">
           <p className="text-xs font-bold text-zinc-100 leading-tight flex items-center gap-1">

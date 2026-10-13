@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useRef } from "react";
 import { Star, Loader2, MessageSquare } from "lucide-react";
 import { UserMetric } from "@/src/shared/types";
-import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 import { apiFetch } from "@/src/shared/lib/api";
 import UserProfileLink from "@/src/shared/components/UserProfileLink";
 
@@ -243,12 +243,11 @@ export default function ProfileReviews({
                   aria-label={`View ${r.hunter?.name ?? "reviewer"}'s profile`}
                   className="shrink-0 rounded-full focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
                 >
-                  <img
-                    src={getAvatarUrl(r.hunter?.name, r.hunter?.avatar)}
-                    alt={r.hunter?.name}
-                    className="h-8 w-8 rounded-full object-cover ring-2 ring-[#1e1e22]"
-                    onError={(e) => handleAvatarError(e, r.hunter?.name)}
-                    referrerPolicy="no-referrer"
+                  <UserAvatar
+                    name={r.hunter?.name}
+                    src={r.hunter?.avatar}
+                    className="h-8 w-8 rounded-full ring-2 ring-[#1e1e22]"
+                    imageClassName="object-cover"
                   />
                 </UserProfileLink>
                 <div className="min-w-0 flex-1">

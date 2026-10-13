@@ -13,6 +13,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { apiFetch } from "@/src/shared/lib/api";
 import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
+import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 import type { ShowcaseItem } from "@/src/shared/types";
 import QuickFeedComposer from "./QuickFeedComposer";
 
@@ -78,6 +79,7 @@ export default function HighlightsSection({
       }
 
       onDeleted(itemId);
+      notifySuccess("Highlight deleted from your profile.");
     } catch (error) {
       setDeleteError(
         error instanceof Error

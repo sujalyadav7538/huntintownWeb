@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { toggleTheme } from "@/src/store/uiSlice";
-import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 import {
   User,
   LogOut,
@@ -101,11 +101,11 @@ export default function SidePanel({
           >
             {isAuthenticated && currentUser ? (
               <div className="relative shrink-0">
-                <img
-                  src={getAvatarUrl(currentUser.name, currentUser.avatar)}
-                  alt={currentUser.name}
-                  onError={(e) => handleAvatarError(e, currentUser.name)}
-                  className="h-11 w-11 rounded-full object-cover ring-1 ring-white/10"
+                <UserAvatar
+                  name={currentUser.name}
+                  src={currentUser.avatar}
+                  className="h-11 w-11 rounded-full ring-1 ring-white/10"
+                  imageClassName="object-cover"
                 />
 
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-[#111113] bg-emerald-400" />

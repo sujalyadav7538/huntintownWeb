@@ -1,6 +1,6 @@
 import { Conversation } from "@/src/shared/types";
 import { ArrowLeft, FileText, MapPin } from "lucide-react";
-import { getAvatarUrl, handleAvatarError } from "@/src/shared/utils";
+import UserAvatar from "@/src/shared/components/UserAvatar";
 import { useAppSelector } from "@/src/store/hooks";
 import { formatLastSeen } from "@/src/shared/lib/presence";
 import UserProfileLink from "@/src/shared/components/UserProfileLink";
@@ -42,14 +42,11 @@ export default function ChatHeader({
             aria-label={`View ${otherParticipant?.name ?? "user"}'s profile`}
             className="relative block shrink-0 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF3F3F]"
           >
-            <img
-              src={
-                otherParticipant?.avatar || getAvatarUrl(otherParticipant?.name)
-              }
-              alt={otherParticipant?.name || "User"}
-              className="h-9 w-9 rounded-full border border-[#2b2b30] object-cover"
-              onError={(e) => handleAvatarError(e, otherParticipant?.name)}
-              referrerPolicy="no-referrer"
+            <UserAvatar
+              name={otherParticipant?.name}
+              src={otherParticipant?.avatar}
+              className="h-9 w-9 rounded-full border border-[#2b2b30]"
+              imageClassName="object-cover"
             />
 
             {/* Online indicator */}

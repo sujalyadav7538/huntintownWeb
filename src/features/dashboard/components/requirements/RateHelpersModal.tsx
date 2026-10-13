@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, ChevronDown, ExternalLink, LoaderCircle, Search, Star } from "lucide-react";
 import { apiFetch, apiFetchJSON } from "@/src/shared/lib/api";
+import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 import DashboardModal from "../DashboardModal";
 import StarRatingInput from "../StarRatingInput";
 import { Avatar } from "./RequirementUI";
@@ -135,6 +136,7 @@ export default function RateHelpersModal({
       setSuccess(`${selected.name} has been rated and notified.`);
       setRating(0);
       setComment("");
+      notifySuccess(`${selected.name} has been rated.`);
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Could not submit rating.",
