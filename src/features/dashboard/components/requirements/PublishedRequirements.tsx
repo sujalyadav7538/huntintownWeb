@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import useRouteScreen from "@/src/shared/hooks/useRouteScreen";
+import { useIsTablet } from "@/src/shared/hooks/useBreakpoint";
 import { RefreshCw } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
 import useDebounce from "@/src/shared/hooks/useDebounce";
@@ -41,11 +42,11 @@ export default function PublishedRequirements({
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedPost, setSelectedPost] = useState<DashboardPost | null>(null);
-  const [searchParams, setSearchParams] = useSearchParams();
-  const requestedPostId = searchParams.get("postId");
-  const [ratingPost, setRatingPost] = useState<DashboardPost | null>(null);
-  const closeRating = useCallback(() => setRatingPost(null), []);
+  const postScreen = useRouteScreen("postId");
+  const isTablet = useIsTablet();
+  const ratingScreen = useRouteScreen("rate");
+  const requestedPostId = postScreen.value ?? ratingScreen.value;
+  const selectedPost = posts.find((post) => post._id === requestedPostId);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search.trim(), 400);
   const sentinel = useRef<HTMLDivElement>(null);
@@ -59,8 +60,8 @@ export default function PublishedRequirements({
     setError("");
     try {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.set("q", debouncedSearch);
-      if (filter !== "all") params.set("status", filter);
+      if (!requestedPostId && debouncedSearch) params.set("q", debouncedSearch);
+      if (!requestedPostId && filter !== "all") params.set("status", filter);
       const query = params.toString();
       const response = await apiFetch(
         `/api/responses/received${query ? `?${query}` : ""}`,
@@ -84,26 +85,12 @@ export default function PublishedRequirements({
     } finally {
       if (abortRef.current === controller) setLoading(false);
     }
-  }, [debouncedSearch, filter, onDataChange]);
+  }, [debouncedSearch, filter, onDataChange, requestedPostId]);
 
   useEffect(() => {
     void loadPosts();
     return () => abortRef.current?.abort();
   }, [loadPosts]);
-
-  useEffect(() => {
-    if (!requestedPostId || loading) return;
-
-    const requestedPost = posts.find(
-      (post) => post._id === requestedPostId || post?.id === requestedPostId,
-    );
-
-    if (requestedPost) setSelectedPost(requestedPost);
-
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete("postId");
-    setSearchParams(nextParams, { replace: true });
-  }, [loading, posts, requestedPostId, searchParams, setSearchParams]);
 
   const filteredPosts = posts;
   const refreshRequirements = useCallback(async () => {
@@ -125,10 +112,36 @@ export default function PublishedRequirements({
     );
     observer.observe(target);
     return () => observer.disconnect();
-  }, [filteredPosts.length, visibleCount]);
+  }, [filteredPosts.length, visibleCount, requestedPostId]);
+
+  let detail: React.ReactNode = null;
+  if (requestedPostId) {
+    const close = ratingScreen.value ? ratingScreen.close : postScreen.close;
+    if (loading && !selectedPost) return <LoadingState />;
+    if (error || !selectedPost) {
+      return (
+        <div>
+          <button type="button" onClick={close} className="theme-text-primary mb-4">Back to dashboard</button>
+          <ErrorState message={error || "This requirement is no longer available."} retry={() => void loadPosts()} />
+        </div>
+      );
+    }
+    if (ratingScreen.value) {
+      detail = <RateHelpersModal postId={selectedPost._id} postTitle={selectedPost.title} onClose={ratingScreen.close} />;
+    } else detail = (
+      <ReceivedOffersModal
+        post={selectedPost}
+        onClose={postScreen.close}
+        onInitiateChat={onInitiateChat}
+        onChanged={refreshRequirements}
+      />
+    );
+    if (isTablet) return detail;
+  }
 
   return (
     <section className="min-w-0">
+      {detail}
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">
@@ -195,13 +208,13 @@ export default function PublishedRequirements({
               <RequirementCard
                 key={post._id}
                 post={post}
-                onExplore={() => setSelectedPost(post)}
+                onExplore={() => postScreen.open(post._id)}
                 onUpdateStatus={async (status) => {
                   await onUpdateStatus(post._id, status);
                   await refreshRequirements();
-                  if (status === "completed") setRatingPost(post);
+                  if (status === "completed") ratingScreen.open(post._id);
                 }}
-                onRate={() => setRatingPost(post)}
+                onRate={() => ratingScreen.open(post._id)}
                 onDelete={async () => {
                   await onDeleteListing(post._id);
                   await refreshRequirements();
@@ -217,21 +230,6 @@ export default function PublishedRequirements({
         <p className="theme-text-muted py-2 text-center text-xs">
           Refreshing requirements…
         </p>
-      )}
-      {selectedPost && (
-        <ReceivedOffersModal
-          post={selectedPost}
-          onClose={() => setSelectedPost(null)}
-          onInitiateChat={onInitiateChat}
-          onChanged={refreshRequirements}
-        />
-      )}
-      {ratingPost && (
-        <RateHelpersModal
-          postId={ratingPost._id}
-          postTitle={ratingPost.title}
-          onClose={closeRating}
-        />
       )}
     </section>
   );

@@ -120,11 +120,7 @@ export default function HuntMap({
               post={selectedPost}
               onClose={() => setSelectedPost(null)}
               onView={() =>
-                navigate("/explore", {
-                  state: {
-                    openPostId: selectedPost.id,
-                  },
-                })
+                navigate(`/post/${encodeURIComponent(selectedPost.id ?? selectedPost._id)}`)
               }
             />
           )}

@@ -125,7 +125,7 @@ export function useSeo(options: SeoOptions): void {
     const canonical = absoluteUrl(canonicalPath);
     const imageUrl = absoluteUrl(image);
 
-    const shouldNoIndex = noIndex ?? isNoIndexPath(canonicalPath);
+    const shouldNoIndex = Boolean(noIndex) || isNoIndexPath(location.pathname);
 
     const previousTitle = document.title;
     document.title = fullTitle;
@@ -144,12 +144,14 @@ export function useSeo(options: SeoOptions): void {
       upsertMeta("property", "og:url", canonical),
       upsertMeta("property", "og:type", type),
       upsertMeta("property", "og:image", imageUrl),
+      upsertMeta("property", "og:image:alt", fullTitle),
       upsertMeta("property", "og:site_name", SITE_NAME),
 
       upsertMeta("name", "twitter:card", "summary_large_image"),
       upsertMeta("name", "twitter:title", fullTitle),
       upsertMeta("name", "twitter:description", fullDescription),
       upsertMeta("name", "twitter:image", imageUrl),
+      upsertMeta("name", "twitter:image:alt", fullTitle),
     ];
 
     setJsonLd(jsonLd);

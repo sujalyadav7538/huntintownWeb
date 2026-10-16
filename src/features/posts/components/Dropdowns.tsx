@@ -1,10 +1,57 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Check, ChevronDown, Search } from "lucide-react";
 
-const usePopover = () => {
+const usePopover = <T extends HTMLElement>() => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<T>(null);
+  const [placement, setPlacement] = useState({ above: false, maxHeight: 320 });
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const updatePlacement = () => {
+      const root = rootRef.current;
+      const menu = menuRef.current;
+      if (!root || !menu) return;
+
+      const viewport = window.visualViewport;
+      let top = viewport?.offsetTop ?? 0;
+      let bottom = top + (viewport?.height ?? window.innerHeight);
+      for (let parent = root.parentElement; parent; parent = parent.parentElement) {
+        if (/(auto|scroll|hidden|clip)/.test(getComputedStyle(parent).overflowY)) {
+          const bounds = parent.getBoundingClientRect();
+          top = Math.max(top, bounds.top);
+          bottom = Math.min(bottom, bounds.bottom);
+        }
+      }
+
+      const bounds = root.getBoundingClientRect();
+      const below = Math.max(0, bottom - bounds.bottom - 12);
+      const above = Math.max(0, bounds.top - top - 12);
+      const contentHeight = menu.tagName === "UL"
+        ? menu.scrollHeight
+        : Array.from(menu.children).reduce((height, child) => height + child.scrollHeight, 2);
+      const height = Math.min(contentHeight, menu.tagName === "UL" ? 240 : 320);
+      const openAbove = below < height && above > below;
+      setPlacement({ above: openAbove, maxHeight: Math.min(320, openAbove ? above : below) });
+    };
+
+    updatePlacement();
+    const observer = new ResizeObserver(updatePlacement);
+    if (menuRef.current) observer.observe(menuRef.current);
+    window.addEventListener("resize", updatePlacement);
+    window.addEventListener("scroll", updatePlacement, true);
+    window.visualViewport?.addEventListener("resize", updatePlacement);
+    window.visualViewport?.addEventListener("scroll", updatePlacement);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updatePlacement);
+      window.removeEventListener("scroll", updatePlacement, true);
+      window.visualViewport?.removeEventListener("resize", updatePlacement);
+      window.visualViewport?.removeEventListener("scroll", updatePlacement);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -15,7 +62,7 @@ const usePopover = () => {
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [open]);
 
-  return { open, setOpen, rootRef };
+  return { open, setOpen, rootRef, menuRef, placement };
 };
 
 /* ================================================================
@@ -44,7 +91,7 @@ export function SelectDropdown({
   searchPlaceholder?: string;
   ariaLabel: string;
 }) {
-  const { open, setOpen, rootRef } = usePopover();
+  const { open, setOpen, rootRef, menuRef, placement } = usePopover<HTMLDivElement>();
   const [query, setQuery] = useState("");
   const [highlight, setHighlight] = useState(0);
   const listId = useId();
@@ -125,7 +172,11 @@ export function SelectDropdown({
       </button>
 
       {open && (
-        <div className="theme-panel absolute inset-x-0 top-full z-30 mt-1.5 overflow-hidden rounded-lg border shadow-xl">
+        <div
+          ref={menuRef}
+          style={{ maxHeight: placement.maxHeight }}
+          className={`theme-panel absolute inset-x-0 z-30 flex flex-col overflow-hidden rounded-lg border shadow-xl ${placement.above ? "bottom-full mb-1.5" : "top-full mt-1.5"}`}
+        >
           <div className="theme-divider relative border-b p-2">
             <Search className="theme-icon-muted pointer-events-none absolute left-4.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2" />
             <input
@@ -142,7 +193,7 @@ export function SelectDropdown({
             />
           </div>
 
-          <ul id={listId} role="listbox" className="max-h-64 overflow-y-auto p-1">
+          <ul id={listId} role="listbox" className="min-h-0 max-h-64 overflow-y-auto p-1">
             {filtered.length === 0 ? (
               <li className="theme-text-muted px-3 py-4 text-center text-xs">
                 No match for "{query}"
@@ -210,7 +261,7 @@ export function ComboInput({
   maxLength?: number;
   ariaLabel: string;
 }) {
-  const { open, setOpen, rootRef } = usePopover();
+  const { open, setOpen, rootRef, menuRef, placement } = usePopover<HTMLUListElement>();
   const listId = useId();
 
   // Show every suggestion until the user types something that isn't one of them.
@@ -257,9 +308,11 @@ export function ComboInput({
 
       {open && visible.length > 0 && (
         <ul
+          ref={menuRef}
+          style={{ maxHeight: Math.min(240, placement.maxHeight) }}
           id={listId}
           role="listbox"
-          className="theme-panel absolute inset-x-0 top-full z-30 mt-1.5 max-h-60 overflow-y-auto rounded-lg border p-1 shadow-xl"
+          className={`theme-panel absolute inset-x-0 z-30 overflow-y-auto rounded-lg border p-1 shadow-xl ${placement.above ? "bottom-full mb-1.5" : "top-full mt-1.5"}`}
         >
           {visible.map((item) => {
             const active = item.toLowerCase() === term;

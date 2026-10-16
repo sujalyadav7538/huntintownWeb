@@ -24,15 +24,18 @@ import PublicRoutes from "@/src/app/routes/PublicRoutes";
 
 import type { Post, User } from "@/src/shared/types";
 import AboutPage from "@/src/features/home/pages/AboutPage";
+import HelpCenterPage from "@/src/features/home/pages/HelpCenterPage";
+import ContactPage from "@/src/features/home/pages/ContactPage";
 import NotificationsPage from "@/src/features/notifications/pages/NotificationsPage";
 import TermsAndConditionsPage from "@/src/features/auth/pages/TermsAndConditionsPage";
 import { apiFetchJSON } from "@/src/shared/lib/api";
 import { normalizePost } from "@/src/store/postsSlice";
 import { useSeo } from "@/src/shared/hooks/useSeo";
+import useRouteBack from "@/src/shared/hooks/useRouteBack";
+import { absoluteUrl } from "@/src/shared/lib/seo";
 
 interface AppRoutesProps {
   isAuthenticated: boolean;
-  posts: Post[];
 
   setActiveTab: (tab: string) => void;
 
@@ -56,7 +59,6 @@ interface AppRoutesProps {
 
 export default function AppRoutes({
   isAuthenticated,
-  posts,
   setActiveTab,
   onLogin,
   onLogout,
@@ -82,13 +84,6 @@ export default function AppRoutes({
             onExplore={() => setActiveTab("explore")}
             onPostRequirement={onPostRequirement}
             onExplorePost={(postId) => {
-              const hasPost = posts.some((post) => post.id === postId);
-
-              if (!hasPost) {
-                setActiveTab("explore");
-                return;
-              }
-
               onExplorePost(postId);
             }}
             onInitiateChat={() => setActiveTab("messaging")}
@@ -121,6 +116,10 @@ export default function AppRoutes({
       {/* Public/other-user post detail */}
       <Route
         path="/post/:id"
+        element={<PostDetailRoute />}
+      />
+      <Route
+        path="/post/:id/apply"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
             <PostDetailRoute />
@@ -189,7 +188,7 @@ export default function AppRoutes({
         path="/response/:postId"
         element={
           <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <Navigate to="/dashboard" replace />
+            <PostResponsesRedirect />
           </ProtectedRoute>
         }
       />
@@ -264,6 +263,8 @@ export default function AppRoutes({
 
       {/* About Page */}
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/help" element={<HelpCenterPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/legal" element={<LegalPage />} />
 
       {/* =========================================================
@@ -339,12 +340,23 @@ function NotFoundPage() {
    publishing a requirement and from "Recent posts" on a profile).
 ================================================================ */
 
+function PostResponsesRedirect() {
+  const { postId } = useParams<{ postId: string }>();
+  return (
+    <Navigate
+      to={`/dashboard?postId=${encodeURIComponent(postId ?? "")}`}
+      replace
+    />
+  );
+}
+
 function PostDetailRoute() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const [post, setPost] = useState<Post | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const goBack = useRouteBack("/explore");
 
   useEffect(() => {
     if (!id) return;
@@ -367,8 +379,6 @@ function PostDetailRoute() {
     };
   }, [id]);
 
-  const goBack = () => navigate("/explore");
-
   // A requirement is the one piece of user-generated content worth indexing,
   // so it gets a real title, description, share image and schema.org entity.
   useSeo({
@@ -376,12 +386,15 @@ function PostDetailRoute() {
     description: post?.description,
     path: id ? `/post/${id}` : undefined,
     type: "article",
+    noIndex: !post || Boolean(error),
     image: post?.images?.[0],
     jsonLd: post
       ? {
           "@context": "https://schema.org",
           "@type": "Demand",
           name: post.title,
+          url: absoluteUrl(`/post/${id}`),
+          image: post.images?.map(absoluteUrl),
           description: post.description,
           category: post.category,
           availabilityStarts: post.createdAt,
@@ -420,12 +433,12 @@ function PostDetailRoute() {
 
   return (
     <PostDetailView
+      key={post.id}
       post={post}
       onBack={goBack}
-      onViewProfile={() =>
-        navigate(`/profile/${post.author?.id ?? post.author?._id}`)
+      onViewProfile={(author) =>
+        navigate(`/profile/${author.id ?? author._id}`)
       }
-      onResponseSubmit={goBack}
     />
   );
 }

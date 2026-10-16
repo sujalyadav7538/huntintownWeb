@@ -49,11 +49,6 @@ export default function RateHelpersModal({
       .then((data) => {
         if (!active) return;
         const list = data.helpers ?? [];
-        // Nothing to rate: the prompt is optional, so just dismiss it.
-        if (list.length === 0) {
-          onClose();
-          return;
-        }
         setHelpers(list);
         const firstUnrated = list.find((helper) => !helper.rated);
         if (list.length === 1 || firstUnrated) {
@@ -72,7 +67,7 @@ export default function RateHelpersModal({
     return () => {
       active = false;
     };
-  }, [postId, onClose]);
+  }, [postId]);
 
   useEffect(() => {
     if (!dropdownOpen) return;
@@ -148,6 +143,7 @@ export default function RateHelpersModal({
 
   return (
     <DashboardModal
+      page
       title="Rate your helpers"
       subtitle={postTitle}
       onClose={onClose}
@@ -169,6 +165,8 @@ export default function RateHelpersModal({
             <p role="alert" className="text-xs text-red-400">
               {loadError}
             </p>
+          ) : helpers.length === 0 ? (
+            <p className="theme-text-muted text-sm">There are no helpers to rate for this requirement.</p>
           ) : (
             <>
               <div ref={comboRef} className="relative">

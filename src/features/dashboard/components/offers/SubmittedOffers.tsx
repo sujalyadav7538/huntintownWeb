@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import useRouteScreen from "@/src/shared/hooks/useRouteScreen";
 import { RefreshCw } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
 import useDebounce from "@/src/shared/hooks/useDebounce";
@@ -42,7 +42,12 @@ export default function SubmittedOffers({
     useState<(typeof RESPONSE_FILTERS)[number]>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selected, setSelected] = useState<SubmittedResponse | null>(null);
+  const offerScreen = useRouteScreen("offer");
+  const ratingScreen = useRouteScreen("ratePost");
+  const requestedId = offerScreen.value ?? ratingScreen.value;
+  const selected = items.find((item) =>
+    offerScreen.value ? item._id === requestedId : item.postId._id === requestedId,
+  );
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search.trim(), 400);
   const sentinel = useRef<HTMLDivElement>(null);
@@ -56,8 +61,8 @@ export default function SubmittedOffers({
     setError("");
     try {
       const params = new URLSearchParams();
-      if (debouncedSearch) params.set("q", debouncedSearch);
-      if (filter !== "all") params.set("status", filter);
+      if (!requestedId && debouncedSearch) params.set("q", debouncedSearch);
+      if (!requestedId && filter !== "all") params.set("status", filter);
       const query = params.toString();
       const [activityResponse, chatsResponse] = await Promise.all([
         apiFetch(`/api/responses/my-activity${query ? `?${query}` : ""}`, {
@@ -95,7 +100,7 @@ export default function SubmittedOffers({
     } finally {
       if (abortRef.current === controller) setLoading(false);
     }
-  }, [debouncedSearch, filter, onDataChange]);
+  }, [debouncedSearch, filter, onDataChange, requestedId]);
 
   useEffect(() => {
     void loadActivity();
@@ -111,18 +116,6 @@ export default function SubmittedOffers({
   }, [items]);
 
   const filteredItems = uniqueItems;
-
-  // Opened from a "rate the owner back" notification link.
-  const [searchParams, setSearchParams] = useSearchParams();
-  const ratePostId = searchParams.get("ratePost");
-  useEffect(() => {
-    if (!ratePostId || loading) return;
-    const match = items.find((item) => item.postId?._id === ratePostId);
-    if (match) setSelected(match);
-    const next = new URLSearchParams(searchParams);
-    next.delete("ratePost");
-    setSearchParams(next, { replace: true });
-  }, [ratePostId, loading, items, searchParams, setSearchParams]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -142,10 +135,34 @@ export default function SubmittedOffers({
     );
     observer.observe(target);
     return () => observer.disconnect();
-  }, [filteredItems.length, visibleCount]);
+  }, [filteredItems.length, visibleCount, requestedId]);
+
+  const isTablet = useIsTablet();
+  let detail: React.ReactNode = null;
+  if (requestedId) {
+    const close = offerScreen.value ? offerScreen.close : ratingScreen.close;
+    if (loading && !selected) return <LoadingState />;
+    if (error || !selected) {
+      return (
+        <div>
+          <button type="button" onClick={close} className="theme-text-primary mb-4">Back to dashboard</button>
+          <ErrorState message={error || "This submitted offer is no longer available."} retry={() => void loadActivity()} />
+        </div>
+      );
+    }
+    detail = (
+      <SubmittedOfferModal
+        item={selected}
+        onClose={close}
+        onChat={() => onInitiateChat(selected.postId._id, selected.conversationId, "chats")}
+      />
+    );
+    if (isTablet) return detail;
+  }
 
   return (
     <section className="min-w-0">
+      {detail}
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">
@@ -212,7 +229,7 @@ export default function SubmittedOffers({
               <SubmittedOfferCard
                 key={item.postId._id}
                 item={item}
-                onExplore={() => setSelected(item)}
+                onExplore={() => offerScreen.open(item._id)}
                 onChat={() =>
                   onInitiateChat(item.postId._id, item.conversationId, "chats")
                 }
@@ -227,20 +244,7 @@ export default function SubmittedOffers({
           Refreshing offers…
         </p>
       )}
-      {selected && (
-        <SubmittedOfferModal
-          item={selected}
-          onClose={() => setSelected(null)}
-          onChat={() => {
-            setSelected(null);
-            onInitiateChat(
-              selected.postId._id,
-              selected.conversationId,
-              "chats",
-            );
-          }}
-        />
-      )}
     </section>
   );
 }
+import { useIsTablet } from "@/src/shared/hooks/useBreakpoint";

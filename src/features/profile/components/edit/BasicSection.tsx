@@ -111,21 +111,11 @@ function SectionBasicDesktop({
               </div>
             )}
 
-            <label className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/45 opacity-0 transition hover:opacity-100">
-              <div className="rounded-lg bg-[#FF3F3F] px-4 py-2 text-sm font-semibold text-white">
-                Change Cover
-              </div>
-
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) onCoverImageChange(file);
-                }}
-              />
-            </label>
+            <AvatarUploader
+              avatar={draft.coverImage}
+              variant="cover"
+              onChange={onCoverImageChange}
+            />
           </div>
 
           <div className="border-t border-white/6 p-3">
@@ -134,7 +124,7 @@ function SectionBasicDesktop({
                 <p className="text-sm font-semibold text-zinc-200">Cover photo</p>
 
                 <p className="mt-0.5 text-xs text-zinc-500">
-                  JPG, PNG, WEBP, HEIC, HEIF · Recommended 1600 × 400px
+                  Zoom and crop · saved as 1600 × 400 px · Max 5 MB
                 </p>
               </div>
 
@@ -254,21 +244,11 @@ function SectionBasicMobile({
               </div>
             )}
 
-            <label className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40">
-              <div className="rounded-lg bg-[#FF3F3F] px-3 py-1.5 text-xs font-semibold text-white">
-                Change Cover
-              </div>
-
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-                hidden
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) onCoverImageChange(file);
-                }}
-              />
-            </label>
+            <AvatarUploader
+              avatar={draft.coverImage}
+              variant="cover"
+              onChange={onCoverImageChange}
+            />
           </div>
 
           <div className="border-t border-white/6 p-3">
@@ -277,7 +257,7 @@ function SectionBasicMobile({
                 <p className="text-sm font-semibold text-zinc-200">Cover photo</p>
 
                 <p className="mt-0.5 text-xs text-zinc-500">
-                  JPG, PNG, WEBP, HEIC, HEIF · 1600 × 400px recommended
+                  Zoom and crop · saved as 1600 × 400 px · Max 5 MB
                 </p>
               </div>
 

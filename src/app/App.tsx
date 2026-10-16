@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo } from "react";
+﻿import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Post, User } from "@/src/shared/types";
 
@@ -13,7 +13,6 @@ import {
   handleHideMobileBottomNav,
   handleHideUpperNavigation,
   openSidePanel,
-  setSearchTerm,
 } from "@/src/store/uiSlice";
 import { clearPersistedState } from "@/src/store/persistence";
 import { resetNotifications } from "@/src/shared/hooks/useNotifications";
@@ -41,7 +40,6 @@ export default function App() {
     currentUser,
     token: authToken,
   } = useAppSelector((s) => s.auth);
-  const posts = useAppSelector((s) => s.posts);
 
   // Theme and side panel live in Redux: the theme is persisted across reloads,
   // the panel is deliberately not (see store/persistence.ts).
@@ -50,6 +48,16 @@ export default function App() {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const mainRef = useRef<HTMLElement>(null);
+
+  useLayoutEffect(() => {
+    if (
+      !location.hash &&
+      (location.pathname === "/help" || location.pathname === "/contact")
+    ) {
+      mainRef.current?.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [location.pathname, location.hash, location.key]);
 
   const activeTab = useMemo(
     () => getActiveTabFromPath(location.pathname),
@@ -127,11 +135,9 @@ export default function App() {
 
   const handleExplorePost = useCallback(
     (postId: string) => {
-      const targetPost = posts.find((p) => p.id === postId);
-      dispatch(setSearchTerm(targetPost ? targetPost.title : ""));
-      setActiveTab("explore");
+      navigate(`/post/${encodeURIComponent(postId)}`);
     },
-    [dispatch, posts, setActiveTab],
+    [navigate],
   );
 
   const handlePostCreated = useCallback(
@@ -181,10 +187,13 @@ export default function App() {
     const hasConversationInUrl = Boolean(
       new URLSearchParams(location.search).get("conversationId"),
     );
+    const isProfileEditing =
+      location.pathname.startsWith("/profile") &&
+      new URLSearchParams(location.search).has("edit");
 
     if (!isMessagingRoute || !hasConversationInUrl) {
-      dispatch(handleHideMobileBottomNav(false));
-      dispatch(handleHideUpperNavigation(false));
+      dispatch(handleHideMobileBottomNav(isProfileEditing || location.pathname.startsWith("/post/")));
+      dispatch(handleHideUpperNavigation(isProfileEditing));
     }
   }, [dispatch, location.pathname, location.search]);
 
@@ -203,6 +212,7 @@ export default function App() {
         />
 
         <main
+          ref={mainRef}
           className={`min-h-0 flex-1 w-full mx-auto ${
             hideUpperNavigation ? "pt-0 md:pt-16" : "pt-14 md:pt-16"
           } ${
@@ -213,7 +223,6 @@ export default function App() {
         >
           <AppRoutes
             isAuthenticated={isAuthenticated}
-            posts={posts}
             setActiveTab={setActiveTab}
             onLogin={handleLogin}
             onLogout={handleLogout}

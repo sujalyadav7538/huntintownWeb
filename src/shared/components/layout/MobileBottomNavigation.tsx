@@ -7,6 +7,7 @@ import {
   Compass,
   UserRound,
   BowArrow,
+  Home,
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -44,8 +45,8 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: "landing", label: "Den", icon: Trees },
-  { id: "explore", label: "Jungle", icon: BowArrow },
+  { id: "landing", label: "Home", icon: Home },
+  { id: "explore", label: "Explore", icon: BowArrow },
   { id: "activity", label: "Activity", icon: Footprints, auth: true },
   { id: "profile", label: "Profile", icon: User, auth: true },
 ];

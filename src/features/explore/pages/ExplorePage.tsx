@@ -10,7 +10,6 @@ import {
 
 import CategoryFilterRow from "@/src/features/explore/components/CategoryFilterRow";
 import PostGridCard from "@/src/shared/components/post/PostGridCard";
-import PostDetailView from "@/src/features/explore/components/PostDetailView";
 import ExploreSearch from "@/src/features/explore/components/ExploreSearch";
 
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
@@ -20,7 +19,6 @@ import {
   fetchPostsPage,
   normalizePost,
 } from "@/src/store/postsSlice";
-import { handleHideMobileBottomNav } from "@/src/store/uiSlice";
 import { useIsDesktop } from "@/src/shared/hooks/useBreakpoint";
 import { useSeo } from "@/src/shared/hooks/useSeo";
 import useDebounce from "@/src/shared/hooks/useDebounce";
@@ -68,8 +66,9 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState(
     () => new URLSearchParams(location.search).get("q") ?? initialSearchTerm ?? "",
   );
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState(
+    () => new URLSearchParams(location.search).get("category") ?? "All",
+  );
   const [appliedPostIds, setAppliedPostIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -142,12 +141,21 @@ export default function ExplorePage() {
   // Support opening a specific post from external navigation (e.g. map click)
   useEffect(() => {
     const state = location.state as { openPostId?: string } | null;
-    if (state?.openPostId && posts.length) {
-      const target = posts.find((p) => p.id === state.openPostId);
-      if (target) setSelectedPost(target);
-      navigate(location.pathname, { replace: true, state: {} });
+    if (state?.openPostId) {
+      navigate(`/post/${encodeURIComponent(state.openPostId)}`, { replace: true });
     }
-  }, [location.state, posts]);
+  }, [location.state, navigate]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (searchTerm) params.set("q", searchTerm);
+    else params.delete("q");
+    if (selectedCategory !== "All") params.set("category", selectedCategory);
+    else params.delete("category");
+    if (params.toString() !== location.search.slice(1)) {
+      navigate({ search: params.toString() }, { replace: true, state: location.state });
+    }
+  }, [searchTerm, selectedCategory, location.search, location.state, navigate]);
 
   // Stop skeleton once posts land in Redux (from this component or App.tsx)
   useEffect(() => {
@@ -299,39 +307,13 @@ export default function ExplorePage() {
   }, [loadMore]);
 
   const handleSelectPost = (post: Post) => {
-    dispatch(handleHideMobileBottomNav(true));
-    setSelectedPost(post);
-  };
-
-  const handleClosePost = () => {
-    dispatch(handleHideMobileBottomNav(false));
-    setSelectedPost(null);
-  };
-
-  const handleResponseSubmit = (postId: string) => {
-    handleClosePost();
-    setAppliedPostIds((current) => new Set(current).add(postId));
+    navigate(`/post/${encodeURIComponent(post.id ?? post._id)}`);
   };
 
   const handleClearFilters = () => {
     setSearchTerm("");
     setSelectedCategory("All");
   };
-
-  // Post detail takes over the whole screen on both breakpoints.
-  if (selectedPost) {
-    return (
-      <PostDetailView
-        post={selectedPost}
-        hasApplied={appliedPostIds.has(selectedPost.id ?? selectedPost._id)}
-        onBack={handleClosePost}
-        onViewProfile={() => {
-          navigate(`/profile/${selectedPost.author?.id ?? selectedPost.author?._id}`);
-        }}
-        onResponseSubmit={handleResponseSubmit}
-      />
-    );
-  }
 
   const viewProps: ExploreViewProps = {
     isAuthenticated,

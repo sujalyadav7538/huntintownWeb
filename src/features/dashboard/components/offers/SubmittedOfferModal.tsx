@@ -20,6 +20,7 @@ export default function SubmittedOfferModal({
 
   return (
     <DashboardModal
+      page
       title="Your submitted offer"
       onClose={onClose}
       size="wide"

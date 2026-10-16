@@ -28,6 +28,7 @@ interface ResponseData {
 interface ResponsesPanelProps {
   post: Post;
   hasApplied?: boolean;
+  applicationUnavailable?: boolean;
   onViewProfile?: (author: User) => void;
   onApply?: () => void;
 }
@@ -35,6 +36,7 @@ interface ResponsesPanelProps {
 export default function ResponsesPanel({
   post,
   hasApplied = false,
+  applicationUnavailable = false,
   onViewProfile,
   onApply,
 }: ResponsesPanelProps) {
@@ -212,7 +214,7 @@ export default function ResponsesPanel({
         <button
           type="button"
           onClick={onApply}
-          disabled={expired || hasApplied}
+          disabled={expired || hasApplied || applicationUnavailable}
           className="h-10 w-full cursor-pointer rounded-full theme-btn-accent text-[11px] font-bold transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
         >
           {hasApplied

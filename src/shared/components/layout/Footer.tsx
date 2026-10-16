@@ -28,8 +28,8 @@ const communityLinks = [
 ];
 
 const supportLinks = [
-  { label: "Help Center", href: "mailto:support@huntintown.com" },
-  { label: "Contact Us", href: "mailto:hello@huntintown.com" },
+  { label: "Help Center", to: "/help" },
+  { label: "Contact Us", to: "/contact" },
   {
     label: "Privacy Policy",
     to: "/legal#privacy",
@@ -218,20 +218,10 @@ export default function Footer() {
 
                 <div className="space-y-3">
                   {section.links.map((link) =>
-                    link.to ? (
+                    (
                       <Link
                         key={link.label}
                         to={link.to}
-                        onClick={() => {
-                          const sectionId = link.to?.split("#")[1];
-                          if (!sectionId) return;
-
-                          requestAnimationFrame(() => {
-                            document
-                              .getElementById(sectionId)
-                              ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                          });
-                        }}
                         className="
                         block text-sm text-zinc-400
                         transition
@@ -240,18 +230,6 @@ export default function Footer() {
                       >
                         {link.label}
                       </Link>
-                    ) : (
-                      <a
-                        key={link.label}
-                        href={link.href}
-                        className="
-                        block text-sm text-zinc-400
-                        transition
-                        hover:text-[#FF3F3F]
-                      "
-                      >
-                        {link.label}
-                      </a>
                     ),
                   )}
                 </div>

@@ -14,13 +14,8 @@ interface UIState {
   hideUpperNavigation: boolean;
 }
 
-const prefersDark = (): boolean =>
-  typeof window !== "undefined" &&
-  typeof window.matchMedia === "function" &&
-  window.matchMedia("(prefers-color-scheme: dark)").matches;
-
 const initialState: UIState = {
-  theme: prefersDark() ? "dark" : "light",
+  theme: "light",
   isCreatePostOpen: false,
   isSidePanelOpen: false,
   searchTerm: "",

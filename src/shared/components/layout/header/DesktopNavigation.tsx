@@ -8,6 +8,7 @@ import {
   Moon,
   Sun,
   BowArrow,
+  Home,
 } from "lucide-react";
 import UserProfileIndicator from "@/src/shared/components/layout/header/UserProfileIndicator";
 import Notification from "@/src/shared/components/layout/Notification";
@@ -26,8 +27,8 @@ interface DesktopNavigationProps {
 }
 
 const NAV_ITEMS = [
-  { id: "landing", label: "Den", icon: Trees },
-  { id: "explore", label: "Jungle", icon: Compass },
+  { id: "landing", label: "Home", icon: Home },
+  { id: "explore", label: "Explore", icon: Compass },
   { id: "activity", label: "Activity", icon: Footprints, auth: true },
   { id: "messaging", label: "Chat", icon: MessageSquare, auth: true },
 ];

@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAppSelector } from "@/src/store/hooks";
 import { useSeo } from "@/src/shared/hooks/useSeo";
 import { SITE_URL } from "@/src/shared/lib/seo";
@@ -20,6 +22,16 @@ export default function HomePage({
   onPostRequirement,
 }: HomePageProps) {
   const posts = useAppSelector((s) => s.posts);
+  const location = useLocation();
+
+  useEffect(() => {
+    const sectionId = location.hash.slice(1);
+    if (!sectionId) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [location.hash, location.key]);
 
   // Find live requirements for map linkage & carousel
   const activePosts = posts.filter((p) => p.status === "live");

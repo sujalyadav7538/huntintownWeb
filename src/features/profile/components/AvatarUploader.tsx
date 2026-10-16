@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Camera, Check, Trash2, X } from "lucide-react";
 import Cropper, { type Area } from "react-easy-crop";
 import UserAvatar from "@/src/shared/components/UserAvatar";
@@ -9,6 +10,7 @@ interface AvatarUploaderProps {
   onChange: (file: File) => void;
   onRemove?: () => void;
   size?: "md" | "lg";
+  variant?: "avatar" | "cover";
 }
 
 const OUTPUT_SIZE = 400;
@@ -21,12 +23,12 @@ const ACCEPTED_TYPES = [
   "image/heif",
 ];
 
-function createCroppedFile(imageUrl: string, area: Area): Promise<File> {
+function createCroppedFile(imageUrl: string, area: Area, isCover: boolean): Promise<File> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = OUTPUT_SIZE;
+      canvas.width = isCover ? 1600 : OUTPUT_SIZE;
       canvas.height = OUTPUT_SIZE;
 
       const context = canvas.getContext("2d");
@@ -43,8 +45,8 @@ function createCroppedFile(imageUrl: string, area: Area): Promise<File> {
         area.height,
         0,
         0,
-        OUTPUT_SIZE,
-        OUTPUT_SIZE,
+        canvas.width,
+        canvas.height,
       );
 
       canvas.toBlob(
@@ -54,7 +56,7 @@ function createCroppedFile(imageUrl: string, area: Area): Promise<File> {
             return;
           }
 
-          resolve(new File([blob], "profile-photo.jpg", { type: "image/jpeg" }));
+          resolve(new File([blob], isCover ? "cover-photo.jpg" : "profile-photo.jpg", { type: "image/jpeg" }));
         },
         "image/jpeg",
         0.92,
@@ -71,7 +73,9 @@ export default function AvatarUploader({
   onChange,
   onRemove,
   size = "lg",
+  variant = "avatar",
 }: AvatarUploaderProps) {
+  const isCover = variant === "cover";
   const dim = size === "lg" ? "h-28 w-28" : "h-20 w-20";
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -119,7 +123,7 @@ export default function AvatarUploader({
     setIsSaving(true);
     setError("");
     try {
-      onChange(await createCroppedFile(imageUrl, croppedArea));
+      onChange(await createCroppedFile(imageUrl, croppedArea, isCover));
       setImageUrl(null);
       setCroppedArea(null);
     } catch (cropError) {
@@ -135,8 +139,14 @@ export default function AvatarUploader({
 
   return (
     <>
-      <div className="relative w-fit">
-        <label className="group relative block w-fit cursor-pointer">
+      <div className={isCover ? "absolute inset-0" : "relative w-fit"}>
+        <label className={isCover ? "absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40" : "group relative block w-fit cursor-pointer"}>
+          {isCover ? (
+            <span className="rounded-lg bg-[#FF3F3F] px-3 py-2 text-xs font-semibold text-white">
+              Change Cover
+            </span>
+          ) : (
+          <>
           <span className="absolute -inset-0.5 rounded-full bg-linear-to-br from-[#FF3F3F] via-rose-400 to-violet-500 opacity-70 blur-[1px] transition-opacity group-hover:opacity-100" />
           <span className="relative block rounded-full bg-linear-to-br from-[#FF3F3F] to-violet-500 p-0.5">
             <UserAvatar
@@ -154,15 +164,18 @@ export default function AvatarUploader({
               </span>
             </span>
           </span>
+          </>
+          )}
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
             hidden
+            aria-label={isCover ? "Choose cover photo" : "Choose profile photo"}
             onChange={handleFileChange}
           />
         </label>
 
-        {avatar && onRemove && (
+        {!isCover && avatar && onRemove && (
           <button
             type="button"
             onClick={onRemove}
@@ -176,15 +189,15 @@ export default function AvatarUploader({
       </div>
 
       {error && !imageUrl && (
-        <p className="mt-2 text-xs text-rose-400" role="alert">
+        <p className={isCover ? "absolute bottom-2 left-2 right-2 rounded bg-black/80 p-2 text-xs text-rose-400" : "mt-2 text-xs text-rose-400"} role="alert">
           {error}
         </p>
       )}
 
-      {imageUrl && (
+      {imageUrl && createPortal(
         <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
           <section
-            aria-labelledby="profile-photo-crop-title"
+            aria-label={isCover ? "Crop cover photo" : "Crop profile photo"}
             aria-modal="true"
             className="w-full max-w-md rounded-2xl border border-white/10 bg-[#111113] p-4 shadow-2xl sm:p-5"
             role="dialog"
@@ -192,18 +205,18 @@ export default function AvatarUploader({
             <header className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <h2
-                  id="profile-photo-crop-title"
                   className="text-sm font-semibold text-zinc-100"
                 >
-                  Crop profile photo
+                  {isCover ? "Crop cover photo" : "Crop profile photo"}
                 </h2>
                 <p className="mt-1 text-xs text-zinc-500">
-                  Square photo · saved at 400 × 400 px
+                  {isCover ? "Drag and zoom to crop. Saved at 1600 x 400 px." : "Square photo · saved at 400 × 400 px"}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setImageUrl(null)}
+                disabled={isSaving}
                 aria-label="Cancel photo crop"
                 className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
               >
@@ -216,12 +229,15 @@ export default function AvatarUploader({
                 image={imageUrl}
                 crop={crop}
                 zoom={zoom}
-                aspect={1}
-                cropShape="round"
+                aspect={isCover ? 4 : 1}
+                cropShape={isCover ? "rect" : "round"}
                 showGrid={false}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={handleCropComplete}
+                mediaProps={{
+                  onError: () => setError("Could not load this photo. Try a JPG, PNG, or WEBP image."),
+                }}
               />
             </div>
 
@@ -264,7 +280,8 @@ export default function AvatarUploader({
               </button>
             </div>
           </section>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

@@ -4,6 +4,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "@/src/store/hooks";
 import { useIsTablet } from "@/src/shared/hooks/useBreakpoint";
 import { useSeo } from "@/src/shared/hooks/useSeo";
+import useRouteBack from "@/src/shared/hooks/useRouteBack";
 
 import {
   setActiveConversationId,
@@ -63,8 +64,15 @@ export default function MessagingPage() {
    * ---------------------------------------------------------
    */
 
-  const [mode, setMode] = useState<ChatMode>(() =>
-    requestedMode === "chats" ? "chats" : "posts",
+  const mode: ChatMode =
+    requestedMode === "chats" || (activeConversationFromUrl && !activePostId)
+      ? "chats"
+      : "posts";
+  const backToList = useRouteBack("/messaging");
+  const backFromConversation = useRouteBack(
+    activePostId && mode === "posts"
+      ? `/messaging?postId=${encodeURIComponent(activePostId)}`
+      : "/messaging?chatMode=chats",
   );
 
   const [myChats, setMyChats] = useState<any[]>([]);
@@ -78,7 +86,6 @@ export default function MessagingPage() {
   const loadConversationsByPost = async (postId: string) => {
     if (!token || !postId) return;
 
-    dispatch(setActiveConversationId(null));
     setConvsLoading(true);
     setPageError("");
 
@@ -180,8 +187,6 @@ export default function MessagingPage() {
     const loadMyChats = async () => {
       setChatsLoading(true);
       setPageError("");
-      dispatch(setActiveConversationId(null));
-
       try {
         const res = await apiFetch("/api/chat/my-chats", {
           method: "GET",
@@ -242,13 +247,11 @@ export default function MessagingPage() {
   useEffect(() => {
     if (!activeConversationFromUrl || !token) {
       setLinkedConversation(null);
+      dispatch(setActiveConversationId(null));
       return;
     }
 
     let cancelled = false;
-    setMode(
-      requestedMode === "chats" || !activePostId ? "chats" : "posts",
-    );
     setPageError("");
     dispatch(setActiveConversationId(activeConversationFromUrl));
 
@@ -292,6 +295,45 @@ export default function MessagingPage() {
       cancelled = true;
     };
   }, [activeConversationFromUrl, activePostId, requestedMode, token, dispatch]);
+
+  useEffect(() => {
+    if (
+      !currentUser?._id ||
+      !activeConversationFromUrl ||
+      linkedConversation?._id !== activeConversationFromUrl
+    ) {
+      return;
+    }
+
+    const helperId = String(
+      linkedConversation.helper?._id ?? linkedConversation.helper,
+    );
+    const hunterId = String(
+      linkedConversation.hunter?._id ?? linkedConversation.hunter,
+    );
+    const userId = String(currentUser._id);
+    const params = new URLSearchParams(searchParams);
+
+    if (helperId === userId) {
+      params.set("chatMode", "chats");
+      params.delete("postId");
+    } else if (hunterId === userId && linkedConversation.post?._id) {
+      params.set("chatMode", "posts");
+      params.set("postId", String(linkedConversation.post._id));
+    } else {
+      return;
+    }
+
+    if (params.toString() !== searchParams.toString()) {
+      navigate(`/messaging?${params.toString()}`, { replace: true });
+    }
+  }, [
+    activeConversationFromUrl,
+    linkedConversation,
+    currentUser?._id,
+    searchParams,
+    navigate,
+  ]);
 
   useEffect(() => {
     // Show bottom nav when no conversation is currently open.
@@ -419,7 +461,6 @@ export default function MessagingPage() {
    */
 
   const handleModeChange = (nextMode: ChatMode) => {
-    setMode(nextMode);
 
     dispatch(setActiveConversationId(null));
     dispatch(setConversations([]));
@@ -428,9 +469,7 @@ export default function MessagingPage() {
     /*
      * Clear selected post/conversation from URL.
      */
-    navigate("/messaging", {
-      replace: true,
-    });
+    navigate(`/messaging?chatMode=${nextMode}`);
   };
 
   /*
@@ -440,14 +479,11 @@ export default function MessagingPage() {
    */
 
   const handleSelectPost = (postId: string) => {
-    setMode("posts");
     dispatch(setActiveConversationId(null));
     dispatch(handleHideMobileBottomNav(false));
     loadConversationsByPost(postId);
 
-    navigate(`/messaging?postId=${postId}`, {
-      replace: true,
-    });
+    navigate(`/messaging?postId=${encodeURIComponent(postId)}`);
   };
 
   /*
@@ -459,13 +495,12 @@ export default function MessagingPage() {
    */
 
   const handleSelectChat = (chat: any) => {
-    setMode("chats");
     const conversationId = chat._id;
     setPageError("");
 
     dispatch(setActiveConversationId(conversationId));
     dispatch(handleHideMobileBottomNav(true));
-    navigate(`/messaging?conversationId=${conversationId}`, { replace: true });
+    navigate(`/messaging?chatMode=chats&conversationId=${encodeURIComponent(conversationId)}`);
   };
   /*
    * ---------------------------------------------------------
@@ -480,10 +515,7 @@ export default function MessagingPage() {
     dispatch(handleHideMobileBottomNav(true));
 
     navigate(
-      `/messaging?postId=${activePostId}&conversationId=${conversationId}`,
-      {
-        replace: true,
-      },
+      `/messaging?postId=${activePostId}&conversationId=${encodeURIComponent(conversationId)}`,
     );
   };
 
@@ -497,9 +529,7 @@ export default function MessagingPage() {
     dispatch(setActiveConversationId(null));
     dispatch(handleHideMobileBottomNav(false));
 
-    navigate("/messaging", {
-      replace: true,
-    });
+    backToList();
   };
 
   /*
@@ -567,7 +597,10 @@ export default function MessagingPage() {
       activeMessages={activeMessages}
       currentUserId={currentUser?._id}
       mode={mode}
-      onSetActiveConversation={(_id) => dispatch(setActiveConversationId(_id))}
+      onSetActiveConversation={(id) => {
+        if (id) handleSelectConversation(id);
+        else backFromConversation();
+      }}
     />
   );
 

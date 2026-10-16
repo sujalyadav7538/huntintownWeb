@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   Award,
+  ArrowLeft,
   Briefcase,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
   Globe,
   MapPin,
-  X,
 } from "lucide-react";
 import { ShowcaseItem } from "@/src/shared/types";
 import {
@@ -72,11 +72,9 @@ export default function ShowcaseDetailCard({
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
     };
   }, [open, images.length, onClose]);
 
@@ -96,12 +94,7 @@ export default function ShowcaseDetailCard({
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-start justify-center overflow-y-auto  backdrop-blur-sm "
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
+      className="relative mx-auto flex w-full items-start justify-center"
     >
       <ShowcaseDetailDesktop
         item={item}
@@ -159,9 +152,9 @@ function ShowcaseDetailDesktop({
         type="button"
         onClick={onClose}
         className="absolute cursor-pointer right-4 top-4 z-30 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/50 text-zinc-300 backdrop-blur-md transition-colors hover:bg-black/70 hover:text-white"
-        aria-label="Close"
+        aria-label="Back to profile"
       >
-        <X className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" />
       </button>
 
       <div className="max-h-[calc(100dvh-3rem)] overflow-y-auto">
@@ -415,9 +408,9 @@ function ShowcaseDetailMobile({
         type="button"
         onClick={onClose}
         className="absolute cursor-pointer right-3 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/50 text-zinc-300 backdrop-blur-md"
-        aria-label="Close"
+        aria-label="Back to profile"
       >
-        <X className="h-4 w-4" />
+        <ArrowLeft className="h-4 w-4" />
       </button>
 
       <div className="max-h-[calc(100dvh-1rem)] overflow-y-auto">

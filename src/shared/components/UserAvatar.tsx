@@ -37,12 +37,7 @@ export default function UserAvatar({
       <span
         role="img"
         aria-label={alt ?? `${userName} profile image`}
-        className={`${className} flex shrink-0 items-center justify-center overflow-hidden bg-[#FF3F3F] text-white ${fallbackClassName}`}
-        style={{
-          backgroundColor: "#FF3F3F",
-          color: "#fff",
-        //   border: "1px solid var(--app-border)",
-        }}
+        className={`${className} flex shrink-0 items-center justify-center overflow-hidden bg-[#FF3F3F] text-white ${fallbackClassName} theme-avatar-fallback`}
       >
         {getInitials(name)}
       </span>

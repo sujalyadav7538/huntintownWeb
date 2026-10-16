@@ -7,7 +7,8 @@ import { useReputation } from "@/src/shared/hooks/useReputation";
 import { useSeo } from "@/src/shared/hooks/useSeo";
 import ProfileEditLayout from "@/src/features/profile/components/edit/ProfileEditLayout";
 import ShowcaseDetailCard from "@/src/features/profile/components/showcase/ShowCaseDetailCard";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
+import useRouteScreen from "@/src/shared/hooks/useRouteScreen";
 import UserShowcase from "@/src/features/profile/components/showcase/UserShowCase";
 import ProfileAnalytics from "@/src/features/profile/components/ProfileAnalytics";
 import ProfileRecentPosts from "@/src/features/profile/components/ProfileRecentPosts";
@@ -19,6 +20,7 @@ import ProfileHeader from "@/src/features/profile/components/ProfileHeader";
 import UserStats from "@/src/features/profile/components/UserStats";
 import HighlightsSection from "../components/feed/HighlightsSection";
 import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
+import QuickFeedComposer from "../components/feed/QuickFeedComposer";
 
 type TabId =
   | "about"
@@ -65,19 +67,27 @@ export default function UserProfileView({
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
-  const [mode, setMode] = useState<"view" | "edit">("view");
-  const [initialEditSection, setInitialEditSection] = useState<
-    "basic" | "portfolio"
-  >("basic");
+  const editScreen = useRouteScreen("edit");
+  const showcaseScreen = useRouteScreen("showcase");
+  const highlightScreen = useRouteScreen("highlight");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialEditSection = editScreen.value === "portfolio" ? "portfolio" : "basic";
   const [isOwner, setIsOwner] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>("about");
+  const activeTab = TABS.find((tab) => tab.id === searchParams.get("tab"))?.id ?? "about";
+  const setActiveTab = (tab: TabId) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", tab);
+    setSearchParams(next);
+  };
   const [isSaving, setIsSaving] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [postsTotal, setPostsTotal] = useState(0);
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
   const [postsLoadError, setPostsLoadError] = useState("");
   const postsPageAbortRef = useRef<AbortController | null>(null);
-  const [selectedShowCase, setSelectedShowCase] = useState<any>(null);
+  const selectedShowCase = currentUser?.showcase?.items.find(
+    (item) => (item.id ?? item._id) === showcaseScreen.value,
+  ) ?? null;
   const [profileError, setProfileError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [retryCount, setRetryCount] = useState(0);
@@ -280,7 +290,7 @@ export default function UserProfileView({
       dispatch(updateProfile(refreshedUser));
       onUpdateProfile(refreshedUser);
       setCurrentUser(refreshedUser);
-      setMode("view");
+      editScreen.close();
       notifySuccess("Your profile has been updated.");
     } catch {
       setSaveError(
@@ -325,7 +335,7 @@ export default function UserProfileView({
     });
   };
 
-  if (mode === "edit" && currentUser) {
+  if (editScreen.value && currentUser && isOwner && !isProfileLoading) {
     return (
       <>
         {saveError && (
@@ -343,7 +353,7 @@ export default function UserProfileView({
           onSave={handleSave}
           onCancel={() => {
             setSaveError("");
-            setMode("view");
+            editScreen.close();
           }}
         />
       </>
@@ -371,6 +381,31 @@ export default function UserProfileView({
     );
   }
 
+  if (showcaseScreen.value) {
+    if (!selectedShowCase) {
+      return (
+        <section className="theme-text-primary mx-auto max-w-xl space-y-4 py-8">
+          <p role="alert">This portfolio item or highlight is no longer available.</p>
+          <button type="button" onClick={showcaseScreen.close}>Back to profile</button>
+        </section>
+      );
+    }
+    return <ShowcaseDetailCard item={selectedShowCase} open onClose={showcaseScreen.close} />;
+  }
+
+  if (highlightScreen.value && isOwner) {
+    return (
+      <section className="theme-panel mx-auto my-6 max-w-2xl rounded-xl border p-5">
+        <button type="button" onClick={highlightScreen.close} className="theme-text-muted mb-4 text-sm">Back to profile</button>
+        <h1 className="theme-text-primary mb-4 text-lg font-bold">Create a highlight</h1>
+        <QuickFeedComposer onCreated={(item) => {
+          handleFeedCreated(item);
+          highlightScreen.close();
+        }} />
+      </section>
+    );
+  }
+
   const commonProps = {
     user: currentUser,
     metric: profileMetric,
@@ -384,17 +419,11 @@ export default function UserProfileView({
     isOwner,
     activeTab,
     setActiveTab,
-    onEdit: () => {
-      setInitialEditSection("basic");
-      setMode("edit");
-    },
-    onCreatePortfolioItems: () => {
-      setInitialEditSection("portfolio");
-      setMode("edit");
-    },
-    onSelectShowcase: (item: any) => setSelectedShowCase(item),
-    onFeedCreated: handleFeedCreated,
+    onEdit: () => editScreen.open("basic"),
+    onCreatePortfolioItems: () => editScreen.open("portfolio"),
+    onSelectShowcase: (item: ShowcaseItem) => showcaseScreen.open(item.id ?? item._id),
     onFeedDeleted: handleFeedDeleted,
+    onComposeHighlight: () => highlightScreen.open("create"),
   };
 
   return (
@@ -407,11 +436,6 @@ export default function UserProfileView({
         <UserProfileMobile {...commonProps} />
       </div>
 
-      <ShowcaseDetailCard
-        item={selectedShowCase}
-        open={!!selectedShowCase}
-        onClose={() => setSelectedShowCase(null)}
-      />
     </>
   );
 }
@@ -480,8 +504,8 @@ interface UserProfileDesktopProps {
   onEdit: () => void;
   onCreatePortfolioItems: () => void;
   onSelectShowcase: (item: any) => void;
-  onFeedCreated: (item: ShowcaseItem) => void;
   onFeedDeleted: (itemId: string) => void;
+  onComposeHighlight: () => void;
 }
 
 function UserProfileDesktop({
@@ -500,8 +524,8 @@ function UserProfileDesktop({
   onEdit,
   onCreatePortfolioItems,
   onSelectShowcase,
-  onFeedCreated,
   onFeedDeleted,
+  onComposeHighlight,
 }: UserProfileDesktopProps) {
   const visibleTabs = isOwner
     ? TABS
@@ -620,7 +644,7 @@ function UserProfileDesktop({
                     )}
                     isOwner={isOwner}
                     compact
-                    onCreated={onFeedCreated}
+                    onCompose={onComposeHighlight}
                     onDeleted={onFeedDeleted}
                     onSelect={onSelectShowcase}
                   />
@@ -701,7 +725,7 @@ function UserProfileDesktop({
                 (item) => item.type === "feed",
               )}
               isOwner={isOwner}
-              onCreated={onFeedCreated}
+              onCompose={onComposeHighlight}
               onDeleted={onFeedDeleted}
               onSelect={onSelectShowcase}
             />
@@ -739,8 +763,8 @@ interface UserProfileMobileProps {
   onEdit: () => void;
   onCreatePortfolioItems: () => void;
   onSelectShowcase: (item: any) => void;
-  onFeedCreated: (item: ShowcaseItem) => void;
   onFeedDeleted: (itemId: string) => void;
+  onComposeHighlight: () => void;
 }
 
 function UserProfileMobile({
@@ -759,8 +783,8 @@ function UserProfileMobile({
   onEdit,
   onCreatePortfolioItems,
   onSelectShowcase,
-  onFeedCreated,
   onFeedDeleted,
+  onComposeHighlight,
 }: UserProfileMobileProps) {
   const visibleTabs = isOwner
     ? TABS
@@ -888,7 +912,7 @@ function UserProfileMobile({
                 (item) => item.type === "feed",
               )}
               isOwner={isOwner}
-              onCreated={onFeedCreated}
+              onCompose={onComposeHighlight}
               onDeleted={onFeedDeleted}
               onSelect={onSelectShowcase}
             />

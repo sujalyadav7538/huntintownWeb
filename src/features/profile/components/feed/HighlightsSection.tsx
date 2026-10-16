@@ -6,7 +6,6 @@ import {
   Plus,
   Sparkles,
   Trash2,
-  X,
 } from "lucide-react";
 import type { Swiper as SwiperInstance } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -15,42 +14,29 @@ import { apiFetch } from "@/src/shared/lib/api";
 import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 import type { ShowcaseItem } from "@/src/shared/types";
-import QuickFeedComposer from "./QuickFeedComposer";
 
 interface HighlightsSectionProps {
   items?: ShowcaseItem[] | null;
   isOwner: boolean;
   compact?: boolean;
-  onCreated: (item: ShowcaseItem) => void;
   onDeleted: (itemId: string) => void;
   onSelect: (item: ShowcaseItem) => void;
+  onCompose: () => void;
 }
 
 export default function HighlightsSection({
   items: itemsProp,
   isOwner,
   compact = false,
-  onCreated,
   onDeleted,
   onSelect,
+  onCompose,
 }: HighlightsSectionProps) {
   const items = itemsProp ?? [];
-  const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
   const swiperRef = useRef<SwiperInstance | null>(null);
   const { showConfirm } = useAppDialog();
-
-  useEffect(() => {
-    if (!isComposerOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsComposerOpen(false);
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isComposerOpen]);
 
   const handleDelete = async (item: ShowcaseItem) => {
     const itemId = item.id ?? item._id;
@@ -96,12 +82,12 @@ export default function HighlightsSection({
   return (
     <section className="overflow-hidden rounded-2xl border border-[#1e1e22] bg-[#111113]">
       <header className="flex items-center justify-between gap-3 border-b border-[#1e1e22] px-4 py-3.5 sm:px-5">
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[#FF3F3F]" />
             <h2 className="text-sm font-semibold text-zinc-100">Highlights</h2>
           </div>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 truncate text-xs text-zinc-500">
             Quick moments and updates
           </p>
         </div>
@@ -130,11 +116,13 @@ export default function HighlightsSection({
           {isOwner && (
             <button
               type="button"
-              onClick={() => setIsComposerOpen(true)}
+              onClick={onCompose}
+              aria-label="Create highlight"
               className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF3F3F] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#ff4949]"
             >
               <Plus className="h-4 w-4" />
-              Create highlight
+              <span className="sm:hidden">Create</span>
+              <span className="hidden sm:inline">Create highlight</span>
             </button>
           )}
         </div>
@@ -233,46 +221,6 @@ export default function HighlightsSection({
         )}
       </div>
 
-      {isComposerOpen && (
-        <div
-          className="fixed inset-0 z-500 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setIsComposerOpen(false);
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="highlight-composer-title"
-            className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-white/10 bg-[#111113] p-4 shadow-2xl"
-          >
-            <div className="mb-3 flex shrink-0 items-center justify-between">
-              <h2
-                id="highlight-composer-title"
-                className="text-sm font-semibold text-zinc-100"
-              >
-                Create a highlight
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsComposerOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/6 hover:text-white"
-                aria-label="Close create highlight dialog"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              <QuickFeedComposer
-                onCreated={(item) => {
-                  onCreated(item);
-                  setIsComposerOpen(false);
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

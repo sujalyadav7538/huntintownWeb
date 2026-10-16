@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 import { ArrowLeft, HelpCircle, Loader2, Send, X } from "lucide-react";
 import { Post } from "@/src/shared/types";
 
@@ -7,7 +8,7 @@ interface ApplyRequirementModalProps {
   post: Post;
   onClose: () => void;
 
-  onSubmit?: (data: {
+  onSubmit: (data: {
     postId: string;
     message: string;
     answers: {
@@ -26,6 +27,10 @@ export default function ApplyRequirementModal({
   const [message, setMessage] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const submissionLocked = useRef(false);
+  const submitted = useRef(false);
+  const { showConfirm } = useAppDialog();
 
   const questions = post.questions ?? [];
 
@@ -79,46 +84,56 @@ export default function ApplyRequirementModal({
     }));
     const hasEmptyAnswer = formattedAnswers.some((item) => !item.answer);
 
-    if (!message.trim() || hasEmptyAnswer || isSubmitting) return;
+    if (!message.trim() || hasEmptyAnswer || submissionLocked.current || submitted.current) return;
 
+    submissionLocked.current = true;
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
+      setError("");
+      const confirmed = await showConfirm(
+        "Submit your application? You can apply only once for this requirement and cannot apply again after submitting.",
+        {
+          title: "Confirm application",
+          confirmLabel: "Submit application",
+        },
+      );
+      if (!confirmed) return;
 
-      await onSubmit?.({
-        postId: post.id,
+      await onSubmit({
+        postId: post.id ?? post._id,
         message: message.trim(),
         answers: formattedAnswers,
       });
 
+      submitted.current = true;
       onClose();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not submit your offer. Please try again.");
     } finally {
+      submissionLocked.current = false;
       setIsSubmitting(false);
     }
   };
   return (
     <div
-      className="
-      fixed inset-0 z-9999
-      bg-black/75
-      backdrop-blur-sm
-    "
+      className="relative mx-auto h-full w-full max-w-3xl overflow-y-auto theme-page-shell"
     >
+      {error && <p role="alert" className="px-5 py-3 text-sm text-red-400">{error}</p>}
       {/* =====================================================
         DESKTOP
     ===================================================== */}
-      <div className="hidden min-h-full items-center justify-center p-4 sm:flex">
+      <div className="hidden min-h-full items-start justify-center py-6 sm:flex">
         <div
           className="
           flex
-          max-h-[78vh]
+          min-h-[60vh]
           w-full
-          max-w-md
+          max-w-2xl
           flex-col
           overflow-hidden
           rounded-2xl
           border border-[#29292f]
           bg-[#111113]
-          shadow-[0_25px_80px_rgba(0,0,0,0.65)]
         "
         >
           {/* Header */}

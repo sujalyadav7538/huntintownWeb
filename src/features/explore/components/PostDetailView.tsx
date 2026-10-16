@@ -20,11 +20,11 @@ import { CATEGORY_COLORS } from "@/src/shared/lib/postConstants";
 
 import PostImageGallery from "@/src/features/explore/components/PostImageGallery";
 import ResponsesPanel from "@/src/features/explore/components/ResponsePanel";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ApplyRequirementModal from "@/src/features/explore/components/ApplyRequirementModal";
-import { handleHideUpperNavigation } from "@/src/store/uiSlice";
-import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "@/src/store/hooks";
+import { useLocation, useNavigate } from "react-router-dom";
+import useRouteBack from "@/src/shared/hooks/useRouteBack";
 import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 
 const STATUS_DOT: Record<string, string> = {
@@ -47,28 +47,57 @@ interface PostDetailProps {
   hasApplied?: boolean;
   onBack: () => void;
   onViewProfile?: (author: Post["author"]) => void;
-  onResponseSubmit: (postId: string) => void;
+  onResponseSubmit?: (postId: string) => void;
 }
 
 export default function PostDetail({
   post,
-  hasApplied = false,
+  hasApplied: previouslyApplied = false,
   onBack,
   onViewProfile,
   onResponseSubmit,
 }: PostDetailProps) {
   const expired = post?.expiresAt ? isPostExpired(post.expiresAt) : false;
   const navigate = useNavigate();
+  const location = useLocation();
+  const isApplyPage = location.pathname.endsWith("/apply");
+  const closeApplication = useRouteBack(`/post/${post.id ?? post._id}`);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const [hasApplied, setHasApplied] = useState(previouslyApplied);
+  const [activityError, setActivityError] = useState("");
+  const [activityLoading, setActivityLoading] = useState(isAuthenticated);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    setActivityLoading(true);
+    setActivityError("");
+    apiFetchJSON<{
+      data?: { postId?: string | { id?: string; _id?: string } }[];
+    }>("/api/responses/my-activity")
+      .then((data) => {
+        if (cancelled) return;
+        setHasApplied(previouslyApplied || (data.data ?? []).some((item) => {
+          const id = typeof item.postId === "string"
+            ? item.postId
+            : item.postId?.id ?? item.postId?._id;
+          return id === (post.id ?? post._id);
+        }));
+      })
+      .catch((error: Error) => {
+        if (!cancelled) setActivityError(error.message || "Could not check your submitted offers.");
+      })
+      .finally(() => {
+        if (!cancelled) setActivityLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [isAuthenticated, post.id, post._id, previouslyApplied]);
 
   const expiryLabel = post?.expiresAt
     ? getPostExpiryLabel(post.expiresAt)
     : null;
 
-  const dispatch = useAppDispatch();
-
   const accent = CATEGORY_COLORS[post?.category?.toLowerCase()] ?? "#FF3F3F";
-  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
   const isUrgent =
     post?.title?.toLowerCase().includes("urgent") ||
@@ -95,8 +124,8 @@ export default function PostDetail({
       }),
     });
 
-    setIsApplyModalOpen(false);
-    onResponseSubmit(postId);
+    setHasApplied(true);
+    onResponseSubmit?.(postId);
     notifySuccess(
       "Your offer was submitted successfully. Track its status on your Dashboard.",
       {
@@ -107,23 +136,44 @@ export default function PostDetail({
   };
 
   const handleResponseOpen = () => {
-    if (hasApplied) return;
+    if (hasApplied || activityLoading || activityError) return;
 
     if (isAuthenticated) {
-      setIsApplyModalOpen(true);
-      dispatch(handleHideUpperNavigation(true));
+      navigate(`/post/${encodeURIComponent(post.id ?? post._id)}/apply`);
     } else {
-      navigate("/login", { replace: true });
+      navigate("/login");
     }
   };
 
-  const handleResponseClose = () => {
-    setIsApplyModalOpen(false);
-    dispatch(handleHideUpperNavigation(false));
-  };
+  if (isApplyPage) {
+    if (activityLoading) return <p className="p-6 text-sm theme-text-muted">Loading application…</p>;
+    if (activityError || hasApplied || expired) {
+      return (
+        <section className="mx-auto max-w-xl space-y-4 py-8">
+          <p role={activityError ? "alert" : "status"} className="theme-text-primary">
+            {activityError || (hasApplied
+              ? "You have already applied for this requirement."
+              : "This requirement has expired and is no longer accepting offers.")}
+          </p>
+          <button type="button" onClick={closeApplication} className="theme-btn-accent rounded-lg px-4 py-2">
+            Back to requirement
+          </button>
+        </section>
+      );
+    }
+    return (
+      <ApplyRequirementModal
+        isOpen
+        post={post}
+        onClose={closeApplication}
+        onSubmit={handleSubmitResponse}
+      />
+    );
+  }
 
   return (
-    <div className="absolute inset-0 min-h-0 w-full pt-16 backdrop-blur-sm theme-page-shell">
+    <div className="relative h-full min-h-0 w-full theme-page-shell">
+      {activityError && <p role="alert" className="px-4 py-2 text-sm text-red-400">{activityError}</p>}
       <div className="h-full min-h-0 overflow-hidden">
         <div className="mx-auto h-full w-full max-w-7xl px-4 sm:px-6">
           <div className="grid h-full min-h-0 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -135,6 +185,7 @@ export default function PostDetail({
               onApply={handleResponseOpen}
               expired={expired}
               hasApplied={hasApplied}
+              applicationUnavailable={activityLoading || Boolean(activityError)}
               isUrgent={isUrgent}
               accent={accent}
               expiryLabel={expiryLabel}
@@ -148,6 +199,7 @@ export default function PostDetail({
               onApply={handleResponseOpen}
               expired={expired}
               hasApplied={hasApplied}
+              applicationUnavailable={activityLoading || Boolean(activityError)}
               isUrgent={isUrgent}
               accent={accent}
               expiryLabel={expiryLabel}
@@ -158,6 +210,7 @@ export default function PostDetail({
               <ResponsesPanel
                 post={post}
                 hasApplied={hasApplied}
+                applicationUnavailable={activityLoading || Boolean(activityError)}
                 onViewProfile={onViewProfile}
                 onApply={handleResponseOpen}
               />
@@ -165,13 +218,6 @@ export default function PostDetail({
           </div>
         </div>
 
-        {/* Apply Modal */}
-        <ApplyRequirementModal
-          isOpen={isApplyModalOpen}
-          post={post}
-          onClose={handleResponseClose}
-          onSubmit={handleSubmitResponse}
-        />
       </div>
     </div>
   );
@@ -183,6 +229,7 @@ interface LeftPanelProps {
   onApply: () => void;
   expired: boolean;
   hasApplied: boolean;
+  applicationUnavailable: boolean;
   isUrgent: boolean;
   accent: string;
   expiryLabel?: string;
@@ -394,6 +441,7 @@ function LeftPanelMobile({
   onApply,
   expired,
   hasApplied,
+  applicationUnavailable,
   isUrgent,
   accent,
   expiryLabel,
@@ -421,7 +469,7 @@ function LeftPanelMobile({
         <button
           type="button"
           onClick={onApply}
-          disabled={expired || hasApplied}
+          disabled={expired || hasApplied || applicationUnavailable}
           className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF3F3F] px-3.5 py-2 text-[10px] font-bold text-white transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {hasApplied ? (
@@ -597,6 +645,8 @@ function LeftPanelMobile({
         <div className="mt-8 border-t border-white/8 pt-7">
           <ResponsesPanel
             post={post}
+            hasApplied={hasApplied}
+            applicationUnavailable={applicationUnavailable}
             onViewProfile={onViewProfile}
             onApply={onApply}
           />

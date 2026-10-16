@@ -43,10 +43,22 @@ export const resolveNotificationLink = (
 
   switch (notification.action) {
     case "NEW_MESSAGE":
-      if (link.startsWith("/") && !link.startsWith("//")) return link;
+      if (link.startsWith("/") && !link.startsWith("//")) {
+        const url = new URL(link, "https://huntintown.local");
+        if (url.pathname === "/messaging") {
+          if (data.chatMode === "chats" || data.chatMode === "posts") {
+            url.searchParams.set("chatMode", data.chatMode);
+          }
+          if (url.searchParams.get("chatMode") === "chats") {
+            url.searchParams.delete("postId");
+          }
+          return `${url.pathname}${url.search}${url.hash}`;
+        }
+        return link;
+      }
       return data.conversationId
         ? `/messaging?${new URLSearchParams({
-            ...(data.postId
+            ...(data.postId && data.chatMode !== "chats"
               ? { postId: String(data.postId) }
               : {}),
             conversationId: String(data.conversationId),

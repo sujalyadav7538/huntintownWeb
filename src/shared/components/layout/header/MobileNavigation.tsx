@@ -50,25 +50,24 @@ export default function MobileNavigation({
         {isAuthenticated && <Notification />}
 
         {isAuthenticated && currentUser ? (
-          // <button
-          //   type="button"
-          //   onClick={() => setActiveTab("messaging")}
-          //   aria-label="Messages"
-          //   className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
-          //     isMessagingActive
-          //       ? "bg-[#FF3F3F]/10 text-[#FF3F3F]"
-          //       : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
-          //   }`}
-          // >
-          //   <MessageSquare className="h-5 w-5" />
-
-          //   {unreadMessagesCount > 0 && (
-          //     <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3F3F] px-1 text-[9px] font-bold text-white">
-          //       {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
-          //     </span>
-          //   )}
-          // </button>
-          <></>
+          <button
+            type="button"
+            onClick={() => setActiveTab("messaging")}
+            aria-label="Chat"
+            aria-current={isMessagingActive ? "page" : undefined}
+            className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
+              isMessagingActive
+                ? "bg-[#FF3F3F]/10 text-[#FF3F3F]"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+            }`}
+          >
+            <MessageSquare className="h-5 w-5" />
+            {unreadMessagesCount > 0 && (
+              <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3F3F] px-1 text-[9px] font-bold text-white">
+                {unreadMessagesCount > 9 ? "9+" : unreadMessagesCount}
+              </span>
+            )}
+          </button>
         ) : (
           <button
             type="button"

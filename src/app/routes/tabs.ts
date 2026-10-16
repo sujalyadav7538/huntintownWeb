@@ -14,6 +14,8 @@ export function isProtectedTab(tab: string): tab is ProtectedTab {
 }
 
 export function getActiveTabFromPath(pathname: string): string {
+  if (pathname.startsWith("/post/")) return "explore";
+  if (pathname.startsWith("/profile/")) return "profile";
   const clean = pathname.replace(/^\//, "");
   return clean || "landing";
 }

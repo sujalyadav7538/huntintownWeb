@@ -438,7 +438,7 @@ export default function TermsAndConditionsPage({
       </div>
 
       {/* Accept */}
-      {mode === "modal" && <div className="mt-9 border-t border-white/10 pt-6">
+      {onAccept && <div className="mt-9 border-t border-white/10 pt-6">
         <button
           type="button"
           onClick={onAccept}
@@ -454,6 +454,7 @@ export default function TermsAndConditionsPage({
     return (
       <main className="theme-page-shell min-h-screen px-4 py-10 text-white sm:px-6">
         <article className="mx-auto max-w-3xl rounded-xl border border-white/10 bg-black px-4 py-6 sm:px-8 sm:py-8">
+          {onClose && <button type="button" onClick={onClose} className="mb-6 text-sm text-zinc-400">Back to sign up</button>}
           {content}
         </article>
       </main>

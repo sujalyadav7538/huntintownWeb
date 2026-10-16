@@ -8,6 +8,72 @@ This README documents the full project structure, tech stack, and a refactoring 
 
 ---
 
+## Route-based screen navigation
+
+The current Vite app uses `BrowserRouter` from `src/main.tsx`. Page-like detail
+views are URL-driven rather than local-state modals:
+
+- `/post/:id` opens a requirement from Explore, the home page, a profile, or the map.
+- `/post/:id/apply` opens its application form (sign-in required).
+- `/dashboard?postId=:id` shows received offers; `&response=:id` opens one offer.
+  Both the published requirement's eye button and offer count open this view.
+  Dashboard detail views appear as bottom sheets on mobile and pages on desktop.
+  Their URLs remain in browser history, so Back dismisses the current sheet.
+- `/dashboard?offer=:id` shows a submitted offer; `?rate=:postId` opens helper ratings.
+- Existing `?ratePost=:postId` notification links still open the submitted offer.
+- Profile query parameters select `tab`, `edit=basic|portfolio`,
+  `showcase=:itemId`, or `highlight=create`.
+- `/login?mode=signup` opens signup; `&terms=view` opens its terms without a modal.
+- `/help` provides common questions and task links; `/contact` lists support,
+  general enquiry, and privacy/safety contacts. Footer support links open these
+  public pages rather than immediately launching an email app.
+  Both pages reset the app's scroll container to the top when opened.
+- Messaging post/thread selections push history entries and are restored from the URL.
+- Message notification deep links use conversation ownership to select My Posts
+  or My Chats, correcting older links without adding an extra history entry.
+
+Browser/device Back and Forward traverse these screens. In-page Back uses router
+history when available and a parent-screen fallback for a fresh deep link.
+Signed-in users can open Chat from the mobile header beside notifications; unread
+messages show a count badge on the shortcut.
+Reloading a detail URL reloads its data; missing records display an explicit error.
+Explore keeps its search and category in `q` and `category` when opening a post.
+Small transient controls (confirmation dialogs, image cropping, menus, and map
+previews) remain overlays, not separate pages.
+
+Create-post dropdowns automatically open above their field when space below is
+limited. Their height stays within the visible scroll area and adapts to viewport
+changes, including the mobile keyboard.
+
+## Theme preference
+
+Light is the default theme, regardless of the device's system theme. Users can
+switch to dark mode; their saved preference is restored on subsequent visits.
+In light mode, entered form values use the primary dark text color while
+placeholders stay muted.
+
+## SEO
+
+Public requirement pages are indexable after their data loads. Application
+forms, profiles, account pages, and dashboard/chat screens remain noindex;
+failed post loads are also noindex. Canonicals omit query strings.
+The build generates a sitemap for the static public pages, including Help Center
+and Contact Us. Dynamic requirements are discovered through links rather than
+listed in this static sitemap. Help Center includes FAQ structured data matching
+its visible answers; Contact Us includes organization contact structured data.
+
+Route metadata is applied in the browser. Per-post social previews still require
+server-side rendering or prerendering; unknown URLs also require server-side
+status handling for true HTTP 404 responses.
+
+Profile photo and cover uploads support drag-to-position and zoom before
+confirmation. Covers use a 4:1 crop saved as a 1600 x 400 JPEG; profile photos
+remain 400 x 400. Cancelling a crop leaves the existing photo unchanged.
+
+Applications require confirmation before submission and can only be submitted
+once per requirement. Cancelling confirmation preserves the application draft.
+On small screens, the highlight creation button uses the shorter label "Create".
+
 ## Table of Contents
 
 1. [What the App Does](#what-the-app-does)

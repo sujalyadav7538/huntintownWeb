@@ -13,6 +13,7 @@ import {
 } from "../passwordPolicy";
 
 import TermsAndConditionsPage from "./TermsAndConditionsPage";
+import useRouteScreen from "@/src/shared/hooks/useRouteScreen";
 
 interface LoginPageProps {
   onLogin?: (user: User, token: string) => void;
@@ -21,20 +22,25 @@ interface LoginPageProps {
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const location = useLocation();
   const authState = location.state as AuthNavigationState | null;
-  const [isSignup, setIsSignup] = useState(authState?.isSignup ?? false);
+  const authScreen = useRouteScreen("mode");
+  const isSignup = authScreen.value
+    ? authScreen.value === "signup"
+    : authState?.isSignup ?? false;
+  const setIsSignup = (signup: boolean) => {
+    if (signup !== isSignup) authScreen.open(signup ? "signup" : "signin");
+  };
   const [termsAccepted, setTermsAccepted] = useState(
     authState?.termsAccepted === true,
   );
-  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const termsScreen = useRouteScreen("terms");
 
   useEffect(() => {
     const navigationState = location.state as AuthNavigationState | null;
     if (!navigationState) return;
 
-    setIsSignup(navigationState.isSignup ?? false);
     setTermsAccepted(navigationState.termsAccepted === true);
     if (navigationState.formData) setFormData(navigationState.formData);
-  }, [location.key]);
+  }, [location.state]);
 
   useSeo({ title: isSignup ? "Create an Account" : "Sign In" });
 
@@ -167,7 +173,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
-  const openTermsPage = () => setIsTermsOpen(true);
+  const openTermsPage = () => termsScreen.open("view");
+
+  if (termsScreen.value) {
+    return (
+      <TermsAndConditionsPage
+        mode="page"
+        onClose={termsScreen.close}
+        onAccept={() => {
+          setTermsAccepted(true);
+          termsScreen.close();
+        }}
+      />
+    );
+  }
 
   return (
     <>
@@ -397,7 +416,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 type="button"
                 onClick={() => {
                   setError("");
-                  setIsSignup((prev) => !prev);
+                  setIsSignup(!isSignup);
                 }}
                 className="ml-1.5 font-semibold text-zinc-300 transition hover:text-[#FF3F3F]"
               >
@@ -408,15 +427,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         </section>
       </div>
     </main>
-      {isTermsOpen && (
-        <TermsAndConditionsPage
-          onClose={() => setIsTermsOpen(false)}
-          onAccept={() => {
-            setTermsAccepted(true);
-            setIsTermsOpen(false);
-          }}
-        />
-      )}
     </>
   );
 }

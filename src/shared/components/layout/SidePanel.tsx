@@ -49,8 +49,8 @@ export default function SidePanel({
 
   const navigationItems = [
     {
-      label: "Jungle",
-      icon: BowArrow,
+      label: "Explore",
+      icon: Compass,
       path: "/explore",
       authRequired: false,
     },
@@ -61,7 +61,7 @@ export default function SidePanel({
       authRequired: true,
     },
     {
-      label: "Tracks",
+      label: "Activity",
       icon: Footprints,
       path: "/dashboard?view=submitted",
       authRequired: true,

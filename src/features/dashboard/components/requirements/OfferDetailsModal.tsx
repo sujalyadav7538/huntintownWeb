@@ -65,6 +65,7 @@ export default function OfferDetailsModal({
 
   return (
     <DashboardModal
+      page
       title="Shots"
       subtitle={post.title}
       onClose={onClose}
@@ -167,7 +168,7 @@ export default function OfferDetailsModal({
                 type="button"
                 disabled={!!action}
                 onClick={() => void act("accept")}
-                className="rounded-lg bg-emerald-950/40 px-3 py-1.5 text-[10px] font-semibold text-emerald-400 flex flex-row items-center gap-1"
+                className="dashboard-offer-accept inline-flex items-center gap-1 rounded-lg border px-4 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {action === "accept" ? (
                   <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
@@ -179,7 +180,7 @@ export default function OfferDetailsModal({
               <button
                 type="button"
                 disabled={!!action}
-                className="rounded-lg bg-red-950/40 px-3 py-1.5 text-[10px] font-semibold text-red-500 flex flex-row items-center gap-1"
+                className="dashboard-offer-reject inline-flex items-center gap-1 rounded-lg border px-4 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => void act("reject")}
               >
                 {action === "reject" ? (

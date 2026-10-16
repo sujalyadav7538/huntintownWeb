@@ -65,7 +65,7 @@ export function absoluteUrl(pathOrUrl: string): string {
 
 /**
  * Routes that must never be indexed: they are behind auth, per-user, or
- * transient. Keep this in sync with robots.txt (scripts/generate-seo-files.mjs).
+ * transient. Robots.txt permits crawling so crawlers can read noindex tags.
  */
 export const NOINDEX_PREFIXES = [
   "/dashboard",
@@ -76,11 +76,11 @@ export const NOINDEX_PREFIXES = [
   "/profile",
   "/login",
   "/notifications",
-  "/post",
+  "/response",
 ];
 
 export function isNoIndexPath(pathname: string): boolean {
-  return NOINDEX_PREFIXES.some(
+  return /^\/post\/[^/]+\/apply\/?$/.test(pathname) || NOINDEX_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }

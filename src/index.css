@@ -316,10 +316,10 @@ html[data-theme="light"] [class*="text-zinc-300"] {
   color: var(--app-text) !important;
 }
 
-html[data-theme="light"] [class*="text-zinc-400"],
-html[data-theme="light"] [class*="text-zinc-500"],
-html[data-theme="light"] [class*="text-zinc-600"],
-html[data-theme="light"] [class*="text-zinc-700"] {
+html[data-theme="light"] [class*="text-zinc-400"]:not(:is(input, textarea, select)),
+html[data-theme="light"] [class*="text-zinc-500"]:not(:is(input, textarea, select)),
+html[data-theme="light"] [class*="text-zinc-600"]:not(:is(input, textarea, select)),
+html[data-theme="light"] [class*="text-zinc-700"]:not(:is(input, textarea, select)) {
   color: var(--app-text-muted) !important;
 }
 
@@ -332,17 +332,21 @@ html[data-theme="light"] [class*="hover:bg-white/"]:hover {
 html[data-theme="light"] input,
 html[data-theme="light"] textarea,
 html[data-theme="light"] select {
-  color: var(--app-text);
+  color: var(--app-text) !important;
+  -webkit-text-fill-color: var(--app-text);
 }
 
-html[data-theme="light"] ::placeholder {
-  color: #9ca3af;
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: var(--app-text-muted) !important;
+  -webkit-text-fill-color: var(--app-text-muted);
+  opacity: 1;
 }
 
 /* text-zinc-500/600/700 are near-invisible on dark surfaces (down to ~2.5:1); realign to the muted token */
-[class*="text-zinc-500"],
-[class*="text-zinc-600"],
-[class*="text-zinc-700"] {
+[class*="text-zinc-500"]:not(:where(html[data-theme="light"] :is(input, textarea, select))),
+[class*="text-zinc-600"]:not(:where(html[data-theme="light"] :is(input, textarea, select))),
+[class*="text-zinc-700"]:not(:where(html[data-theme="light"] :is(input, textarea, select))) {
   color: var(--app-text-muted) !important;
 }
 
@@ -490,6 +494,38 @@ html[data-theme="light"] [class*="text-yellow-5"] {
 
 .theme-text-image {
   color: white;
+}
+
+.dashboard-offer-accept {
+  background-color: #047857;
+  border-color: #047857;
+  color: #fff;
+}
+
+.dashboard-offer-accept:hover:not(:disabled) {
+  background-color: #065f46;
+}
+
+.dashboard-offer-reject {
+  background-color: transparent;
+  border-color: #f87171;
+  color: #f87171;
+}
+
+html[data-theme="light"] .dashboard-offer-reject {
+  background-color: #fef2f2;
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
+.dashboard-offer-reject:hover:not(:disabled) {
+  background-color: color-mix(in srgb, #ef4444 15%, transparent);
+}
+
+/* Keep avatar initials on the same solid accent in both themes. */
+html[data-theme] .theme-avatar-fallback {
+  background-color: var(--app-red-solid) !important;
+  color: #fff !important;
 }
 
 .theme-text-secondary {

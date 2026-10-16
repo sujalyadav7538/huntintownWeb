@@ -7,6 +7,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
+import useRouteScreen from "@/src/shared/hooks/useRouteScreen";
 import DashboardModal from "../DashboardModal";
 import type {
   DashboardConversation,
@@ -55,8 +56,8 @@ export default function ReceivedOffersModal({
   const [error, setError] = useState("");
   const [rowActionError, setRowActionError] = useState("");
   const [reconsideringId, setReconsideringId] = useState<string | null>(null);
-  const [selectedResponse, setSelectedResponse] =
-    useState<DashboardResponse | null>(null);
+  const responseScreen = useRouteScreen("response");
+  const selectedResponse = responses.find((response) => response._id === responseScreen.value);
   const latestRequest = useRef(0);
 
   const loadOffers = useCallback(async () => {
@@ -71,6 +72,10 @@ export default function ReceivedOffersModal({
         sort,
         status: statusFilter,
       });
+      if (responseScreen.value) {
+        query.delete("pagination");
+        query.delete("status");
+      }
       const [offerResponse, conversationResponse] = await Promise.all([
         apiFetch(`/api/responses/post/${post._id}?${query.toString()}`),
         apiFetch(`/api/chat/posts/${post._id}/conversations`),
@@ -104,7 +109,7 @@ export default function ReceivedOffersModal({
     } finally {
       if (requestId === latestRequest.current) setLoading(false);
     }
-  }, [page, post._id, sort, statusFilter]);
+  }, [page, post._id, sort, statusFilter, responseScreen.value]);
 
   useEffect(() => {
     void loadOffers();
@@ -126,11 +131,6 @@ export default function ReceivedOffersModal({
       current.map((item) =>
         item._id === responseId ? { ...item, status, conversationId } : item,
       ),
-    );
-    setSelectedResponse((current) =>
-      current?._id === responseId
-        ? { ...current, status, conversationId }
-        : current,
     );
     await loadOffers();
     await onChanged();
@@ -161,7 +161,7 @@ export default function ReceivedOffersModal({
       if (page === 1) await loadOffers();
       else setPage(1);
       await onChanged();
-      setSelectedResponse(null);
+      if (responseScreen.value) responseScreen.close();
       notifySuccess("Offer moved back to pending.");
     } catch (cause) {
       setRowActionError(
@@ -175,8 +175,31 @@ export default function ReceivedOffersModal({
     }
   };
 
+  if (responseScreen.value) {
+    if (loading && !selectedResponse) return <LoadingState />;
+    if (error || !selectedResponse) {
+      return (
+        <div>
+          <button type="button" onClick={responseScreen.close} className="theme-text-primary mb-4">Back to received offers</button>
+          <ErrorState message={error || "This offer is no longer available."} retry={() => void loadOffers()} />
+        </div>
+      );
+    }
+    return (
+      <OfferDetailsModal
+        post={post}
+        response={selectedResponse}
+        onClose={responseScreen.close}
+        onUpdate={updateOffer}
+        onReevaluate={reconsiderOffer}
+        onChat={() => onInitiateChat(post._id, selectedResponse.conversationId)}
+      />
+    );
+  }
+
   return (
     <DashboardModal
+      page
       title="Arrows "
       subtitle={post.title}
       onClose={onClose}
@@ -277,7 +300,7 @@ export default function ReceivedOffersModal({
                   <button
                     type="button"
                     aria-label={`View offer from ${response.respondedBy?.name ?? "respondent"}`}
-                    onClick={() => setSelectedResponse(response)}
+                    onClick={() => responseScreen.open(response._id)}
                     className="theme-icon-muted flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-white/5 hover:text-[#FF6B6B]"
                   >
                     <ChevronRight className="h-5 w-5" />
@@ -303,22 +326,6 @@ export default function ReceivedOffersModal({
         />
       </div>
 
-      {selectedResponse && (
-        <OfferDetailsModal
-          post={post}
-          response={selectedResponse}
-          onClose={() => setSelectedResponse(null)}
-          onUpdate={updateOffer}
-          onReevaluate={reconsiderOffer}
-          onChat={() => {
-            if (!selectedResponse.conversationId) return;
-
-            setSelectedResponse(null);
-            onClose();
-            onInitiateChat(post._id, selectedResponse.conversationId);
-          }}
-        />
-      )}
     </DashboardModal>
   );
 }
