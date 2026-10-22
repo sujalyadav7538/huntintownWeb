@@ -47,7 +47,7 @@ export default function HomePage({
       "@type": "Organization",
       name: "HuntInTown",
       url: SITE_URL || undefined,
-      logo: SITE_URL ? `${SITE_URL}/logo.jpeg` : undefined,
+      logo: SITE_URL ? `${SITE_URL}/logo.png` : undefined,
       description:
         "A hyperlocal community network connecting neighbours who need help with skilled local helpers.",
     },

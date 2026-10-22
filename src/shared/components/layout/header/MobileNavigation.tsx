@@ -28,25 +28,30 @@ export default function MobileNavigation({
   const isLoginActive = activeTab === "login";
 
   return (
-    <div className="flex h-full items-center justify-between px-4">
-      <button type="button" onClick={handleSidePanelOpen} aria-label="Menu">
-        <Menu className="h-5 w-5 text-zinc-400 hover:text-white" />
+    <div className="grid h-full grid-cols-[1fr_auto_1fr] items-center px-3 sm:px-4">
+      <button
+        type="button"
+        onClick={handleSidePanelOpen}
+        aria-label="Menu"
+        className="flex h-10 w-10 items-center justify-center rounded-full text-(--app-text-muted) transition hover:text-(--app-text)"
+      >
+        <Menu className="h-5 w-5" />
       </button>
 
       <button
         type="button"
         onClick={() => setActiveTab("landing")}
-        className="flex items-center"
+        className="flex items-center justify-self-center"
         aria-label="Home"
       >
         <img
           src={theme === "dark" ? "/dark_logo.png" : "/light_logo.png"}
           alt="HuntInTown"
-          className="h-8 w-37.5"
+          className="h-8 w-auto max-w-[42vw] object-contain"
         />
       </button>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center justify-self-end gap-1.5">
         {isAuthenticated && <Notification />}
 
         {isAuthenticated && currentUser ? (
@@ -57,8 +62,8 @@ export default function MobileNavigation({
             aria-current={isMessagingActive ? "page" : undefined}
             className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition ${
               isMessagingActive
-                ? "bg-[#FF3F3F]/10 text-[#FF3F3F]"
-                : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                ? "bg-[color-mix(in_srgb,var(--app-red)_12%,transparent)] text-(--app-red)"
+                : "text-(--app-text-muted) hover:text-(--app-text)"
             }`}
           >
             <MessageSquare className="h-5 w-5" />
@@ -73,10 +78,10 @@ export default function MobileNavigation({
             type="button"
             onClick={() => setActiveTab("login")}
             aria-label="Sign In"
-            className={`flex h-8 items-center gap-1.5 rounded-lg text-[11px] font-semibold transition ${
+            className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
               isLoginActive
-                ? "text-[#FF3F3F]"
-                : "text-zinc-400 hover:text-white"
+                ? "text-(--app-red)"
+                : "text-(--app-text-muted) hover:text-(--app-text)"
             }`}
           >
             <UserRound className="h-5 w-5" />

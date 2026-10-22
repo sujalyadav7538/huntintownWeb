@@ -3,7 +3,6 @@ import { apiFetch } from "@/src/shared/lib/api";
 import { Post, ShowcaseItem, User } from "@/src/shared/types";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { updateProfile } from "@/src/store/authSlice";
-import { useReputation } from "@/src/shared/hooks/useReputation";
 import { useSeo } from "@/src/shared/hooks/useSeo";
 import ProfileEditLayout from "@/src/features/profile/components/edit/ProfileEditLayout";
 import ShowcaseDetailCard from "@/src/features/profile/components/showcase/ShowCaseDetailCard";
@@ -99,16 +98,8 @@ export default function UserProfileView({
     type: "profile",
   });
 
-  const {
-    metric: signedInMetric,
-    badges: signedInBadges,
-    loading: reputationLoading,
-  } = useReputation();
-  const profileMetric =
-    currentUser?.metric ?? (isOwner ? signedInMetric : null);
-  const profileBadges =
-    currentUser?.badges ?? (isOwner ? signedInBadges : []);
-  const profileReputationLoading = isOwner ? reputationLoading : false;
+  const profileMetric = currentUser?.metric ?? null;
+  const profileBadges = currentUser?.badges ?? [];
 
   useEffect(() => {
     let cancelled = false;
@@ -410,7 +401,7 @@ export default function UserProfileView({
     user: currentUser,
     metric: profileMetric,
     badges: profileBadges,
-    repLoading: profileReputationLoading,
+    repLoading: false,
     posts,
     postsTotal,
     loadingMorePosts,

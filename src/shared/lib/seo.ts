@@ -21,7 +21,7 @@ export const DEFAULT_TITLE = `${SITE_NAME} — Find Local Help, Offer Your Skill
 export const DEFAULT_DESCRIPTION =
   "HuntInTown connects people within local communities to post requirements, discover skilled helpers, collaborate securely, and build lasting reputation through verified interactions.";
 
-export const DEFAULT_OG_IMAGE = "/logo.jpeg";
+export const DEFAULT_OG_IMAGE = "/logo.png";
 
 /** Google truncates titles past roughly 60 characters. */
 const MAX_TITLE_LENGTH = 60;

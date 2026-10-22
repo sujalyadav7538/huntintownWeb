@@ -1,19 +1,14 @@
 import {
-  Trees,
   Compass,
   Footprints,
   MessageSquare,
-  Search,
   PlusCircle,
   Moon,
   Sun,
-  BowArrow,
   Home,
 } from "lucide-react";
 import UserProfileIndicator from "@/src/shared/components/layout/header/UserProfileIndicator";
 import Notification from "@/src/shared/components/layout/Notification";
-import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
-import { setSearchTerm } from "@/src/store/uiSlice";
 
 interface DesktopNavigationProps {
   activeTab: string;
@@ -43,16 +38,13 @@ export default function DesktopNavigation({
   theme,
   onToggleTheme,
 }: DesktopNavigationProps) {
-  const dispatch = useAppDispatch();
-  const searchTerm = useAppSelector((state) => state.ui.searchTerm);
-
   const isNavItemActive = (id: string) =>
     id === activeTab ||
     (id === "activity" && activeTab === "dashboard") ||
     (id === "explore" && activeTab === "feed");
 
   return (
-    <div className="hidden h-full items-center justify-between px-6 md:flex">
+    <div className="hidden h-full grid-cols-[1fr_auto_1fr] items-center px-6 md:grid">
       {/* Logo */}
       <button
         type="button"
@@ -67,22 +59,8 @@ export default function DesktopNavigation({
         />
       </button>
 
-      {/* Search */}
-      <div className="mx-8 w-full max-w-sm">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-
-          <input
-            value={searchTerm}
-            onChange={(e) => dispatch(setSearchTerm(e.target.value))}
-            placeholder="Search requirements..."
-            className="w-full rounded-xl border border-[#2b2b30] bg-[#1A1A1D] py-2 pl-10 pr-4 text-sm text-white placeholder:text-zinc-500 focus:border-[#FF3F3F] focus:outline-none"
-          />
-        </div>
-      </div>
-
       {/* Navigation */}
-      <nav className="flex shrink-0 items-center gap-6">
+      <nav className="flex shrink-0 items-center gap-5">
         {NAV_ITEMS.filter((item) => !item.auth || isAuthenticated).map(
           (item) => {
             const Icon = item.icon;
@@ -125,7 +103,7 @@ export default function DesktopNavigation({
       </nav>
 
       {/* Actions */}
-      <div className="ml-8 flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center justify-self-end gap-3">
         <button
           type="button"
           onClick={onToggleTheme}
