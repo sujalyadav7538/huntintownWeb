@@ -94,6 +94,7 @@ export default function MobileBottomNavigation({
         type="button"
         onClick={() => handleNavigation(item)}
         aria-label={label}
+        aria-current={active ? "page" : undefined}
         className={`flex flex-col items-center gap-0.5 px-3 py-2.5 transition ${
           active ? "text-[#FF3F3F]" : "theme-text-muted"
         }`}
@@ -115,7 +116,15 @@ export default function MobileBottomNavigation({
           <item.icon className="h-4 w-4" />
         )}
 
-        <span className="text-[8px] font-bold uppercase tracking-wider">
+        <span
+          className="inline-flex h-4 items-center justify-center rounded-md px-1.5 text-[8px] font-bold uppercase tracking-wider"
+          style={active ? {
+            background: "linear-gradient(135deg, rgb(255 255 255 / 18%), rgb(255 255 255 / 3%)), color-mix(in srgb, var(--app-red) 9%, transparent)",
+            boxShadow: "0 3px 10px rgb(0 0 0 / 6%)",
+            WebkitBackdropFilter: "blur(14px) saturate(160%)",
+            backdropFilter: "blur(14px) saturate(160%)",
+          } : undefined}
+        >
           {label}
         </span>
       </button>

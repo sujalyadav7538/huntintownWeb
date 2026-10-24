@@ -44,7 +44,7 @@ export default function DesktopNavigation({
     (id === "explore" && activeTab === "feed");
 
   return (
-    <div className="hidden h-full grid-cols-[1fr_auto_1fr] items-center px-6 md:grid">
+    <div className="hidden h-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 px-4 md:grid lg:grid-cols-[minmax(0,0.65fr)_auto_minmax(max-content,1fr)] lg:gap-x-6 lg:px-6">
       {/* Logo */}
       <button
         type="button"
@@ -60,7 +60,7 @@ export default function DesktopNavigation({
       </button>
 
       {/* Navigation */}
-      <nav className="flex shrink-0 items-center gap-5">
+      <nav aria-label="Main navigation" className="flex shrink-0 items-center justify-self-center gap-1 xl:gap-2">
         {NAV_ITEMS.filter((item) => !item.auth || isAuthenticated).map(
           (item) => {
             const Icon = item.icon;
@@ -70,12 +70,16 @@ export default function DesktopNavigation({
               <button
                 key={item.id}
                 type="button"
+                aria-current={active ? "page" : undefined}
                 onClick={() => setActiveTab(item.id)}
-                className={`relative flex cursor-pointer items-center gap-2 transition ${
-                  active
-                    ? "text-white"
-                    : "text-zinc-500 hover:text-zinc-200"
-                }`}
+                className="desktop-nav-item relative flex h-9 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-lg px-2 text-(--app-text-muted) transition hover:text-(--app-text) lg:px-3"
+                style={active ? {
+                  color: "var(--app-text)",
+                  background: "linear-gradient(135deg, rgb(255 255 255 / 18%), rgb(255 255 255 / 3%)), color-mix(in srgb, var(--app-red) 9%, transparent)",
+                  boxShadow: "0 3px 10px rgb(0 0 0 / 6%)",
+                  WebkitBackdropFilter: "blur(14px) saturate(160%)",
+                  backdropFilter: "blur(14px) saturate(160%)",
+                } : undefined}
               >
                 <Icon
                   className={`h-4 w-4 ${
@@ -83,19 +87,16 @@ export default function DesktopNavigation({
                   }`}
                 />
 
-                <span className="text-sm font-medium">{item.label}</span>
+                <span className="text-xs font-medium lg:text-sm">{item.label}</span>
 
                 {item.id === "messaging" && unreadMessagesCount > 0 && (
-                  <span className="absolute -right-4 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3F3F] px-1 text-[9px] font-bold text-white">
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#FF3F3F] px-1 text-[9px] font-bold text-white">
                     {unreadMessagesCount > 99
                       ? "99+"
                       : unreadMessagesCount}
                   </span>
                 )}
 
-                {active && (
-                  <span className="absolute -bottom-5.25 left-0 h-0.5 w-full rounded-full bg-[#FF3F3F]" />
-                )}
               </button>
             );
           },

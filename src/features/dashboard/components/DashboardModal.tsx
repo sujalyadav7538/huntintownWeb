@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ArrowLeft, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useIsTablet } from "@/src/shared/hooks/useBreakpoint";
 
 interface DashboardModalProps {
@@ -32,8 +32,6 @@ export default function DashboardModal({
   mobileFullscreen = false,
   compactDesktop = false,
   hideHeaderTitle = false,
-  backButton = false,
-  hideMobileBack = false,
   hideHeaderControls = false,
   size = "standard",
   closeOnEscape = true,
@@ -44,14 +42,13 @@ export default function DashboardModal({
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isMobileSheet) return;
     const container = overlayRef.current?.closest("main") ?? document.body;
     const previous = container.style.overflow;
     container.style.overflow = "hidden";
     return () => {
       container.style.overflow = previous;
     };
-  }, [isMobileSheet]);
+  }, []);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -61,30 +58,47 @@ export default function DashboardModal({
     return () => window.removeEventListener("keydown", handleEscape);
   }, [closeOnEscape, onClose]);
 
-  if (page && !isMobileSheet) {
-    return (
-      <section aria-label={title} className="theme-panel mx-auto flex min-h-[65vh] w-full max-w-5xl flex-col rounded-xl border">
-        <header className="theme-divider flex shrink-0 flex-wrap items-center justify-between gap-4 border-b px-5 py-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <button type="button" onClick={onClose} aria-label="Back" className="theme-icon-muted theme-hover-soft rounded-md p-2">
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <div className="min-w-0">
-              <h1 className="theme-text-primary text-base font-bold">{title}</h1>
-              {subtitle && <p className="theme-text-muted mt-1 text-xs">{subtitle}</p>}
+  const header = (
+    <header className="theme-divider grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 border-b px-4 py-3 md:grid-cols-[minmax(0,1fr)_auto_auto] md:px-5 md:py-4">
+      <div className="col-start-1 row-start-1 min-w-0">
+        {!hideHeaderTitle && (
+          <>
+            <h2 className="theme-text-primary truncate text-base font-bold">
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="theme-text-muted mt-1 truncate text-xs" title={subtitle}>
+                {subtitle}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+      {!hideHeaderControls && (
+        <>
+          {headerActions && (
+            <div role="toolbar" aria-label="Dialog actions" className="theme-divider col-span-2 col-start-1 row-start-2 flex min-w-0 items-center justify-end border-t pt-3 md:col-span-1 md:col-start-2 md:row-start-1 md:border-t-0 md:border-r md:pt-0 md:pr-3">
+              {headerActions}
             </div>
-          </div>
-          {headerActions}
-        </header>
-        <div className={`min-h-0 flex-1 ${contentClassName ?? ""}`}>{children}</div>
-      </section>
-    );
-  }
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dialog"
+            title="Close dialog"
+            className="theme-icon-muted theme-hover-soft col-start-2 row-start-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition hover:text-current md:col-start-3 md:h-8 md:w-8"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </>
+      )}
+    </header>
+  );
 
   return (
     <div
       ref={overlayRef}
-      className={`fixed inset-0 z-200 flex justify-center bg-black/25 backdrop-blur-sm ${mobileDrawer || isMobileSheet ? "items-end p-0 md:items-center md:p-5" : mobileFullscreen ? "items-stretch pt-14 md:items-center md:p-5" : "items-end sm:items-center sm:p-5"}`}
+      className={`theme-modal-backdrop fixed inset-0 z-200 flex justify-center bg-black/25 backdrop-blur-sm ${mobileDrawer || mobileFullscreen || isMobileSheet ? "items-end p-0 md:items-center md:p-5" : "items-end sm:items-center sm:p-5"}`}
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -93,51 +107,10 @@ export default function DashboardModal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`theme-panel flex w-full flex-col overflow-hidden border shadow-2xl ${mobileDrawer || isMobileSheet ? "h-[85dvh] max-h-[90dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)] md:h-auto md:min-h-96 md:max-h-[78dvh] md:rounded-xl" : mobileFullscreen ? `min-h-80 h-[calc(100dvh-3.5rem)] max-h-[calc(100dvh-3.5rem)] rounded-none md:h-auto ${compactDesktop ? "md:max-h-[70dvh] md:min-h-0" : "md:max-h-[78dvh] md:min-h-105"} md:rounded-xl` : "min-h-80 max-h-[92dvh] rounded-t-2xl sm:min-h-96 sm:rounded-xl"} ${mobileDrawer || mobileFullscreen ? (size === "wide" ? "md:max-w-2xl" : "md:max-w-xl") : size === "wide" ? "sm:max-w-2xl" : "sm:max-w-xl"}`}
+        className={`theme-panel flex w-full flex-col overflow-hidden border shadow-2xl ${mobileDrawer || isMobileSheet ? "h-[85dvh] max-h-[90dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)] md:h-auto md:min-h-96 md:max-h-[78dvh] md:rounded-xl md:pb-0" : mobileFullscreen ? `h-[85dvh] max-h-[90dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)] md:h-auto md:pb-0 ${compactDesktop ? "md:max-h-[70dvh] md:min-h-0" : "md:max-h-[78dvh] md:min-h-105"} md:rounded-xl` : "max-h-[92dvh] rounded-t-2xl pb-[env(safe-area-inset-bottom)] sm:min-h-96 sm:rounded-xl sm:pb-0"} ${mobileDrawer || mobileFullscreen ? (size === "wide" ? "md:max-w-2xl" : "md:max-w-xl") : size === "wide" ? "sm:max-w-2xl" : "sm:max-w-xl"}`}
       >
         {isMobileSheet && <div aria-hidden="true" className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-(--app-border-strong)" />}
-        <header className={`theme-divider flex shrink-0 items-start justify-between gap-4 border-b px-5 py-4 ${hideHeaderTitle && mobileFullscreen ? "hidden md:flex" : ""}`}>
-          <div className="flex min-w-0 items-start gap-2">
-            {!hideHeaderControls &&
-              !hideMobileBack &&
-              !mobileDrawer &&
-              (mobileFullscreen || backButton) && (
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Back"
-                className="theme-icon-muted theme-hover-soft flex h-8 w-8 shrink-0 items-center justify-center rounded-md transition md:hidden"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </button>
-            )}
-            {!hideHeaderTitle && (
-              <div className="min-w-0">
-                <h2 className="theme-text-primary truncate text-base font-bold">
-                  {title}
-                </h2>
-                {subtitle && (
-                  <p className="theme-text-muted mt-1 truncate text-xs">
-                    {subtitle}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-          {!hideHeaderControls && (
-            <div className="flex shrink-0 items-center gap-1">
-              {headerActions}
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close dialog"
-                className={`theme-icon-muted theme-hover-soft h-8 w-8 items-center justify-center rounded-md transition hover:text-current ${!mobileDrawer && (mobileFullscreen || backButton) ? "hidden md:flex" : "flex"}`}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-        </header>
+        {header}
         <div
           className={`min-h-0 flex-1 ${contentClassName ?? "overflow-y-auto"}`}
         >

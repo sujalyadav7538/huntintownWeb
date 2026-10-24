@@ -120,11 +120,7 @@ export default function AppRoutes({
       />
       <Route
         path="/post/:id/apply"
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <PostDetailRoute />
-          </ProtectedRoute>
-        }
+        element={<PostApplicationRedirect />}
       />
 
       {/* =========================================================
@@ -348,6 +344,11 @@ function PostResponsesRedirect() {
       replace
     />
   );
+}
+
+function PostApplicationRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/post/${encodeURIComponent(id ?? "")}`} replace />;
 }
 
 function PostDetailRoute() {

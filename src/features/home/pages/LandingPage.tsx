@@ -9,6 +9,7 @@ import HeroSection from "@/src/features/home/components/HeroSection";
 import HowItWorks from "@/src/features/home/components/HowItWorks";
 import TrustSystem from "@/src/features/home/components/TrustSystem";
 import WhyHuntInTown from "@/src/features/home/components/WhyHuntInTown";
+import AnimatedContent from "@/src/shared/components/AnimatedContent";
 
 interface HomePageProps {
   onExplore: () => void;
@@ -62,10 +63,18 @@ export default function HomePage({
       />
 
       <div className="px-2 sm:px-6 lg:px-10">
-        <WhyHuntInTown />
-        <HowItWorks />
-        <TrustSystem />
-        <CommunityPrinciples />
+        <AnimatedContent revealOnScroll duration={0.5}>
+          <WhyHuntInTown />
+        </AnimatedContent>
+        <AnimatedContent revealOnScroll duration={0.5}>
+          <HowItWorks />
+        </AnimatedContent>
+        <AnimatedContent revealOnScroll duration={0.5}>
+          <TrustSystem />
+        </AnimatedContent>
+        <AnimatedContent revealOnScroll duration={0.5}>
+          <CommunityPrinciples />
+        </AnimatedContent>
       </div>
 
       <Footer />

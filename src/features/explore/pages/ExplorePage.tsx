@@ -23,6 +23,7 @@ import { useIsDesktop } from "@/src/shared/hooks/useBreakpoint";
 import { useSeo } from "@/src/shared/hooks/useSeo";
 import useDebounce from "@/src/shared/hooks/useDebounce";
 import { apiFetch } from "@/src/shared/lib/api";
+import AnimatedContent from "@/src/shared/components/AnimatedContent";
 
 const SEARCH_PAGE_SIZE = 20;
 
@@ -420,20 +421,28 @@ function ExploreDesktop({
         />
       ) : (
         <div className="grid grid-cols-2 gap-x-4 gap-y-4 xl:grid-cols-4">
-          {posts.map((post) => (
-            <PostGridCard
+          {posts.map((post, index) => (
+            <AnimatedContent
               key={post.id ?? post._id}
-              post={post}
-              badge={
-                appliedPostIds.has(post.id ?? post._id) ? (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">
-                    <BadgeCheck className="h-3 w-3" />
-                    Applied
-                  </span>
-                ) : undefined
-              }
-              onSelect={() => onSelectPost(post)}
-            />
+              variant="fade"
+              revealOnScroll
+              duration={0.35}
+              delay={Math.min(index, 5) * 0.04}
+              className="h-full min-w-0"
+            >
+              <PostGridCard
+                post={post}
+                badge={
+                  appliedPostIds.has(post.id ?? post._id) ? (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">
+                      <BadgeCheck className="h-3 w-3" />
+                      Applied
+                    </span>
+                  ) : undefined
+                }
+                onSelect={() => onSelectPost(post)}
+              />
+            </AnimatedContent>
           ))}
         </div>
       )}
@@ -500,20 +509,28 @@ function ExploreMobile({
         />
       ) : (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {posts.map((post) => (
-            <PostGridCard
+          {posts.map((post, index) => (
+            <AnimatedContent
               key={post.id ?? post._id}
-              post={post}
-              badge={
-                appliedPostIds.has(post.id ?? post._id) ? (
-                  <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">
-                    <BadgeCheck className="h-3 w-3" />
-                    Applied
-                  </span>
-                ) : undefined
-              }
-              onSelect={() => onSelectPost(post)}
-            />
+              variant="fade"
+              revealOnScroll
+              duration={0.35}
+              delay={Math.min(index, 5) * 0.04}
+              className="h-full min-w-0"
+            >
+              <PostGridCard
+                post={post}
+                badge={
+                  appliedPostIds.has(post.id ?? post._id) ? (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">
+                      <BadgeCheck className="h-3 w-3" />
+                      Applied
+                    </span>
+                  ) : undefined
+                }
+                onSelect={() => onSelectPost(post)}
+              />
+            </AnimatedContent>
           ))}
         </div>
       )}

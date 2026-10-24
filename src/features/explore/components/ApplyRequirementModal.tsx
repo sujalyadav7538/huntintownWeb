@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
-import { ArrowLeft, HelpCircle, Loader2, Send, X } from "lucide-react";
+import { HelpCircle, Loader2, Send, X } from "lucide-react";
 import { Post } from "@/src/shared/types";
 
 interface ApplyRequirementModalProps {
@@ -30,6 +31,7 @@ export default function ApplyRequirementModal({
   const [error, setError] = useState("");
   const submissionLocked = useRef(false);
   const submitted = useRef(false);
+  const modalRef = useRef<HTMLDivElement>(null);
   const { showConfirm } = useAppDialog();
 
   const questions = post.questions ?? [];
@@ -43,11 +45,33 @@ export default function ApplyRequirementModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isSubmitting) return;
+
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const background = Array.from(document.body.children).filter(
+      (element): element is HTMLElement => element instanceof HTMLElement && !element.contains(modalRef.current),
+    );
+    const previousInert = background.map((element) => element.inert);
+    background.forEach((element) => { element.inert = true; });
+    modalRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !isSubmitting) {
         onClose();
+      }
+      if (event.key === "Tab") {
+        const controls = Array.from(modalRef.current?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex="0"]',
+        ) ?? []).filter((element) => element.getClientRects().length > 0);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === modalRef.current)) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === modalRef.current)) {
+          event.preventDefault();
+          first?.focus();
+        }
       }
     };
 
@@ -55,6 +79,8 @@ export default function ApplyRequirementModal({
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+      background.forEach((element, index) => { element.inert = previousInert[index]; });
+      previouslyFocused?.focus();
     };
   }, [isOpen, isSubmitting, onClose]);
 
@@ -114,24 +140,35 @@ export default function ApplyRequirementModal({
       setIsSubmitting(false);
     }
   };
-  return (
+  return createPortal(
     <div
-      className="relative mx-auto h-full w-full max-w-3xl overflow-y-auto theme-page-shell"
+      className="theme-modal-backdrop fixed inset-0 z-[80] flex items-end justify-center bg-black/60 sm:items-center sm:p-6"
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !isSubmitting) onClose();
+      }}
+    >
+    <div
+      ref={modalRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Apply for requirement"
+      tabIndex={-1}
+      className="relative max-h-[90dvh] w-full overflow-y-auto rounded-t-2xl pb-[env(safe-area-inset-bottom)] outline-none theme-page-shell sm:max-w-2xl sm:rounded-lg sm:pb-0"
     >
       {error && <p role="alert" className="px-5 py-3 text-sm text-red-400">{error}</p>}
       {/* =====================================================
         DESKTOP
     ===================================================== */}
-      <div className="hidden min-h-full items-start justify-center py-6 sm:flex">
+      <div className="hidden max-h-[90dvh] items-start justify-center sm:flex">
         <div
           className="
           flex
-          min-h-[60vh]
+          max-h-[90dvh]
           w-full
           max-w-2xl
           flex-col
           overflow-hidden
-          rounded-2xl
+          rounded-lg
           border border-[#29292f]
           bg-[#111113]
         "
@@ -156,6 +193,7 @@ export default function ApplyRequirementModal({
 
             <button
               type="button"
+              aria-label="Close application"
               onClick={onClose}
               disabled={isSubmitting}
               className="
@@ -187,37 +225,35 @@ export default function ApplyRequirementModal({
       {/* =====================================================
         MOBILE
     ===================================================== */}
-      <div className="flex h-full w-full flex-col bg-[#0c0c0e] sm:hidden">
+      <div className="flex h-[min(42rem,85dvh)] w-full flex-col bg-[#0c0c0e] sm:hidden">
         {/* Top bar */}
         <div
           className="
-          flex shrink-0 items-center gap-3
+          flex shrink-0 items-center justify-between gap-3
           border-b border-[#202025]
           px-4 py-3
         "
         >
+          <span className="min-w-0 truncate text-[11px] font-medium text-zinc-300">
+            Apply for requirement
+          </span>
           <button
             type="button"
+            aria-label="Close application"
+            title="Close application"
             onClick={onClose}
             disabled={isSubmitting}
             className="
-            inline-flex items-center gap-1.5
-            text-[11px] font-medium
+            inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md
             text-zinc-400
             transition
+            hover:bg-white/5
             hover:text-zinc-100
             disabled:opacity-40
           "
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back
+            <X className="h-4 w-4" />
           </button>
-
-          <div className="h-3.5 w-px bg-[#29292f]" />
-
-          <span className="truncate text-[11px] font-medium text-zinc-300">
-            Apply for requirement
-          </span>
         </div>
 
         {/* Mobile title */}
@@ -245,6 +281,8 @@ export default function ApplyRequirementModal({
         />
       </div>
     </div>
+    </div>,
+    document.body,
   );
 }
 

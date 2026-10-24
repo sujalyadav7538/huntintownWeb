@@ -41,7 +41,6 @@ export default function ResponsesPanel({
   onApply,
 }: ResponsesPanelProps) {
   const expired = isPostExpired(post.expiresAt);
-
   const [responses, setResponses] = useState<ResponseData[]>([]);
   const [filter, setFilter] = useState<ResponseFilter>("trust");
   const [loading, setLoading] = useState(false);
@@ -209,8 +208,7 @@ export default function ResponsesPanel({
         )}
       </div>
 
-      {/* Footer */}
-      <div className="shrink-0 border-t border-white/[0.07] pt-3">
+      <div className="hidden shrink-0 border-t border-white/[0.07] pt-3 lg:block">
         <button
           type="button"
           onClick={onApply}

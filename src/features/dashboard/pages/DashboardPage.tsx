@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Layers } from "lucide-react";
-import { useIsTablet } from "@/src/shared/hooks/useBreakpoint";
+import AnimatedContent from "@/src/shared/components/AnimatedContent";
 
 import { Post, User } from "@/src/shared/types";
 
@@ -41,12 +41,10 @@ export default function DashboardPage({
   const [submitted, setSubmitted] = useState<SubmittedResponse[]>([]);
   const [statsRevision, setStatsRevision] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
-  const isTablet = useIsTablet();
   const selectedView =
     searchParams.get("view") === "submitted" ? "submitted" : "published";
   const publishedDetail = searchParams.has("postId") || searchParams.has("rate");
   const submittedDetail = searchParams.has("offer") || searchParams.has("ratePost");
-  const isDetail = isTablet && (publishedDetail || submittedDetail);
 
   const refreshStats = () => setStatsRevision((revision) => revision + 1);
   const selectView = (view: "published" | "submitted") => {
@@ -81,11 +79,11 @@ export default function DashboardPage({
 
   return (
     <div className="theme-page-shell mx-auto w-full max-w-7xl space-y-7 px-1 py-5 sm:space-y-8 sm:py-7">
-      {!isDetail && <div className="hidden md:block">{stats}</div>}
+      <AnimatedContent variant="fade" duration={0.3} className="hidden md:block">{stats}</AnimatedContent>
       <nav
         role="tablist"
         aria-label="Dashboard sections"
-        className={`theme-divider max-w-full overflow-x-auto border-b scrollbar-hide md:hidden ${isDetail ? "hidden" : "flex"}`}
+        className="theme-divider flex max-w-full overflow-x-auto border-b scrollbar-hide md:hidden"
       >
         <DashboardTab
           active={selectedView === "published"}
@@ -98,14 +96,14 @@ export default function DashboardPage({
           onClick={() => selectView("submitted")}
         />
       </nav>
-      <div className={`grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-7 ${isDetail ? "" : "xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"}`}>
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-7 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
         <div
-          className={`min-w-0 ${submittedDetail ? "hidden" : publishedDetail || selectedView === "published" ? "block" : "hidden md:block"}`}
+          className={`min-w-0 ${publishedDetail || (!submittedDetail && selectedView === "published") ? "block" : "hidden md:block"}`}
         >
           {published}
         </div>
         <div
-          className={`min-w-0 ${publishedDetail ? "hidden" : submittedDetail || selectedView === "submitted" ? "block" : "hidden md:block"}`}
+          className={`min-w-0 ${submittedDetail || (!publishedDetail && selectedView === "submitted") ? "block" : "hidden md:block"}`}
         >
           {submittedOffers}
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Post } from "@/src/shared/types";
 import { ArrowUpRight, MapPin } from "lucide-react";
+import AnimatedContent from "@/src/shared/components/AnimatedContent";
 
 import HuntMap from "../../map/components/HuntMap";
 
@@ -98,13 +99,15 @@ function HeroSectionDesktop({
   return (
     <div className="space-y-7">
       <div className="space-y-4">
-        <h1 className="hero-reveal-left-to-right font-black leading-none tracking-tight theme-text-primary text-5xl xl:text-6xl">
-          Find Help.
-          <br />
-          <span className="landing-eyebrow">Offer Skills.</span>
-          <br />
-          Build Local Trust.
-        </h1>
+        <AnimatedContent variant="reveal">
+          <h1 className="font-black leading-none tracking-tight theme-text-primary text-5xl xl:text-6xl">
+            Find Help.
+            <br />
+            <span className="landing-eyebrow">Offer Skills.</span>
+            <br />
+            Build Local Trust.
+          </h1>
+        </AnimatedContent>
 
         <p className="max-w-xl text-base leading-7 theme-text-muted">
           HuntInTown connects people within local communities to post
@@ -146,7 +149,7 @@ function HeroSectionMobile({ onExplore }: HeroActionsProps) {
       <div className="relative">
         <LockOnAnimation />
 
-        <div className="space-y-8 text-center">
+        <AnimatedContent className="space-y-8 text-center">
           <h1 className="theme-text-primary flex flex-col gap-4 text-[3.2rem] font-black leading-[0.9] tracking-[-0.045em]">
             <span className="block">Spot It.</span>
 
@@ -160,7 +163,7 @@ function HeroSectionMobile({ onExplore }: HeroActionsProps) {
           <p className="mx-auto max-w-[290px] text-sm leading-6 theme-text-muted">
             Find what you need. Find who needs you.
           </p>
-        </div>
+        </AnimatedContent>
 
         <div className="mt-7">
           <button

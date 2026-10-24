@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useRouteScreen from "@/src/shared/hooks/useRouteScreen";
+import AnimatedContent from "@/src/shared/components/AnimatedContent";
 import { RefreshCw } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
 import useDebounce from "@/src/shared/hooks/useDebounce";
@@ -137,7 +138,6 @@ export default function SubmittedOffers({
     return () => observer.disconnect();
   }, [filteredItems.length, visibleCount, requestedId]);
 
-  const isTablet = useIsTablet();
   let detail: React.ReactNode = null;
   if (requestedId) {
     const close = offerScreen.value ? offerScreen.close : ratingScreen.close;
@@ -157,13 +157,12 @@ export default function SubmittedOffers({
         onChat={() => onInitiateChat(selected.postId._id, selected.conversationId, "chats")}
       />
     );
-    if (isTablet) return detail;
   }
 
   return (
     <section className="min-w-0">
       {detail}
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+      <AnimatedContent variant="fade" duration={0.3} className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">
             Your responses
@@ -181,7 +180,7 @@ export default function SubmittedOffers({
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </button>
-      </div>
+      </AnimatedContent>
 
       <div className="mb-3">
         <ExploreSearch
@@ -225,15 +224,22 @@ export default function SubmittedOffers({
           />
         ) : (
           <div className="min-w-0 space-y-2">
-            {filteredItems.slice(0, visibleCount).map((item) => (
-              <SubmittedOfferCard
+            {filteredItems.slice(0, visibleCount).map((item, index) => (
+              <AnimatedContent
                 key={item.postId._id}
-                item={item}
-                onExplore={() => offerScreen.open(item._id)}
-                onChat={() =>
-                  onInitiateChat(item.postId._id, item.conversationId, "chats")
-                }
-              />
+                variant="fade"
+                revealOnScroll
+                duration={0.3}
+                delay={Math.min(index, 5) * 0.04}
+              >
+                <SubmittedOfferCard
+                  item={item}
+                  onExplore={() => offerScreen.open(item._id)}
+                  onChat={() =>
+                    onInitiateChat(item.postId._id, item.conversationId, "chats")
+                  }
+                />
+              </AnimatedContent>
             ))}
             <div ref={sentinel} aria-hidden="true" className="h-1" />
           </div>
@@ -247,4 +253,3 @@ export default function SubmittedOffers({
     </section>
   );
 }
-import { useIsTablet } from "@/src/shared/hooks/useBreakpoint";

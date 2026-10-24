@@ -1,3 +1,4 @@
+import AnimatedContent from "@/src/shared/components/AnimatedContent";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/src/shared/lib/api";
 import { Post, ShowcaseItem, User } from "@/src/shared/types";
@@ -524,7 +525,7 @@ function UserProfileDesktop({
 
   return (
     <div className="theme-page-shell mx-auto w-full space-y-4 pt-3">
-      <div className="theme-panel flex flex-col overflow-hidden rounded-2xl border">
+      <AnimatedContent variant="fade" duration={0.35} className="theme-panel flex flex-col overflow-hidden rounded-2xl border">
         <ProfileHeader
           user={user}
           metric={metric}
@@ -544,7 +545,7 @@ function UserProfileDesktop({
             onAnalytics={() => setActiveTab("analytics")}
           />
         </div>
-      </div>
+      </AnimatedContent>
 
       <section className="theme-panel-soft overflow-hidden rounded-2xl border border-[#1e1e22]  shadow-[0_0_0_1px_rgba(255,255,255,0.02)] mb-3">
         <div className=" overflow-x-auto border-b border-[#1e1e22] px-2">
@@ -783,7 +784,7 @@ function UserProfileMobile({
 
   return (
     <div className="theme-page-shell w-full space-y-3 pt-2">
-      <div className="theme-panel overflow-hidden rounded-xl border">
+      <AnimatedContent variant="fade" duration={0.35} className="theme-panel overflow-hidden rounded-xl border">
         <ProfileHeader
           user={user}
           metric={metric}
@@ -803,7 +804,7 @@ function UserProfileMobile({
             onAnalytics={() => setActiveTab("analytics")}
           />
         </div>
-      </div>
+      </AnimatedContent>
 
       <section className="theme-panel-soft overflow-hidden rounded-xl border border-[#1e1e22] bg-[#0e0e10]">
         {/* Mobile horizontal tab slider */}

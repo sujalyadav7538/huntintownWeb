@@ -49,6 +49,7 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const mainRef = useRef<HTMLElement>(null);
+  const isPostRoute = location.pathname.startsWith("/post/");
 
   useLayoutEffect(() => {
     if (
@@ -216,7 +217,9 @@ export default function App() {
           className={`min-h-0 flex-1 w-full mx-auto ${
             hideUpperNavigation ? "pt-0 md:pt-16" : "pt-14 md:pt-16"
           } ${
-            ["messaging"].includes(activeTab)
+            isPostRoute
+              ? "flex flex-col overflow-hidden lg:px-4"
+              : ["messaging"].includes(activeTab)
               ? "flex flex-col overflow-hidden "
               : "overflow-y-auto px-2 pb-16 sm:pb-8 lg:pb-0  sm:px-6  lg:px-4"
           }`}
@@ -236,7 +239,7 @@ export default function App() {
         </main>
 
         {/* ── Mobile bottom nav ── */}
-        {!hideMobileBottomNav && (
+        {!hideMobileBottomNav && !isPostRoute && (
           <MobileBottomNavigation
             activeTab={activeTab}
             setActiveTab={setActiveTab}

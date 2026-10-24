@@ -378,16 +378,18 @@ const MobileNotification = ({
         type="button"
         aria-label="Close notifications"
         onClick={onClose}
-        className="fixed inset-0 z-[1000] bg-black/45 backdrop-blur-[2px]"
+        className="theme-modal-backdrop fixed inset-0 z-[1000] bg-black/45 backdrop-blur-[2px]"
         data-notification-modal="true"
       />
 
       <section
         aria-label="Notification center"
+        role="dialog"
+        aria-modal="true"
         data-notification-modal="true"
-        className="fixed inset-0 z-[1001] flex flex-col overflow-hidden bg-[var(--app-surface)]"
+        className="fixed inset-x-0 bottom-0 z-[1001] flex h-[85dvh] max-h-[90dvh] flex-col overflow-hidden rounded-t-2xl bg-[var(--app-surface)] pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="flex justify-center pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="flex justify-center pb-2 pt-3">
           <span className="h-1 w-10 rounded-full bg-[var(--app-border-strong)]" />
         </div>
 

@@ -1071,8 +1071,8 @@ function PortfolioItemEditor({
   };
 
   return (
-    <div className="fixed inset-0 z-500 flex items-center justify-center backdrop-blur-sm p-0 sm:p-6">
-      <div className="flex h-full w-full flex-col border-white/8 bg-[#111113] text-zinc-100 sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-2xl sm:border">
+    <div className="theme-modal-backdrop fixed inset-0 z-500 flex items-end justify-center backdrop-blur-sm p-0 sm:items-center sm:p-6">
+      <div role="dialog" aria-modal="true" aria-label={item.id ? "Edit portfolio item" : "Add portfolio item"} className="flex h-[85dvh] max-h-[90dvh] w-full flex-col rounded-t-2xl border-white/8 bg-[#111113] pb-[env(safe-area-inset-bottom)] text-zinc-100 sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-2xl sm:border sm:pb-0">
         {/* HEADER */}
         <div className="flex shrink-0 items-center justify-between border-b border-white/8 px-5 py-4">
           <div>

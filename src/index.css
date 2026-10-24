@@ -279,8 +279,13 @@ html[data-theme="light"] #root {
 
 html[data-theme="light"] [class*="bg-[#0"],
 html[data-theme="light"] [class*="bg-[#1"],
-html[data-theme="light"] [class*="bg-black"] {
+html[data-theme="light"] [class~="bg-black"] {
   background-color: var(--app-surface) !important;
+}
+
+html[data-theme="light"] .theme-modal-backdrop {
+  background-color: rgb(24 24 27 / 28%);
+  backdrop-filter: blur(2px);
 }
 
 html[data-theme="light"] [class*="border-[#1e"],
@@ -435,6 +440,15 @@ html[data-theme="light"] [class*="text-yellow-5"] {
 
 .theme-header {
   background: var(--app-header);
+}
+
+.desktop-nav-item {
+  color: var(--app-text-muted);
+}
+
+.desktop-nav-item:hover {
+  color: var(--app-text);
+  background-color: color-mix(in srgb, var(--app-text) 4%, transparent);
 }
 
 .theme-page-shell {

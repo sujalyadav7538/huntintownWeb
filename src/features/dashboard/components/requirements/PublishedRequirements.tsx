@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import useRouteScreen from "@/src/shared/hooks/useRouteScreen";
-import { useIsTablet } from "@/src/shared/hooks/useBreakpoint";
+import AnimatedContent from "@/src/shared/components/AnimatedContent";
 import { RefreshCw } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
 import useDebounce from "@/src/shared/hooks/useDebounce";
@@ -43,7 +43,6 @@ export default function PublishedRequirements({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const postScreen = useRouteScreen("postId");
-  const isTablet = useIsTablet();
   const ratingScreen = useRouteScreen("rate");
   const requestedPostId = postScreen.value ?? ratingScreen.value;
   const selectedPost = posts.find((post) => post._id === requestedPostId);
@@ -136,13 +135,12 @@ export default function PublishedRequirements({
         onChanged={refreshRequirements}
       />
     );
-    if (isTablet) return detail;
   }
 
   return (
     <section className="min-w-0">
       {detail}
-      <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+      <AnimatedContent variant="fade" duration={0.3} className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">
             Your listings
@@ -160,7 +158,7 @@ export default function PublishedRequirements({
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </button>
-      </div>
+      </AnimatedContent>
 
       <div className="mb-3">
         <ExploreSearch
@@ -204,22 +202,29 @@ export default function PublishedRequirements({
           />
         ) : (
           <div className="min-w-0 space-y-2">
-            {filteredPosts.slice(0, visibleCount).map((post) => (
-              <RequirementCard
+            {filteredPosts.slice(0, visibleCount).map((post, index) => (
+              <AnimatedContent
                 key={post._id}
-                post={post}
-                onExplore={() => postScreen.open(post._id)}
-                onUpdateStatus={async (status) => {
-                  await onUpdateStatus(post._id, status);
-                  await refreshRequirements();
-                  if (status === "completed") ratingScreen.open(post._id);
-                }}
-                onRate={() => ratingScreen.open(post._id)}
-                onDelete={async () => {
-                  await onDeleteListing(post._id);
-                  await refreshRequirements();
-                }}
-              />
+                variant="fade"
+                revealOnScroll
+                duration={0.3}
+                delay={Math.min(index, 5) * 0.04}
+              >
+                <RequirementCard
+                  post={post}
+                  onExplore={() => postScreen.open(post._id)}
+                  onUpdateStatus={async (status) => {
+                    await onUpdateStatus(post._id, status);
+                    await refreshRequirements();
+                    if (status === "completed") ratingScreen.open(post._id);
+                  }}
+                  onRate={() => ratingScreen.open(post._id)}
+                  onDelete={async () => {
+                    await onDeleteListing(post._id);
+                    await refreshRequirements();
+                  }}
+                />
+              </AnimatedContent>
             ))}
             <div ref={sentinel} aria-hidden="true" className="h-1" />
           </div>

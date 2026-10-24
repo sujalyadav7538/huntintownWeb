@@ -5,6 +5,7 @@ import { Bell, CheckCheck, ChevronRight, Trash2, X } from "lucide-react";
 import { apiFetchJSON } from "@/src/shared/lib/api";
 import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 import { useSeo } from "@/src/shared/hooks/useSeo";
+import AnimatedContent from "@/src/shared/components/AnimatedContent";
 import {
   NOTIFICATION_TYPE_LABELS,
   NotificationItem,
@@ -179,7 +180,7 @@ export default function NotificationsPage() {
   return (
     <div className="theme-page-shell mx-auto w-full max-w-3xl space-y-5 px-1 py-5 sm:py-7">
       <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
+        <AnimatedContent variant="fade" duration={0.3}>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">
             Activity
           </p>
@@ -191,7 +192,7 @@ export default function NotificationsPage() {
               </span>
             )}
           </h1>
-        </div>
+        </AnimatedContent>
 
         <div className="flex items-center gap-2">
           <button
@@ -292,6 +293,7 @@ export default function NotificationsPage() {
             Showing {items.length} of {total}
           </p>
 
+          <AnimatedContent variant="fade" duration={0.3}>
           <ul className="space-y-2">
             {items.map((notification) => {
               const unread = !notification.isRead;
@@ -360,6 +362,7 @@ export default function NotificationsPage() {
               );
             })}
           </ul>
+          </AnimatedContent>
 
           {hasMore && (
             <div className="flex justify-center pt-1">

@@ -23,8 +23,7 @@ import ResponsesPanel from "@/src/features/explore/components/ResponsePanel";
 import { useEffect, useState } from "react";
 import ApplyRequirementModal from "@/src/features/explore/components/ApplyRequirementModal";
 import { useAppSelector } from "@/src/store/hooks";
-import { useLocation, useNavigate } from "react-router-dom";
-import useRouteBack from "@/src/shared/hooks/useRouteBack";
+import { useNavigate } from "react-router-dom";
 import { notifySuccess } from "@/src/shared/components/layout/ToastProvider";
 
 const STATUS_DOT: Record<string, string> = {
@@ -59,9 +58,7 @@ export default function PostDetail({
 }: PostDetailProps) {
   const expired = post?.expiresAt ? isPostExpired(post.expiresAt) : false;
   const navigate = useNavigate();
-  const location = useLocation();
-  const isApplyPage = location.pathname.endsWith("/apply");
-  const closeApplication = useRouteBack(`/post/${post.id ?? post._id}`);
+  const [isApplicationOpen, setIsApplicationOpen] = useState(false);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const [hasApplied, setHasApplied] = useState(previouslyApplied);
   const [activityError, setActivityError] = useState("");
@@ -139,42 +136,16 @@ export default function PostDetail({
     if (hasApplied || activityLoading || activityError) return;
 
     if (isAuthenticated) {
-      navigate(`/post/${encodeURIComponent(post.id ?? post._id)}/apply`);
+      setIsApplicationOpen(true);
     } else {
       navigate("/login");
     }
   };
 
-  if (isApplyPage) {
-    if (activityLoading) return <p className="p-6 text-sm theme-text-muted">Loading application…</p>;
-    if (activityError || hasApplied || expired) {
-      return (
-        <section className="mx-auto max-w-xl space-y-4 py-8">
-          <p role={activityError ? "alert" : "status"} className="theme-text-primary">
-            {activityError || (hasApplied
-              ? "You have already applied for this requirement."
-              : "This requirement has expired and is no longer accepting offers.")}
-          </p>
-          <button type="button" onClick={closeApplication} className="theme-btn-accent rounded-lg px-4 py-2">
-            Back to requirement
-          </button>
-        </section>
-      );
-    }
-    return (
-      <ApplyRequirementModal
-        isOpen
-        post={post}
-        onClose={closeApplication}
-        onSubmit={handleSubmitResponse}
-      />
-    );
-  }
-
   return (
-    <div className="relative h-full min-h-0 w-full theme-page-shell">
+    <div className="relative flex h-full min-h-0 w-full flex-col theme-page-shell">
       {activityError && <p role="alert" className="px-4 py-2 text-sm text-red-400">{activityError}</p>}
-      <div className="h-full min-h-0 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <div className="mx-auto h-full w-full max-w-7xl px-4 sm:px-6">
           <div className="grid h-full min-h-0 lg:grid-cols-[minmax(0,1fr)_360px]">
             {/* Left - Desktop */}
@@ -219,6 +190,23 @@ export default function PostDetail({
         </div>
 
       </div>
+      <footer className="shrink-0 border-t border-white/10 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] theme-page-shell sm:px-6 lg:hidden">
+        <button
+          type="button"
+          onClick={handleResponseOpen}
+          disabled={expired || hasApplied || activityLoading || Boolean(activityError)}
+          className="theme-btn-accent flex h-11 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 sm:ml-auto sm:max-w-sm"
+        >
+          {hasApplied ? <BadgeCheck className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {hasApplied ? "Applied" : expired ? "Requirement Expired" : "Apply for Requirement"}
+        </button>
+      </footer>
+      <ApplyRequirementModal
+        isOpen={isApplicationOpen}
+        post={post}
+        onClose={() => setIsApplicationOpen(false)}
+        onSubmit={handleSubmitResponse}
+      />
     </div>
   );
 }
@@ -466,19 +454,6 @@ function LeftPanelMobile({
           Requirements
         </button>
 
-        <button
-          type="button"
-          onClick={onApply}
-          disabled={expired || hasApplied || applicationUnavailable}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#FF3F3F] px-3.5 py-2 text-[10px] font-bold text-white transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {hasApplied ? (
-            <BadgeCheck className="h-3.5 w-3.5" />
-          ) : (
-            <Plus className="h-3.5 w-3.5" />
-          )}
-          {hasApplied ? "Applied" : "Apply"}
-        </button>
       </div>
 
       {/* Content */}

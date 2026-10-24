@@ -463,12 +463,12 @@ export default function TermsAndConditionsPage({
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/5 px-3 py-4 backdrop-blur-sm sm:px-6 rounded-4xl"
+      className="theme-modal-backdrop fixed inset-0 z-100 flex items-end justify-center bg-black/5 backdrop-blur-sm sm:items-center sm:rounded-4xl sm:px-6 sm:py-4"
       onClick={onClose}
     >
       <section
         aria-labelledby="terms-title"
-        className="relative max-h-full w-full max-w-3xl overflow-y-auto rounded-xl border border-white/10 bg-black px-4 py-6 text-white shadow-2xl sm:px-8 sm:py-8"
+        className="relative max-h-[90dvh] w-full overflow-y-auto rounded-t-xl border border-white/10 bg-black px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-white shadow-2xl sm:max-h-full sm:max-w-3xl sm:rounded-xl sm:px-8 sm:py-8"
         role="dialog"
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}

@@ -86,7 +86,7 @@ export default function OffersReceivedModal({ post, onClose, onInitiateChat }: O
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4"
+      className="theme-modal-backdrop fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4"
       onClick={onClose}
     >
       <div

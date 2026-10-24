@@ -195,11 +195,11 @@ export default function AvatarUploader({
       )}
 
       {imageUrl && createPortal(
-        <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+        <div className="theme-modal-backdrop fixed inset-0 z-1000 flex items-end justify-center bg-black/80 backdrop-blur-sm sm:items-center sm:p-4">
           <section
             aria-label={isCover ? "Crop cover photo" : "Crop profile photo"}
             aria-modal="true"
-            className="w-full max-w-md rounded-2xl border border-white/10 bg-[#111113] p-4 shadow-2xl sm:p-5"
+            className="max-h-[90dvh] w-full overflow-y-auto rounded-t-2xl border border-white/10 bg-[#111113] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-h-none sm:max-w-md sm:overflow-visible sm:rounded-2xl sm:p-5"
             role="dialog"
           >
             <header className="mb-4 flex items-start justify-between gap-4">

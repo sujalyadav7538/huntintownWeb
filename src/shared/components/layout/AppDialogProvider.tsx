@@ -94,7 +94,7 @@ export default function AppDialogProvider({ children }: { children: ReactNode })
       {children}
       {request && (
         <div
-          className="fixed inset-0 z-10001 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+          className="theme-modal-backdrop fixed inset-0 z-10001 flex items-end justify-center bg-black/65 backdrop-blur-sm sm:items-center sm:p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeDialog(false);
           }}
@@ -104,7 +104,7 @@ export default function AppDialogProvider({ children }: { children: ReactNode })
             aria-modal="true"
             aria-labelledby="app-dialog-title"
             aria-describedby="app-dialog-message"
-            className="w-full max-w-sm rounded-xl border border-white/10 bg-[#151518] p-5 shadow-2xl"
+            className="max-h-[90dvh] w-full overflow-y-auto rounded-t-xl border border-white/10 bg-[#151518] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-w-sm sm:rounded-xl sm:pb-5"
           >
             <header className="flex items-start gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#FF3F3F]/20 bg-[#FF3F3F]/10 text-[#ff6b6b]">
