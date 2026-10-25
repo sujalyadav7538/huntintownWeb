@@ -136,7 +136,9 @@ export default function App() {
 
   const handleExplorePost = useCallback(
     (postId: string) => {
-      navigate(`/post/${encodeURIComponent(postId)}`);
+      navigate(`/post/${encodeURIComponent(postId)}`, {
+        state: { returnTo: "/explore" },
+      });
     },
     [navigate],
   );

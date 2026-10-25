@@ -353,11 +353,19 @@ function PostApplicationRedirect() {
 
 function PostDetailRoute() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
 
   const [post, setPost] = useState<Post | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const goBack = useRouteBack("/explore");
+  const routeBack = useRouteBack("/explore");
+  const goBack = () => {
+    if (location.state?.returnTo === "/explore") {
+      navigate("/explore", { replace: true });
+      return;
+    }
+    routeBack();
+  };
 
   useEffect(() => {
     if (!id) return;

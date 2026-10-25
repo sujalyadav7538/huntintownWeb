@@ -57,10 +57,22 @@
   /* zinc-400: ~7.5:1 on --app-surface, meets WCAG AA (was #71717a at ~4.0:1) */
   --app-text-muted: #a1a1aa;
   --app-red: #ff3f3f;
+  --home-feature-card-height: 15rem;
+  --trust-icon-emerald: #34d399;
+  --trust-icon-amber: #fbbf24;
+  --trust-icon-sky: #38bdf8;
+  --trust-icon-cyan: #22d3ee;
+  --trust-icon-orange: #fb923c;
   /* darker fill so white button/badge labels reach 4.5:1 (raw --app-red only gives ~3.5:1) */
   --app-red-solid: #e02020;
   --app-header: #010101;
   --app-shadow: 0 4px 4px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 380px) {
+  :root {
+    --home-feature-card-height: 17rem;
+  }
 }
 
 @keyframes heroFadeUp {
@@ -125,12 +137,17 @@
     transparent 75%
   );
 }
-
+    --app-red: #d81a1a;
 html[data-theme="light"] .hero-glow {
   background: radial-gradient(
     ellipse 70% 60% at 50% 0%,
     color-mix(in srgb, var(--app-red) 12%, transparent) 0%,
     color-mix(in srgb, var(--app-red) 4%, transparent) 45%,
+    --trust-icon-emerald: #34d399;
+    --trust-icon-amber: #fbbf24;
+    --trust-icon-sky: #38bdf8;
+    --trust-icon-cyan: #22d3ee;
+    --trust-icon-orange: #fb923c;
     transparent 75%
   );
 }
@@ -140,6 +157,32 @@ html[data-theme="light"] .hero-glow {
   border: 1px solid var(--app-border-strong);
   box-shadow: var(--app-shadow);
   transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.home-feature-card {
+  height: var(--home-feature-card-height);
+}
+
+.home-icon-emerald,
+.trust-icon-emerald { color: var(--trust-icon-emerald); }
+.home-icon-amber,
+.trust-icon-amber { color: var(--trust-icon-amber); }
+.home-icon-sky,
+.trust-icon-sky { color: var(--trust-icon-sky); }
+.home-icon-cyan,
+.trust-icon-cyan { color: var(--trust-icon-cyan); }
+.home-icon-red,
+.trust-icon-red { color: var(--app-red); }
+.home-icon-orange,
+.trust-icon-orange { color: var(--trust-icon-orange); }
+
+.home-feature-card li::marker {
+  color: var(--app-red);
+}
+
+.home-feature-carousel .swiper-pagination {
+  position: static !important;
+  margin-top: 12px;
 }
 
 .landing-card:hover {
@@ -243,6 +286,11 @@ html[data-theme="light"] {
   --app-text: #18181b;
   --app-text-muted: #6b7280;
   --app-red: #d81a1a;
+  --trust-icon-emerald: #047857;
+  --trust-icon-amber: #92400e;
+  --trust-icon-sky: #0369a1;
+  --trust-icon-cyan: #0e7490;
+  --trust-icon-orange: #c2410c;
   /* already ~5.1:1 on white, safe to reuse for solid fills */
   --app-red-solid: #d81a1a;
   --app-header: #ffffff;

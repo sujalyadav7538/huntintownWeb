@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { Post } from "@/src/shared/types";
+import type { Post } from "@/src/shared/types";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import AnimatedContent from "@/src/shared/components/AnimatedContent";
 
@@ -97,24 +96,18 @@ function HeroSectionDesktop({
   onExplore,
 }: HeroActionsProps) {
   return (
-    <div className="space-y-7">
-      <div className="space-y-4">
-        <AnimatedContent variant="reveal">
-          <h1 className="font-black leading-none tracking-tight theme-text-primary text-5xl xl:text-6xl">
-            Find Help.
-            <br />
-            <span className="landing-eyebrow">Offer Skills.</span>
-            <br />
-            Build Local Trust.
-          </h1>
-        </AnimatedContent>
+    <div className="max-w-xl space-y-6">
+      <AnimatedContent variant="reveal">
+        <h1 className="text-4xl font-black leading-[1.05] theme-text-primary xl:text-5xl">
+          Have a problem? Ask your{" "}
+          <span className="landing-eyebrow">local community.</span>
+        </h1>
+      </AnimatedContent>
 
-        <p className="max-w-xl text-base leading-7 theme-text-muted">
-          HuntInTown connects people within local communities to post
-          requirements, discover skilled helpers, collaborate securely, and
-          build lasting reputation through verified interactions.
-        </p>
-      </div>
+      <p className="text-base leading-7 theme-text-muted">
+        Find people nearby who can help. Post what you need, explore your
+        options, and connect directly with the right people.
+      </p>
 
       <div className="flex flex-row gap-3">
         <button
@@ -122,7 +115,7 @@ function HeroSectionDesktop({
           onClick={onPostRequirement}
           className="theme-btn-accent inline-flex h-12 items-center gap-2 rounded-xl px-5 text-sm font-bold uppercase transition"
         >
-          Post Requirement
+          Post What You Need
           <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </button>
 
@@ -136,171 +129,49 @@ function HeroSectionDesktop({
             alt=""
             className="h-6 w-6 transition-transform duration-300 group-hover:scale-130"
           />
-          Find Hunter
+          Explore Requests
         </button>
       </div>
     </div>
   );
 }
 
-function HeroSectionMobile({ onExplore }: HeroActionsProps) {
+function HeroSectionMobile({
+  onPostRequirement,
+  onExplore,
+}: HeroActionsProps) {
   return (
-    <div className="relative px-5 pt-5 pb-5">
-      <div className="relative">
-        <LockOnAnimation />
+    <div className="px-5 py-5">
+      <AnimatedContent className="space-y-5 text-center">
+        <h1 className="text-[2.2rem] font-black leading-[1.05] theme-text-primary">
+          Have a problem? Ask your{" "}
+          <span className="landing-eyebrow">local community.</span>
+        </h1>
 
-        <AnimatedContent className="space-y-8 text-center">
-          <h1 className="theme-text-primary flex flex-col gap-4 text-[3.2rem] font-black leading-[0.9] tracking-[-0.045em]">
-            <span className="block">Spot It.</span>
+        <p className="mx-auto max-w-sm text-sm leading-6 theme-text-muted">
+          Find people nearby who can help. Post what you need, explore your
+          options, and connect directly with the right people.
+        </p>
+      </AnimatedContent>
 
-            <span className="block text-red-600">
-              Lock It.
-            </span>
+      <div className="mt-6 flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={onPostRequirement}
+          className="theme-btn-accent inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold uppercase transition"
+        >
+          Post What You Need
+          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+        </button>
 
-            <span className="block">Help Out.</span>
-          </h1>
-
-          <p className="mx-auto max-w-[290px] text-sm leading-6 theme-text-muted">
-            Find what you need. Find who needs you.
-          </p>
-        </AnimatedContent>
-
-        <div className="mt-7">
-          <button
-            type="button"
-            onClick={onExplore}
-            className="landing-btn-secondary group flex h-14 w-full items-center justify-center gap-3 rounded-xl px-6 font-black uppercase tracking-wider active:scale-[0.97]"
-          >
-            <img
-              src="/lion.png"
-              alt=""
-              className="h-7 w-7 transition-transform duration-300 group-hover:scale-130"
-            />
-
-            <span>Find Hunter</span>
-          </button>
-        </div>
-
-        <div className="mt-6 flex flex-col items-center">
-          <span className="text-[9px] font-bold uppercase tracking-[0.35em] theme-text-muted">
-            Explore nearby
-          </span>
-
-          <div className="mt-2 h-7 w-px bg-linear-to-b from-(--app-red) to-transparent" />
-        </div>
+        <button
+          type="button"
+          onClick={onExplore}
+          className="landing-btn-secondary inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition"
+        >
+          Explore Requests
+        </button>
       </div>
-    </div>
-  );
-}
-
-function LockOnAnimation() {
-  const [arrows, setArrows] = useState<
-    { id: number; direction: number }[]
-  >([]);
-
-  useEffect(() => {
-    const directions = [0, 45, 90, 135, 180, 225, 270, 315];
-    let id = 0;
-
-    const shoot = () => {
-      const direction =
-        directions[Math.floor(Math.random() * directions.length)];
-
-      setArrows((current) => [
-        ...current,
-        {
-          id: id++,
-          direction,
-        },
-      ]);
-    };
-
-    shoot();
-
-    const intervalId = window.setInterval(shoot, 1000);
-
-    return () => window.clearInterval(intervalId);
-  }, []);
-
-  return (
-    <div
-      className="mb-5 h-16 w-full overflow-hidden text-white/70"
-      aria-hidden="true"
-    >
-      <svg
-        className="h-full w-full"
-        viewBox="0 0 360 96"
-        preserveAspectRatio="xMidYMid meet"
-        fill="none"
-      >
-        {arrows.map(({ id, direction }) => (
-          <g
-            key={id}
-            transform={`rotate(${direction} 180 48)`}
-          >
-            <g
-              style={{
-                animation: "arrowShoot 1.6s ease-out forwards",
-              }}
-              onAnimationEnd={() => {
-                setArrows((current) =>
-                  current.filter((arrow) => arrow.id !== id),
-                );
-              }}
-            >
-              <path
-                d="M-5 48H156"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-
-              <path
-                d="M145 40L156 48L145 56"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </g>
-          </g>
-        ))}
-
-        {/* Target */}
-        <circle
-          cx="180"
-          cy="48"
-          r="34"
-          stroke="currentColor"
-          strokeOpacity=".35"
-          strokeWidth="2"
-        />
-
-        <circle
-          cx="180"
-          cy="48"
-          r="25"
-          stroke="#ef4444"
-          strokeOpacity=".85"
-          strokeWidth="2"
-        />
-
-        <circle
-          cx="180"
-          cy="48"
-          r="15"
-          stroke="currentColor"
-          strokeOpacity=".7"
-          strokeWidth="2"
-        />
-
-        <circle
-          cx="180"
-          cy="48"
-          r="7"
-          fill="#ef4444"
-        />
-      </svg>
     </div>
   );
 }

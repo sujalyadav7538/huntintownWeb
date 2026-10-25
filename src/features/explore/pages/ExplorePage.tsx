@@ -408,6 +408,7 @@ function ExploreDesktop({
         resultCount={posts.length}
       />
 
+      <div className="space-y-3">
       {loading ? (
         <FeedSkeleton
           className="grid grid-cols-2 gap-x-5 gap-y-6 xl:grid-cols-4"
@@ -432,6 +433,8 @@ function ExploreDesktop({
             >
               <PostGridCard
                 post={post}
+                compact
+                compactDetails
                 badge={
                   appliedPostIds.has(post.id ?? post._id) ? (
                     <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">
@@ -454,6 +457,7 @@ function ExploreDesktop({
         hasMore={hasMore}
         hasPosts={posts.length > 0}
       />
+      </div>
     </div>
   );
 }
@@ -520,6 +524,8 @@ function ExploreMobile({
             >
               <PostGridCard
                 post={post}
+                compact
+                compactDetails
                 badge={
                   appliedPostIds.has(post.id ?? post._id) ? (
                     <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[9px] font-semibold text-emerald-400">
@@ -669,7 +675,7 @@ function FeedFooter({
   hasPosts: boolean;
 }) {
   return (
-    <>
+    <div className="space-y-2">
       <div ref={sentinelRef} className="h-px" />
 
       {loadingMore && (
@@ -679,7 +685,7 @@ function FeedFooter({
       )}
 
       {!hasMore && !loading && hasPosts && (
-        <div className="flex items-center justify-center gap-3 py-3">
+        <div className="flex items-center justify-center gap-3 py-2">
           <div className="h-px w-12 bg-zinc-800" />
 
           <p className="text-[10px] text-zinc-700">
@@ -689,6 +695,6 @@ function FeedFooter({
           <div className="h-px w-12 bg-zinc-800" />
         </div>
       )}
-    </>
+    </div>
   );
 }

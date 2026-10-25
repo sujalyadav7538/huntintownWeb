@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   MessageCircle,
   Star,
-  ArrowRight,
 } from "lucide-react";
 
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -17,31 +16,47 @@ const STEPS = [
   {
     icon: FileText,
     title: "Post a Requirement",
-    description:
-      "Describe what you need, set your budget, location and timeline.",
+    accent: "home-icon-cyan",
+    bullets: [
+      "Describe what you need",
+      "Set your budget, location and timeline",
+    ],
   },
   {
     icon: Handshake,
     title: "Receive Offers",
-    description: "Nearby helpers submit offers explaining how they can help.",
+    accent: "home-icon-amber",
+    bullets: [
+      "Nearby helpers submit offers",
+      "Each offer explains how they can help",
+    ],
   },
   {
     icon: CheckCircle2,
     title: "Choose a Helper",
-    description:
-      "Compare trust scores, badges, ratings and profiles before accepting.",
+    accent: "home-icon-sky",
+    bullets: [
+      "Compare trust scores, badges and ratings",
+      "Review helper profiles before accepting",
+    ],
   },
   {
     icon: MessageCircle,
     title: "Chat Securely",
-    description:
-      "A private conversation opens automatically after accepting an offer.",
+    accent: "home-icon-emerald",
+    bullets: [
+      "A private chat opens after accepting an offer",
+      "Discuss the work directly with your helper",
+    ],
   },
   {
     icon: Star,
     title: "Complete & Review",
-    description:
-      "Finish the work and leave honest reviews to strengthen the community.",
+    accent: "home-icon-red",
+    bullets: [
+      "Finish the agreed work",
+      "Leave an honest review to build community trust",
+    ],
   },
 ];
 
@@ -66,7 +81,7 @@ export default function HowItWorks() {
         </div>
 
 
-        {/* Mobile Swiper */}
+        {/* Mobile carousel */}
         <div className="block lg:hidden">
           <Swiper
             modules={[Pagination]}
@@ -75,14 +90,14 @@ export default function HowItWorks() {
             pagination={{
               clickable: true,
             }}
-            className="pb-10"
+            className="home-feature-carousel pb-2"
           >
             {STEPS.map((step, index) => {
               const Icon = step.icon;
 
               return (
                 <SwiperSlide key={step.title}>
-                  <StepCard
+                  <StepCardMobile
                     step={step}
                     index={index}
                     Icon={Icon}
@@ -94,33 +109,32 @@ export default function HowItWorks() {
         </div>
 
 
-        {/* Desktop Layout */}
-        <div className="hidden lg:grid lg:grid-cols-5 gap-8">
-          {STEPS.map((step, index) => {
-            const Icon = step.icon;
+        {/* Desktop carousel */}
+        <div className="hidden lg:block">
+          <Swiper
+            modules={[Pagination]}
+            pagination={{ clickable: true }}
+            spaceBetween={24}
+            slidesPerView={2}
+            breakpoints={{
+              1280: { slidesPerView: 3 },
+            }}
+            className="home-feature-carousel how-it-works-desktop-swiper px-1 pt-2 pb-2"
+          >
+            {STEPS.map((step, index) => {
+              const Icon = step.icon;
 
-            return (
-              <div key={step.title} className="relative">
-                <StepCard
-                  step={step}
-                  index={index}
-                  Icon={Icon}
-                />
-
-                {index !== STEPS.length - 1 && (
-                  <ArrowRight
-                    className="
-                      absolute -right-6 top-1/2
-                      -translate-y-1/2
-                      theme-text-muted
-                      w-6 h-6
-                    "
-                    aria-hidden="true"
+              return (
+                <SwiperSlide key={step.title}>
+                  <StepCardDesktop
+                    step={step}
+                    index={index}
+                    Icon={Icon}
                   />
-                )}
-              </div>
-            );
-          })}
+                </SwiperSlide>
+              );
+            })}
+          </Swiper>
         </div>
       </div>
     </section>
@@ -128,14 +142,15 @@ export default function HowItWorks() {
 }
 
 
-function StepCard({
+function StepCardMobile({
   step,
   index,
   Icon,
 }: {
   step: {
     title: string;
-    description: string;
+    accent: string;
+    bullets: string[];
   };
   index: number;
   Icon: React.ElementType;
@@ -143,45 +158,69 @@ function StepCard({
   return (
     <div
       className="
+        home-feature-card
         rounded-2xl
         landing-card
-        p-5 sm:p-6
-        h-full
-        group
+        p-5 sm:p-7
       "
     >
-      <div
-        className="
-          w-11 h-11 sm:w-14 sm:h-14
-          rounded-xl
-          theme-btn-accent-soft
-          flex items-center justify-center
-          mb-4 sm:mb-6
-        "
-      >
-        <Icon className="w-5 h-5 sm:w-7 sm:h-7" />
-      </div>
-
-      <div className="flex items-center gap-3 mb-2 sm:mb-3">
-        <div
-          className="
-            w-6 h-6 sm:w-7 sm:h-7 rounded-full
-            theme-badge-accent
-            text-xs font-bold
-            flex items-center justify-center
-          "
-        >
-          {index + 1}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="landing-icon-box flex h-11 w-11 shrink-0 items-center justify-center rounded-xl sm:h-14 sm:w-14">
+          <Icon className={`h-5 w-5 sm:h-7 sm:w-7 ${step.accent}`} />
         </div>
 
-        <h3 className="text-base sm:text-lg font-bold theme-text-primary">
-          {step.title}
-        </h3>
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-wider landing-eyebrow">
+            Step {index + 1}
+          </p>
+          <h3 className="text-base font-bold leading-tight theme-text-primary">
+            {step.title}
+          </h3>
+        </div>
       </div>
 
-      <p className="text-sm leading-6 sm:leading-7 theme-text-muted">
-        {step.description}
-      </p>
+      <ul className="list-disc space-y-1 pl-5 text-sm leading-6 theme-text-muted sm:leading-7">
+        {step.bullets.map((bullet) => (
+          <li key={bullet}>{bullet}</li>
+        ))}
+      </ul>
     </div>
+  );
+}
+
+function StepCardDesktop({
+  step,
+  index,
+  Icon,
+}: {
+  step: {
+    title: string;
+    accent: string;
+    bullets: string[];
+  };
+  index: number;
+  Icon: React.ElementType;
+}) {
+  return (
+    <article className="home-feature-card rounded-2xl landing-card p-6 sm:p-7">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-sm font-semibold uppercase tracking-wider landing-eyebrow">
+          Step {String(index + 1).padStart(2, "0")}
+        </p>
+        <div className="landing-icon-box flex h-12 w-12 items-center justify-center rounded-xl">
+          <Icon className={`h-6 w-6 ${step.accent}`} aria-hidden="true" />
+        </div>
+      </div>
+
+      <h3 className="mt-5 text-xl font-bold theme-text-primary">
+        {step.title}
+      </h3>
+
+      <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 theme-text-muted">
+        {step.bullets.map((bullet) => (
+          <li key={bullet}>{bullet}</li>
+        ))}
+      </ul>
+    </article>
   );
 }

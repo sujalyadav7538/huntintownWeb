@@ -44,6 +44,8 @@ export interface PostCardData {
 
 interface PostGridCardProps {
   post: PostCardData;
+  compact?: boolean;
+  compactDetails?: boolean;
 
   onSelect: () => void;
 
@@ -63,6 +65,8 @@ interface PostGridCardProps {
 
 export default function PostGridCard({
   post,
+  compact = false,
+  compactDetails = false,
   onSelect,
   badge,
   meta,
@@ -85,8 +89,14 @@ export default function PostGridCard({
 
   return (
     <article
-      className="
-        group relative flex h-73 min-w-0 cursor-pointer flex-col
+      className={`
+        group relative flex ${
+          compact
+            ? compactDetails
+              ? "h-64 max-[380px]:h-68"
+              : "h-68 max-[380px]:h-73"
+            : "h-73"
+        } min-w-0 cursor-pointer flex-col
         overflow-hidden rounded-2xl
         theme-post-card
         border border-white/[0.07]
@@ -94,7 +104,7 @@ export default function PostGridCard({
         transition-all duration-200
         hover:border-white/12
         hover:bg-[#141417]
-      "
+      `}
     >
       {/* Accent */}
       <div
@@ -159,15 +169,15 @@ export default function PostGridCard({
       {/* Title */}
       <div className="mt-4">
         <h3
-          className="
-            line-clamp-2
+          className={`
+            ${compactDetails ? "line-clamp-1" : "line-clamp-2"}
             text-[14px] font-semibold
             leading-[1.4]
             tracking-[-0.01em]
             text-zinc-100
             transition-colors
             group-hover:text-white
-          "
+          `}
         >
           {post?.title || "Untitled requirement"}
         </h3>
@@ -181,16 +191,22 @@ export default function PostGridCard({
       )}
 
       {/* Details */}
-      <div className="mt-4 flex flex-wrap gap-1.5">
+      <div
+        className={`mt-4 flex gap-1.5 ${
+          compactDetails
+            ? "min-w-0 flex-nowrap overflow-hidden"
+            : "flex-wrap"
+        }`}
+      >
         {post?.address && (
           <span
-            className="
-              inline-flex min-w-0 max-w-full items-center gap-1.5
+            className={`
+              inline-flex min-w-0 items-center gap-1.5
               rounded-lg border border-white/5.5
               bg-white/2.5
-              px-2 py-1.5
+              ${compactDetails ? "flex-[0_1_auto] overflow-hidden px-1.5" : "max-w-full px-2"} py-1.5
               text-[9px] text-zinc-500
-            "
+            `}
           >
             <MapPin className="h-3 w-3 shrink-0 text-zinc-600" />
 
@@ -200,29 +216,31 @@ export default function PostGridCard({
 
         {post?.budget && (
           <span
-            className="
-              inline-flex items-center gap-1.5
+            className={`
+              inline-flex min-w-0 items-center gap-1.5
               rounded-lg border border-white/5.5
               bg-white/2.5
-              px-2 py-1.5
+              ${compactDetails ? "flex-[0_1_auto] overflow-hidden px-1.5" : "px-2"} py-1.5
               text-[9px] text-zinc-500
-            "
+            `}
           >
             <IndianRupee className="h-3 w-3 shrink-0 text-emerald-700" />
 
-            <span className="text-zinc-400">{post.budget}</span>
+            <span className={`text-zinc-400 ${compactDetails ? "min-w-0 truncate" : ""}`}>
+              {post.budget}
+            </span>
           </span>
         )}
 
         {(post?.timeline || (timeLabel && !expired)) && (
           <span
-            className="
-              inline-flex items-center gap-1.5
+            className={`
+              inline-flex min-w-0 items-center gap-1.5
               rounded-lg border border-white/5.5
               bg-white/2.5
-              px-2 py-1.5
+              ${compactDetails ? "flex-[0_1_auto] overflow-hidden px-1.5" : "px-2"} py-1.5
               text-[9px] text-zinc-500
-            "
+            `}
           >
             <Clock className="h-3 w-3 shrink-0 text-amber-600" />
 
@@ -241,11 +259,11 @@ export default function PostGridCard({
       {/* Footer */}
       {showFooter && (
         <div
-          className="
+          className={`
             mt-auto flex items-center justify-between gap-3
             border-t border-white/5.5
             pt-3
-          "
+          `}
         >
           <div className="min-w-0">
             <p className="text-[8px] uppercase tracking-[0.14em] text-zinc-700">

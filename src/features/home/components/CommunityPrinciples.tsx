@@ -11,7 +11,7 @@ const PRINCIPLES = [
   {
     icon: Wallet,
     title: "Fair Payments",
-    color: "text-emerald-400",
+    color: "home-icon-emerald",
     points: [
       "No platform commission",
       "Agree on pricing directly",
@@ -21,7 +21,7 @@ const PRINCIPLES = [
   {
     icon: Handshake,
     title: "Respect Commitments",
-    color: "text-sky-400",
+    color: "home-icon-cyan",
     points: [
       "Accept offers responsibly",
       "Communicate clearly",
@@ -31,7 +31,7 @@ const PRINCIPLES = [
   {
     icon: Shield,
     title: "Stay Safe",
-    color: "text-[#FF3F3F]",
+    color: "home-icon-red",
     points: [
       "Verify profiles before accepting",
       "Meet in safe public locations when required",
