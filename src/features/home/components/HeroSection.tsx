@@ -76,7 +76,7 @@ export default function HeroSection({
           <div className="relative h-62.5 overflow-hidden rounded-lg border theme-divider theme-panel shadow-lg sm:h-80 lg:h-95">
             <HuntMap posts={activePosts} className="h-full rounded-lg" />
 
-            <div className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/75 px-3 py-2 text-xs font-semibold text-white shadow backdrop-blur-sm">
+            <div className="theme-text-image pointer-events-none absolute left-3 top-3 inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/75 px-3 py-2 text-xs font-semibold text-white shadow backdrop-blur-sm">
               <MapPin
                 className="h-3.5 w-3.5 text-[#FF6B6B]"
                 aria-hidden="true"
