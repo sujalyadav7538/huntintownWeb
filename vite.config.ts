@@ -8,9 +8,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   const apiTarget = env.VITE_API_URL ;
   process.env.VITE_SITE_URL ||= env.VITE_SITE_URL || 'https://huntintown.com';
-  if (!/^\d+$/.test(env.VITE_META_PIXEL_ID || '')) {
-    throw new Error('VITE_META_PIXEL_ID must be set to a numeric Meta Pixel ID.');
-  }
+
 
   return {
     plugins: [react(), tailwindcss(),svgr()],
