@@ -15,6 +15,7 @@ import {
 } from "@/src/shared/utils";
 import UserAvatar from "@/src/shared/components/UserAvatar";
 import { apiFetchJSON } from "@/src/shared/lib/api";
+import { metaEvents } from "@/src/shared/lib/metaPixel";
 
 import { CATEGORY_COLORS } from "@/src/shared/lib/postConstants";
 
@@ -122,6 +123,7 @@ export default function PostDetail({
     });
 
     setHasApplied(true);
+    metaEvents.responseSent(postId);
     onResponseSubmit?.(postId);
     notifySuccess(
       "Your offer was submitted successfully. Track its status on your Dashboard.",

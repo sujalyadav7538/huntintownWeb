@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import type { User } from "@/src/shared/types";
 import { apiFetch } from "@/src/shared/lib/api";
 import { useSeo } from "@/src/shared/hooks/useSeo";
+import { metaEvents } from "@/src/shared/lib/metaPixel";
 import type { AuthNavigationState, SignupFormData } from "../types";
 import SignInForm from "./SignInForm";
 import SignUpForm from "./SignUpForm";
@@ -73,6 +74,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       }
 
       onLogin?.(data.user, data.access_token ?? "");
+      if (data.isNewUser) metaEvents.completeRegistration("google");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google sign-in failed");
     } finally {
@@ -166,6 +168,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
         onLogin?.(user, token);
       }
+
+      if (isSignup) metaEvents.completeRegistration("email");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {

@@ -45,6 +45,19 @@ Create-post dropdowns automatically open above their field when space below is
 limited. Their height stays within the visible scroll area and adapts to viewport
 changes, including the mobile keyboard.
 
+## Meta tracking configuration
+
+Set `VITE_META_PIXEL_ID` in the frontend environment before starting Vite or
+building the site. It must match `META_PIXEL_ID` in the backend environment so
+browser and server events can be deduplicated. Vite embeds this ID in the
+public website; it is not a secret. Restart Vite after changing it.
+
+The backend uses `META_ACCESS_TOKEN` for the Conversions API. Keep that token
+only in the backend environment, never in a `VITE_` variable. Optionally set
+`META_TEST_EVENT_CODE` for testing and remove it afterward; the backend must be
+restarted after environment changes. `META_GRAPH_API_VERSION` can override the
+default Graph API version.
+
 ## Theme preference
 
 Light is the default theme, regardless of the device's system theme. Users can

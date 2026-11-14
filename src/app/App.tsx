@@ -32,6 +32,7 @@ import AppDialogProvider from "@/src/shared/components/layout/AppDialogProvider"
 import ToastProvider, {
   notifySuccess,
 } from "@/src/shared/components/layout/ToastProvider";
+import { metaEvents } from "@/src/shared/lib/metaPixel";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -50,6 +51,17 @@ export default function App() {
   const navigate = useNavigate();
   const mainRef = useRef<HTMLElement>(null);
   const isPostRoute = location.pathname.startsWith("/post/");
+
+  // The first load's browser PageView is fired in index.html; here we send its server copy,
+  // then track later navigations. Comparing paths keeps StrictMode's double effect from re-firing.
+  const lastTrackedPathRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastTrackedPathRef.current === location.pathname) return;
+    const isFirstLoad = lastTrackedPathRef.current === null;
+    lastTrackedPathRef.current = location.pathname;
+    if (isFirstLoad) metaEvents.initialPageView();
+    else metaEvents.pageView();
+  }, [location.pathname]);
 
   useLayoutEffect(() => {
     if (

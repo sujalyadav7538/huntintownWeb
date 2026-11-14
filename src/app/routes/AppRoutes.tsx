@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 
 import LandingPage from "@/src/features/home/pages/LandingPage";
+import { metaEvents } from "@/src/shared/lib/metaPixel";
 import CreatePost from "@/src/features/posts/pages/CreatePostPage";
 import Dashboard from "@/src/features/dashboard/pages/DashboardPage";
 import Messaging from "@/src/features/messaging/pages/MessagingPage";
@@ -377,7 +378,10 @@ function PostDetailRoute() {
 
     apiFetchJSON<{ success: boolean; post: unknown }>(`/api/posts/${id}`)
       .then((data) => {
-        if (!cancelled) setPost(normalizePost(data.post));
+        if (cancelled) return;
+        const normalized = normalizePost(data.post);
+        setPost(normalized);
+        metaEvents.viewPost(id, normalized.title, normalized.category);
       })
       .catch((err: Error) => {
         if (!cancelled) setError(err.message || "Could not load this post");

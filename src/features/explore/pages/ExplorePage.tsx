@@ -23,6 +23,7 @@ import { useIsDesktop } from "@/src/shared/hooks/useBreakpoint";
 import { useSeo } from "@/src/shared/hooks/useSeo";
 import useDebounce from "@/src/shared/hooks/useDebounce";
 import { apiFetch } from "@/src/shared/lib/api";
+import { metaEvents } from "@/src/shared/lib/metaPixel";
 import AnimatedContent from "@/src/shared/components/AnimatedContent";
 
 const SEARCH_PAGE_SIZE = 20;
@@ -228,6 +229,7 @@ export default function ExplorePage() {
     fetchSearchPage(1, controller.signal)
       .then(({ posts: results, hasMore: more }) => {
         if (controller.signal.aborted) return;
+        if (debouncedSearch) metaEvents.search(debouncedSearch, selectedCategory);
         setSearchResults(results);
         searchHasMoreRef.current = more;
         setSearchHasMore(more);

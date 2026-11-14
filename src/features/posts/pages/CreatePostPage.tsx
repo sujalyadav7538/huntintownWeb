@@ -16,6 +16,7 @@ import DetailsStep from "@/src/features/posts/components/steps/DetailsStep";
 import ExtraDetailsStep from "@/src/features/posts/components/steps/ExtraDetailsStep";
 import LocationStep from "@/src/features/posts/components/steps/LocationStep";
 import { apiFetch } from "@/src/shared/lib/api";
+import { metaEvents } from "@/src/shared/lib/metaPixel";
 import { useNavigate } from "react-router-dom";
 import { useAppDialog } from "@/src/shared/components/layout/AppDialogProvider";
 
@@ -298,6 +299,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
 
       const postId = createdPost?.id ?? createdPost?._id;
 
+      metaEvents.postCreated(form.category);
       if (!postId) {
         throw new Error(
           "Requirement was published, but the created post could not be opened.",
