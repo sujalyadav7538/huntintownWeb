@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { useAppSelector, useAppDispatch } from "@/src/store/hooks";
@@ -13,6 +13,7 @@ import {
   setUserPresence,
   addMessageToConversation,
   setConversationMessages,
+  markMessagesRead,
 } from "@/src/store/conversationsSlice";
 
 import { socket } from "@/src/shared/lib/socket";
@@ -82,12 +83,31 @@ export default function MessagingPage() {
   const [chatsLoading, setChatsLoading] = useState(false);
   const [convsLoading, setConvsLoading] = useState(false);
   const [pageError, setPageError] = useState("");
+  const [listRevision, setListRevision] = useState(0);
+  const [threadRevision, setThreadRevision] = useState(0);
+  const [isVisible, setIsVisible] = useState(() => document.visibilityState === "visible");
+  const conversationsRequest = useRef(0);
+  const loadedPost = useRef<string | null>(null);
+
+  const markRead = async (conversationId: string, messageIds: string[]) => {
+    if (!messageIds.length) return;
+    try {
+      const res = await apiFetch(`/api/chat/${conversationId}/read`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageIds }),
+      });
+      if (!res.ok) throw new Error("Could not mark messages as read.");
+    } catch (error) {
+      setPageError(error instanceof Error ? error.message : "Could not mark messages as read.");
+    }
+  };
 
   const loadConversationsByPost = async (postId: string) => {
     if (!token || !postId) return;
+    const request = ++conversationsRequest.current;
 
-    setConvsLoading(true);
-    setPageError("");
+    if (loadedPost.current !== postId) setConvsLoading(true);
 
     try {
       const res = await apiFetch(`/api/chat/posts/${postId}/conversations`, {
@@ -99,12 +119,14 @@ export default function MessagingPage() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "Unable to load conversations.");
-      dispatch(setConversations(data?.data ?? []));
+      if (request === conversationsRequest.current) {
+        loadedPost.current = postId;
+        dispatch(setConversations(data?.data ?? []));
+      }
     } catch {
-      setPageError("Could not load conversations. Please try again.");
-      dispatch(setConversations([]));
+      if (request === conversationsRequest.current) setPageError("Could not load conversations. Please try again.");
     } finally {
-      setConvsLoading(false);
+      if (request === conversationsRequest.current) setConvsLoading(false);
     }
   };
 
@@ -128,10 +150,10 @@ export default function MessagingPage() {
 
   useEffect(() => {
     if (!token) return;
+    let cancelled = false;
 
     const loadPosts = async () => {
-      setPostsLoading(true);
-      setPageError("");
+      if (listRevision === 0) setPostsLoading(true);
 
       try {
         const res = await apiFetch("/api/chat/posts", {
@@ -144,17 +166,17 @@ export default function MessagingPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.message || "Unable to load your posts.");
 
-        dispatch(setChatPosts(data?.data ?? []));
+        if (!cancelled) dispatch(setChatPosts(data?.data ?? []));
       } catch {
-        setPageError("Could not load your posts. Please try again.");
-        dispatch(setChatPosts([]));
+        if (!cancelled) setPageError("Could not load your posts. Please try again.");
       } finally {
-        setPostsLoading(false);
+        if (!cancelled) setPostsLoading(false);
       }
     };
 
     loadPosts();
-  }, [token, dispatch]);
+    return () => { cancelled = true; };
+  }, [token, dispatch, listRevision]);
 
   /*
    * ---------------------------------------------------------
@@ -183,10 +205,10 @@ export default function MessagingPage() {
 
   useEffect(() => {
     if (!token) return;
+    let cancelled = false;
 
     const loadMyChats = async () => {
-      setChatsLoading(true);
-      setPageError("");
+      if (listRevision === 0) setChatsLoading(true);
       try {
         const res = await apiFetch("/api/chat/my-chats", {
           method: "GET",
@@ -198,17 +220,17 @@ export default function MessagingPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data?.message || "Unable to load your chats.");
 
-        setMyChats(data?.data ?? []);
+        if (!cancelled) setMyChats(data?.data ?? []);
       } catch {
-        setPageError("Could not load your chats. Please try again.");
-        setMyChats([]);
+        if (!cancelled) setPageError("Could not load your chats. Please try again.");
       } finally {
-        setChatsLoading(false);
+        if (!cancelled) setChatsLoading(false);
       }
     };
 
     loadMyChats();
-  }, [token]);
+    return () => { cancelled = true; };
+  }, [token, listRevision]);
 
   /*
    * ---------------------------------------------------------
@@ -222,6 +244,8 @@ export default function MessagingPage() {
 
   useEffect(() => {
     if (!activePostId) {
+      conversationsRequest.current++;
+      loadedPost.current = null;
       dispatch(setConversations([]));
       return;
     }
@@ -236,7 +260,8 @@ export default function MessagingPage() {
     }
 
     loadConversationsByPost(activePostId);
-  }, [activePostId, mode, token, dispatch]);
+    return () => { conversationsRequest.current++; };
+  }, [activePostId, mode, token, dispatch, listRevision]);
 
   /*
    * ---------------------------------------------------------
@@ -277,15 +302,15 @@ export default function MessagingPage() {
             messages: data?.data ?? [],
           }),
         );
+        if (document.visibilityState === "visible") {
+          const unreadIds = (data?.data ?? [])
+            .filter((message: any) => !message.isRead && String(message.sender?._id) !== String(currentUser?._id))
+            .map((message: any) => String(message._id));
+          void markRead(activeConversationFromUrl, unreadIds);
+        }
       } catch {
         if (cancelled) return;
         setPageError("Could not load this conversation. Please try again.");
-        dispatch(
-          setConversationMessages({
-            conversationId: activeConversationFromUrl,
-            messages: [],
-          }),
-        );
       }
     };
 
@@ -294,7 +319,19 @@ export default function MessagingPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeConversationFromUrl, activePostId, requestedMode, token, dispatch]);
+  }, [activeConversationFromUrl, activePostId, requestedMode, token, dispatch, threadRevision, currentUser?._id]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      const visible = document.visibilityState === "visible";
+      setIsVisible(visible);
+      if (visible && activeConversationFromUrl) {
+        setThreadRevision((revision) => revision + 1);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [activeConversationFromUrl]);
 
   useEffect(() => {
     if (
@@ -356,13 +393,17 @@ export default function MessagingPage() {
    */
 
   useEffect(() => {
-    if (!activeConversationId) return;
+    if (!activeConversationId || !isVisible) return;
+    let cancelled = false;
 
     const joinConversation = () => {
       socket.emit(
         "join-conversation",
         activeConversationId,
         (response: any) => {
+          if (cancelled) {
+            return;
+          }
           if (!response?.success) {
             setPageError(
               response?.message || "Could not join this conversation.",
@@ -379,9 +420,11 @@ export default function MessagingPage() {
     }
 
     return () => {
+      cancelled = true;
       socket.off("connect", joinConversation);
+      if (socket.connected) socket.emit("leave-conversation", activeConversationId);
     };
-  }, [activeConversationId]);
+  }, [activeConversationId, isVisible]);
 
   /*
    * ---------------------------------------------------------
@@ -408,14 +451,33 @@ export default function MessagingPage() {
           incoming,
         }),
       );
+      setListRevision((revision) => revision + 1);
+      if (incoming && conversationId === activeConversationId && document.visibilityState === "visible") {
+        void markRead(conversationId, [String(message.id ?? message._id)]);
+      }
     };
 
+    const handleMessagesRead = (event: { conversationId: string; messageIds: string[] }) => {
+      dispatch(markMessagesRead(event));
+      setListRevision((revision) => revision + 1);
+    };
+    const handleConnect = () => {
+      setListRevision((revision) => revision + 1);
+      if (activeConversationId) setThreadRevision((revision) => revision + 1);
+    };
     socket.on("new-message", handleNewMessage);
+    socket.on("messages-read", handleMessagesRead);
+    const handleConversationUpdated = () => setListRevision((revision) => revision + 1);
+    socket.on("conversation-updated", handleConversationUpdated);
+    socket.on("connect", handleConnect);
 
     return () => {
       socket.off("new-message", handleNewMessage);
+      socket.off("messages-read", handleMessagesRead);
+      socket.off("conversation-updated", handleConversationUpdated);
+      socket.off("connect", handleConnect);
     };
-  }, [dispatch, currentUser?._id]);
+  }, [dispatch, currentUser?._id, activeConversationId]);
 
   /*
    * ---------------------------------------------------------
@@ -424,6 +486,18 @@ export default function MessagingPage() {
    */
 
   useEffect(() => {
+    const updatePresence = (userId: string, isOnline: boolean, lastSeen?: string) => {
+      const updateConversation = (chat: any) => ({
+        ...chat,
+        participants: chat.participants?.map((participant: any) =>
+          String(participant._id ?? participant.id) === String(userId)
+            ? { ...participant, isOnline, lastSeen: lastSeen ?? participant.lastSeen }
+            : participant,
+        ),
+      });
+      setMyChats((chats) => chats.map(updateConversation));
+      setLinkedConversation((chat: any) => chat ? updateConversation(chat) : chat);
+    };
     const handleUserOnline = (userId: string) => {
       dispatch(
         setUserPresence({
@@ -431,6 +505,7 @@ export default function MessagingPage() {
           isOnline: true,
         }),
       );
+      updatePresence(userId, true);
     };
 
     const handleUserOffline = (payload: {
@@ -444,6 +519,7 @@ export default function MessagingPage() {
           lastSeen: payload.lastSeen,
         }),
       );
+      updatePresence(payload.userId, false, payload.lastSeen);
     };
     socket.on("user-online", handleUserOnline);
     socket.on("user-offline", handleUserOffline);
@@ -452,7 +528,7 @@ export default function MessagingPage() {
       socket.off("user-online", handleUserOnline);
       socket.off("user-offline", handleUserOffline);
     };
-  }, []);
+  }, [dispatch]);
 
   /*
    * ---------------------------------------------------------
@@ -481,8 +557,6 @@ export default function MessagingPage() {
   const handleSelectPost = (postId: string) => {
     dispatch(setActiveConversationId(null));
     dispatch(handleHideMobileBottomNav(false));
-    loadConversationsByPost(postId);
-
     navigate(`/messaging?postId=${encodeURIComponent(postId)}`);
   };
 

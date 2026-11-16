@@ -93,7 +93,10 @@ export default function MessageBubble({
               )}
 
               {isMe && (!msg.sendStatus || msg.sendStatus === "sent") && (
-                <CheckCheck className="h-2.5 w-2.5" />
+                <CheckCheck
+                  aria-label={msg.isRead ? "Read" : "Sent"}
+                  className={`h-2.5 w-2.5 ${msg.isRead ? "text-sky-300" : ""}`}
+                />
               )}
             </div>
           </div>

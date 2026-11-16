@@ -28,12 +28,7 @@ export default function Header({
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const theme = useAppSelector((s) => s.ui.theme);
 
-  const unreadMessagesCount = useAppSelector((s) =>
-    s.conversations.conversations.reduce(
-      (sum, c) => sum + (c.unreadCount ?? 0),
-      0,
-    ),
-  );
+  const unreadMessagesCount = useAppSelector((s) => s.conversations.unreadMessageCount);
 
   const onToggleTheme = () => dispatch(toggleTheme());
 

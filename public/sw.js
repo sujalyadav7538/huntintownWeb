@@ -47,9 +47,7 @@ self.addEventListener("push", (event) => {
 
   event.waitUntil(
     Promise.all([
-      self.registration
-        .showNotification(data.title || "HuntInTown", options)
-        .catch(() => undefined),
+      self.registration.showNotification(data.title || "HuntInTown", options),
 
       self.clients
         .matchAll({

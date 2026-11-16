@@ -106,10 +106,8 @@ export default function ResponseItem({
       </div>
 
       {/* Message */}
-      {response?.message && (
-        <p
-          className={`${expanded ? "" : "line-clamp-2"} mt-2 text-[9px] leading-relaxed text-zinc-400`}
-        >
+      {!expanded && response?.message && (
+        <p className="line-clamp-2 mt-2 text-[9px] leading-relaxed text-zinc-400">
           {response.message}
         </p>
       )}
@@ -123,6 +121,7 @@ export default function ResponseItem({
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
+          aria-expanded={expanded}
           className="inline-flex items-center gap-0.5 text-[8px] font-semibold text-zinc-600 transition hover:text-[#FF3F3F]"
         >
           {expanded ? "Hide" : "View Comment"}

@@ -5,6 +5,9 @@ import { Post, User } from "@/src/shared/types";
 import { useAppDispatch, useAppSelector } from "@/src/store/hooks";
 import { login, logout } from "@/src/store/authSlice";
 import { socket, setSocketAuth } from "@/src/shared/lib/socket";
+import { apiFetchJSON } from "@/src/shared/lib/api";
+import { reportAppError } from "@/src/shared/lib/appErrors";
+import { setUnreadMessageCount } from "@/src/store/conversationsSlice";
 import { fetchPosts, clearPosts } from "@/src/store/postsSlice";
 import { resetReputation } from "@/src/store/reputationSlice";
 import {
@@ -111,6 +114,35 @@ export default function App() {
       socket.disconnect();
     }
   }, [authToken, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !authToken) {
+      dispatch(setUnreadMessageCount(0));
+      return;
+    }
+    let active = true;
+    let request = 0;
+    const refresh = () => {
+      const current = ++request;
+      void apiFetchJSON<{ unreadCount: number }>("/api/chat/unread-count")
+        .then((data) => {
+          if (active && current === request) dispatch(setUnreadMessageCount(data.unreadCount));
+        })
+        .catch((error) => {
+          if (active && current === request) reportAppError(error, "Could not update unread messages.");
+        });
+    };
+    socket.on("new-message", refresh);
+    socket.on("messages-read", refresh);
+    socket.on("connect", refresh);
+    refresh();
+    return () => {
+      active = false;
+      socket.off("new-message", refresh);
+      socket.off("messages-read", refresh);
+      socket.off("connect", refresh);
+    };
+  }, [authToken, isAuthenticated, dispatch]);
 
   const handleLogin = useCallback(
     (user: User, token: string) => {

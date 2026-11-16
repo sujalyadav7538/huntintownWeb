@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import { apiFetch, apiFetchJSON } from "../lib/api";
 import { useAppSelector } from "../../store/hooks";
 import { reportAppError } from "../lib/appErrors";
+import { socket } from "../lib/socket";
 
 export interface NotificationItem {
   _id: string;
@@ -123,9 +124,9 @@ const urlBase64ToUint8Array = (value: string): Uint8Array => {
 };
 
 const registerBrowserPush = async (forceRenew = false) => {
-  if (!("serviceWorker" in navigator)) return;
-  if (!("PushManager" in window)) return;
-  if (!("Notification" in window)) return;
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+    throw new Error("Push notifications are not supported in this browser or context.");
+  }
 
   const registration = await navigator.serviceWorker.register("/sw.js");
 
@@ -138,28 +139,32 @@ const registerBrowserPush = async (forceRenew = false) => {
   }
 
   if (permission !== "granted") {
-    return;
+    throw new Error("Notifications are blocked. Allow them in your browser settings.");
   }
 
+  const { publicKey } = await apiFetchJSON<{ publicKey?: string }>(
+    "/api/notifications/vapid-public-key",
+  );
+  if (!publicKey) throw new Error("VAPID public key is not configured");
+  const applicationServerKey = urlBase64ToUint8Array(publicKey);
   let subscription = await registration.pushManager.getSubscription();
 
-  if (subscription && forceRenew) {
-    await subscription.unsubscribe();
+  const existingKey = subscription?.options.applicationServerKey;
+  const keyChanged = existingKey && (
+    new Uint8Array(existingKey).length !== applicationServerKey.length ||
+    new Uint8Array(existingKey).some((value, index) => value !== applicationServerKey[index])
+  );
+  if (subscription && (forceRenew || keyChanged)) {
+    if (!(await subscription.unsubscribe())) {
+      throw new Error("Could not renew the push subscription.");
+    }
     subscription = null;
   }
 
   if (!subscription) {
-    const { publicKey } = await apiFetchJSON<{
-      publicKey?: string;
-    }>("/api/notifications/vapid-public-key");
-
-    if (!publicKey) {
-      throw new Error("VAPID public key is not configured");
-    }
-
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+      applicationServerKey: applicationServerKey as BufferSource,
     });
   }
 
@@ -205,21 +210,35 @@ const initializeNotificationSystem = (userId: string) => {
     return initialization;
   }
 
-  initializedForUser = userId;
-  setNotifications([], 0);
+  if (initializedForUser !== userId) {
+    initializedForUser = userId;
+    setNotifications([], 0);
+  }
+  const previousIds = new Set(notifications.map((item) => item._id));
 
   initialization = apiFetchJSON<NotificationResponse>(
     "/api/notifications?limit=30",
   )
     .then((response) => {
+      if (initializedForUser !== userId) return;
       const list = response.notifications ?? [];
+      const fetchedIds = new Set(list.map((item) => item._id));
+      const receivedDuringFetch = notifications.filter(
+        (item) => !previousIds.has(item._id) && !fetchedIds.has(item._id),
+      );
       setNotifications(
-        list,
-        response.unreadCount ?? list.filter((item) => !item.isRead).length,
+        [...receivedDuringFetch, ...list],
+        (response.unreadCount ?? list.filter((item) => !item.isRead).length) +
+          receivedDuringFetch.filter((item) => !item.isRead).length,
       );
     })
     .catch((error) => {
-      reportAppError(error, "Could not load notifications. Please try again.");
+      if (initializedForUser === userId) {
+        reportAppError(error, "Could not load notifications. Please try again.");
+      }
+    })
+    .finally(() => {
+      if (initializedForUser === userId) initialization = null;
     });
 
   return initialization;
@@ -263,6 +282,16 @@ export const useNotifications = () => {
   useEffect(() => {
     if (currentUserId) {
       void initializeNotificationSystem(currentUserId);
+      const onNotification = (notification: NotificationItem) => {
+        if (notification?._id) addNotification(notification);
+      };
+      const onConnect = () => { void initializeNotificationSystem(currentUserId); };
+      socket.on("notification-created", onNotification);
+      socket.on("connect", onConnect);
+      return () => {
+        socket.off("notification-created", onNotification);
+        socket.off("connect", onConnect);
+      };
     } else {
       resetNotifications();
     }

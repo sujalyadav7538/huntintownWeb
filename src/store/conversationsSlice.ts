@@ -6,6 +6,7 @@ interface ConversationsState {
   activeConversationId: string | null;
   chatPosts: ChatPost[];
   conversationMessages: Record<string, Message[]>;
+  unreadMessageCount: number;
 }
 
 const initialState: ConversationsState = {
@@ -13,6 +14,7 @@ const initialState: ConversationsState = {
   activeConversationId: null,
   chatPosts: [] as ChatPost[],
   conversationMessages: {},
+  unreadMessageCount: 0,
 };
 
 export const conversationsSlice = createSlice({
@@ -39,18 +41,20 @@ export const conversationsSlice = createSlice({
 
       // Deduplicate: socket room broadcasts to sender AND receiver
       const alreadyExists = state.conversationMessages[conversationId].some(
-        (m) => m.id === message.id,
+        (m) => (m.id ?? m._id) === (message.id ?? message._id),
       );
       if (!alreadyExists) {
         state.conversationMessages[conversationId].push(message);
       }
 
       // Update conversation metadata only if it's loaded in the list
-      const conv = state.conversations.find((c) => c.id === conversationId);
+      const conv = state.conversations.find((c) => (c.id ?? c._id) === conversationId);
       if (conv) {
         conv.lastMessage = message.text || (message as any).content || "";
         conv.lastMessageAt = message.createdAt;
-        if (incoming && !alreadyExists) conv.unreadCount = (conv.unreadCount ?? 0) + 1;
+        if (incoming && !alreadyExists && state.activeConversationId !== conversationId) {
+          conv.unreadCount = (conv.unreadCount ?? 0) + 1;
+        }
       }
     },
     setConversations: (state, action: PayloadAction<Conversation[]>) => {
@@ -65,8 +69,32 @@ export const conversationsSlice = createSlice({
       state,
       action: PayloadAction<{ conversationId: string; messages: Message[] }>,
     ) => {
-      state.conversationMessages[action.payload.conversationId] =
-        action.payload.messages;
+      const { conversationId, messages } = action.payload;
+      const existing = state.conversationMessages[conversationId] ?? [];
+      const merged = messages.map((message) => {
+        const previous = existing.find((item) => (item.id ?? item._id) === (message.id ?? message._id));
+        return previous?.isRead ? { ...message, isRead: true } : message;
+      });
+      for (const message of existing) {
+        if (!merged.some((item) => (item.id ?? item._id) === (message.id ?? message._id))) {
+          merged.push(message);
+        }
+      }
+      state.conversationMessages[conversationId] = merged.sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
+    },
+    setUnreadMessageCount: (state, action: PayloadAction<number>) => {
+      state.unreadMessageCount = action.payload;
+    },
+    markMessagesRead: (
+      state,
+      action: PayloadAction<{ conversationId: string; messageIds: string[] }>,
+    ) => {
+      const { conversationId, messageIds } = action.payload;
+      for (const message of state.conversationMessages[conversationId] ?? []) {
+        if (messageIds.includes(message.id ?? message._id)) message.isRead = true;
+      }
     },
     replaceMessage: (
       state,
@@ -79,8 +107,8 @@ export const conversationsSlice = createSlice({
       const { conversationId, tempId, message } = action.payload;
       const msgs = state.conversationMessages[conversationId];
       if (!msgs) return;
-      const tempIdx = msgs.findIndex((m) => m.id === tempId);
-      const realIdx = msgs.findIndex((m) => m.id === message.id);
+      const tempIdx = msgs.findIndex((m) => (m.id ?? m._id) === tempId);
+      const realIdx = msgs.findIndex((m) => (m.id ?? m._id) === (message.id ?? message._id));
       if (tempIdx >= 0) {
         if (realIdx >= 0 && realIdx !== tempIdx) {
           // Real message already arrived via new-message event before callback
@@ -104,7 +132,7 @@ export const conversationsSlice = createSlice({
     ) => {
       const { conversationId, messageId, status } = action.payload;
       const msg = state.conversationMessages[conversationId]?.find(
-        (m) => m.id === messageId,
+        (m) => (m.id ?? m._id) === messageId,
       );
       if (msg) msg.sendStatus = status;
     },
@@ -120,7 +148,7 @@ export const conversationsSlice = createSlice({
       state.conversations = state.conversations.map((conversation) => ({
         ...conversation,
         participants: conversation.participants.map((participant) =>
-          participant.id === userId
+          (participant.id ?? participant._id) === userId
             ? { ...participant, isOnline, lastSeen: lastSeen ?? participant.lastSeen }
             : participant,
         ),
@@ -135,6 +163,8 @@ export const {
   setConversations,
   setChatPosts,
   setConversationMessages,
+  setUnreadMessageCount,
+  markMessagesRead,
   replaceMessage,
   setMessageStatus,
   setUserPresence,

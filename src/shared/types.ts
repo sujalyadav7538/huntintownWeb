@@ -259,7 +259,7 @@ export interface Conversation {
   status: string;
   lastMessage?: string;
   lastMessageAt?: string;
-  /** Frontend-only unread counter — not returned by backend */
+  /** Number of messages not yet read by the current user. */
   unreadCount?: number;
 }
 
