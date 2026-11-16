@@ -46,18 +46,16 @@ export default function ReceivedOffersView({
   };
 
   return (
-    <div className="h-[calc(100vh-12rem)] min-h-[520px]">
-      <PostDetailView
-        key={post._id}
-        post={normalizePost(post)}
-        hasApplied
-        viewOnly
-        responseLimit={10}
-        onBack={onClose}
-        backLabel="My published requirements"
-        onStartChat={openConversation}
-        startingResponseId={startingResponseId}
-      />
-    </div>
+    <PostDetailView
+      key={post._id}
+      post={normalizePost(post)}
+      hasApplied
+      viewOnly
+      responseLimit={10}
+      onBack={onClose}
+      backLabel="My published requirements"
+      onStartChat={openConversation}
+      startingResponseId={startingResponseId}
+    />
   );
 }

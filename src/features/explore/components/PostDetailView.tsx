@@ -160,15 +160,15 @@ export default function PostDetail({
   };
 
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-col theme-page-shell">
+    <div className={`relative flex min-h-0 w-full flex-col theme-page-shell ${viewOnly ? "wrap-anywhere" : "h-full"}`}>
       {activityError && <p role="alert" className="px-4 py-2 text-sm text-red-400">{activityError}</p>}
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div className={viewOnly ? "min-w-0" : "min-h-0 flex-1 overflow-hidden"}>
         <div
-          className={`mx-auto h-full w-full max-w-7xl ${
+          className={`mx-auto w-full max-w-7xl ${viewOnly ? "" : "h-full"} ${
             viewOnly ? "px-1 sm:px-6" : "px-4 sm:px-6"
           }`}
         >
-          <div className="grid h-full min-h-0 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <div className={`grid min-h-0 ${viewOnly ? "items-start" : "h-full"} lg:grid-cols-[minmax(0,1fr)_360px]`}>
             {/* Left - Desktop */}
             <LeftPanelDesktop
               post={post}
@@ -182,6 +182,7 @@ export default function PostDetail({
               isUrgent={isUrgent}
               accent={accent}
               expiryLabel={expiryLabel}
+              viewOnly={viewOnly}
             />
 
             {/* Left - Mobile */}
@@ -204,7 +205,7 @@ export default function PostDetail({
             />
 
             {/* Right - Desktop Responses */}
-            <aside className="hidden min-h-0 border-l border-white/5.5 lg:flex lg:w-90 lg:flex-col lg:py-6 lg:pl-4">
+            <aside className="hidden min-h-0 min-w-0 border-l border-white/5.5 lg:flex lg:w-90 lg:flex-col lg:py-6 lg:pl-4">
               <ResponsesPanel
                 post={post}
                 hasApplied={hasApplied}
@@ -215,6 +216,7 @@ export default function PostDetail({
                 onStartChat={onStartChat}
                 startingResponseId={startingResponseId}
                 showApplyAction={!viewOnly}
+                scrollable={!viewOnly}
               />
             </aside>
           </div>
@@ -270,6 +272,7 @@ function LeftPanelDesktop({
   isUrgent,
   accent,
   expiryLabel,
+  viewOnly = false,
 }: LeftPanelProps) {
   const postedDate = post?.createdAt
     ? new Date(post.createdAt).toLocaleDateString("en-IN", {
@@ -279,7 +282,7 @@ function LeftPanelDesktop({
     : "Just now";
 
   return (
-    <main className="hidden min-h-0 overflow-y-auto scrollbar-hide lg:block lg:py-6 lg:pr-8">
+    <main className={`hidden min-h-0 min-w-0 lg:block lg:py-6 lg:pr-8 ${viewOnly ? "" : "overflow-y-auto scrollbar-hide"}`}>
       {/* Header */}
       <div className="flex items-center">
         <button
@@ -366,7 +369,7 @@ function LeftPanelDesktop({
             </span>
           )}
 
-          {expired && (
+          {expired && post.status !== "expired" && (
             <span className="rounded-md bg-white/[0.04] px-2.5 py-1 text-[9px] text-zinc-600">
               Expired
             </span>
@@ -375,14 +378,14 @@ function LeftPanelDesktop({
 
         {/* Title */}
         <div className="mt-7">
-          <h1 className="max-w-4xl text-[38px] font-semibold leading-[1.12] tracking-[-0.03em] text-zinc-100">
+          <h1 className="max-w-4xl wrap-anywhere text-[38px] font-semibold leading-[1.12] tracking-[-0.03em] text-zinc-100">
             {post.title}
           </h1>
         </div>
 
         {/* Description */}
         <div className="mt-5 max-w-3xl">
-          <p className="whitespace-pre-wrap text-[14px] leading-7 text-zinc-400">
+          <p className="wrap-anywhere whitespace-pre-wrap text-[14px] leading-7 text-zinc-400">
             {post.description}
           </p>
         </div>
@@ -395,7 +398,7 @@ function LeftPanelDesktop({
               Location
             </p>
 
-            <p className="mt-2 truncate text-[12px] font-medium text-zinc-300">
+            <p className={`mt-2 text-[12px] font-medium text-zinc-300 ${viewOnly ? "wrap-anywhere" : "truncate"}`}>
               {post.address || "Not specified"}
             </p>
           </div>
@@ -406,7 +409,7 @@ function LeftPanelDesktop({
               Budget
             </p>
 
-            <p className="mt-2 truncate text-[12px] font-medium text-zinc-300">
+            <p className={`mt-2 text-[12px] font-medium text-zinc-300 ${viewOnly ? "wrap-anywhere" : "truncate"}`}>
               {post.budget || "Negotiable"}
             </p>
           </div>
@@ -417,14 +420,14 @@ function LeftPanelDesktop({
               Timeline
             </p>
 
-            <p className="mt-2 truncate text-[12px] font-medium text-zinc-300">
+            <p className={`mt-2 text-[12px] font-medium text-zinc-300 ${viewOnly ? "wrap-anywhere" : "truncate"}`}>
               {post.timeline || expiryLabel || "Not specified"}
             </p>
           </div>
         </div>
 
         {/* Trust */}
-        <div className="mt-6 flex items-center gap-2 text-[10px] text-zinc-600">
+        <div className="mt-6 flex flex-wrap items-center gap-2 text-[10px] text-zinc-600">
           <span className="font-medium text-zinc-500">
             Posted on HuntInTown
           </span>
@@ -486,7 +489,7 @@ function LeftPanelMobile({
     : "Just now";
 
   return (
-    <main className="min-h-0 overflow-y-auto scrollbar-hide py-4 lg:hidden">
+    <main className={`min-h-0 min-w-0 py-4 lg:hidden ${viewOnly ? "" : "overflow-y-auto scrollbar-hide"}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
@@ -574,7 +577,7 @@ function LeftPanelMobile({
             </span>
           )}
 
-          {expired && (
+          {expired && post.status !== "expired" && (
             <span className="rounded-md bg-white/[0.04] px-2 py-1 text-[9px] text-zinc-600">
               Expired
             </span>
@@ -583,14 +586,14 @@ function LeftPanelMobile({
 
         {/* Title */}
         <div className="mt-6">
-          <h1 className="text-[27px] font-semibold leading-[1.15] tracking-[-0.025em] text-zinc-100">
+          <h1 className="wrap-anywhere text-[27px] font-semibold leading-[1.15] tracking-[-0.025em] text-zinc-100">
             {post.title}
           </h1>
         </div>
 
         {/* Description */}
         <div className="mt-4">
-          <p className="whitespace-pre-wrap text-[13px] leading-6 text-zinc-400">
+          <p className="wrap-anywhere whitespace-pre-wrap text-[13px] leading-6 text-zinc-400">
             {post.description}
           </p>
         </div>
@@ -603,7 +606,7 @@ function LeftPanelMobile({
               Location
             </p>
 
-            <p className="mt-1.5 truncate text-[11px] font-medium text-zinc-300">
+            <p className={`mt-1.5 text-[11px] font-medium text-zinc-300 ${viewOnly ? "wrap-anywhere" : "truncate"}`}>
               {post.address || "Not specified"}
             </p>
           </div>
@@ -614,7 +617,7 @@ function LeftPanelMobile({
               Budget
             </p>
 
-            <p className="mt-1.5 truncate text-[11px] font-medium text-zinc-300">
+            <p className={`mt-1.5 text-[11px] font-medium text-zinc-300 ${viewOnly ? "wrap-anywhere" : "truncate"}`}>
               {post.budget || "Negotiable"}
             </p>
           </div>
@@ -625,14 +628,14 @@ function LeftPanelMobile({
               Timeline
             </p>
 
-            <p className="mt-1.5 truncate text-[11px] font-medium text-zinc-300">
+            <p className={`mt-1.5 text-[11px] font-medium text-zinc-300 ${viewOnly ? "wrap-anywhere" : "truncate"}`}>
               {post.timeline || expiryLabel || "Not specified"}
             </p>
           </div>
         </div>
 
         {/* Trust */}
-        <div className="mt-5 flex items-center gap-2 text-[9px] text-zinc-600">
+        <div className="mt-5 flex flex-wrap items-center gap-2 text-[9px] text-zinc-600">
           <span className="text-zinc-500">Posted on HuntInTown</span>
           <span>•</span>
           <span>Safe</span>
@@ -672,6 +675,7 @@ function LeftPanelMobile({
             onStartChat={onStartChat}
             startingResponseId={startingResponseId}
             showApplyAction={!viewOnly}
+            scrollable={!viewOnly}
           />
         </div>
       </section>

@@ -36,6 +36,7 @@ interface ResponsesPanelProps {
   showApplyAction?: boolean;
   onStartChat?: (responseId: string) => Promise<void>;
   startingResponseId?: string | null;
+  scrollable?: boolean;
 }
 
 export default function ResponsesPanel({
@@ -48,6 +49,7 @@ export default function ResponsesPanel({
   showApplyAction = true,
   onStartChat,
   startingResponseId,
+  scrollable = true,
 }: ResponsesPanelProps) {
   const expired = isPostExpired(post.expiresAt);
   const [responses, setResponses] = useState<ResponseData[]>([]);
@@ -102,7 +104,7 @@ export default function ResponsesPanel({
   }, [postId, filter, responseLimit, retryCount]);
 
   return (
-    <aside className="flex h-full min-h-0 flex-col">
+    <aside className={`flex min-h-0 min-w-0 flex-col ${scrollable ? "h-full" : ""}`}>
       {/* Header */}
       <div className="shrink-0">
         <div className="flex items-center justify-between">
@@ -153,7 +155,7 @@ export default function ResponsesPanel({
       </div>
 
       {/* Responses */}
-      <div className="min-h-0 flex-1 overflow-y-auto py-3 pr-1 scrollbar-hide">
+      <div className={`min-h-0 py-3 pr-1 ${scrollable ? "flex-1 overflow-y-auto scrollbar-hide" : ""}`}>
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, index) => (

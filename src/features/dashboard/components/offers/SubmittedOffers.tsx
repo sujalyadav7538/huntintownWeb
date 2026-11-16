@@ -160,17 +160,15 @@ export default function SubmittedOffers({
       );
     } else {
       return (
-        <div className="h-[calc(100vh-12rem)] min-h-[520px]">
-          <PostDetailView
-            key={selected.postId._id}
-            post={normalizePost(selected.postId)}
-            hasApplied
-            viewOnly
-            responseLimit={10}
-            onBack={close}
-            backLabel="Submitted offers"
-          />
-        </div>
+        <PostDetailView
+          key={selected.postId._id}
+          post={normalizePost(selected.postId)}
+          hasApplied
+          viewOnly
+          responseLimit={10}
+          onBack={close}
+          backLabel="Submitted offers"
+        />
       );
     }
   }

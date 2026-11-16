@@ -77,7 +77,11 @@ export default function DashboardPage({
   );
 
   return (
-    <div className="theme-page-shell mx-auto w-full max-w-7xl space-y-7 px-1 py-5 sm:space-y-8 sm:py-7">
+    <div className={`theme-page-shell mx-auto w-full max-w-7xl px-1 ${
+      publishedDetail || submittedDetail
+        ? "py-2 sm:py-4"
+        : "space-y-7 py-5 sm:space-y-8 sm:py-7"
+    }`}>
       <AnimatedContent
         variant="fade"
         duration={0.3}
