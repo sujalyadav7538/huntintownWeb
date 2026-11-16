@@ -36,8 +36,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: data.message || "",
-    icon: "/favicon.ico",
-    badge: "/favicon.ico",
+    icon: "/logo.jpeg",
+    badge: "/logo.jpeg",
     data: {
       notificationId,
       link: data.link,
