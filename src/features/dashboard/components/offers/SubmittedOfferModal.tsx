@@ -70,7 +70,9 @@ export default function SubmittedOfferModal({
               <h3 className="theme-text-muted text-[10px] font-bold uppercase tracking-wider">
                 Your response
               </h3>
-              <StatusBadge status={item.status} />
+              <span className="theme-text-muted text-xs">
+                {item.conversationId ? "Chat started" : "Offer submitted"}
+              </span>
             </div>
             <p className="theme-text-primary mt-3 whitespace-pre-wrap wrap-break-word text-sm leading-relaxed">
               {item.message || "No message provided."}
@@ -98,7 +100,7 @@ export default function SubmittedOfferModal({
             </section>
           )}
 
-          {post.status === "completed" && item.status === "accepted" && (
+          {post.status === "completed" && item.conversationId && (
             <RateOwnerSection
               postId={post._id}
               ownerName={post.author?.name || "the owner"}
@@ -107,7 +109,7 @@ export default function SubmittedOfferModal({
         </div>
 
         <footer className="theme-divider flex shrink-0 items-center justify-end gap-3 border-t px-5 py-4">
-          {item.status === "accepted" && item.conversationId ? (
+          {item.conversationId ? (
             <button
               type="button"
               onClick={onChat}
@@ -115,10 +117,6 @@ export default function SubmittedOfferModal({
             >
               <MessageCircle className="h-3.5 w-3.5" /> Chat
             </button>
-          ) : item.status === "accepted" ? (
-            <p className="theme-text-muted ml-auto text-right text-xs">
-              Accepted, but no conversation is available for this response.
-            </p>
           ) : null}
         </footer>
       </div>

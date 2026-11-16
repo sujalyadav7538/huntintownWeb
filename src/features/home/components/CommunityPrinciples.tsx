@@ -23,7 +23,7 @@ const PRINCIPLES = [
     title: "Respect Commitments",
     color: "home-icon-cyan",
     points: [
-      "Accept offers responsibly",
+      "Start conversations with the helpers you want to contact",
       "Communicate clearly",
       "Complete agreed work honestly",
     ],
@@ -33,7 +33,7 @@ const PRINCIPLES = [
     title: "Stay Safe",
     color: "home-icon-red",
     points: [
-      "Verify profiles before accepting",
+      "Review profiles before starting a conversation",
       "Meet in safe public locations when required",
       "Use HuntInTown chat for communication",
     ],

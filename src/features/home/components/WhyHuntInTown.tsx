@@ -18,7 +18,7 @@ const FEATURES = [
     title: "Direct Conversations",
     accent: "home-icon-cyan",
     description:
-      "Connect directly with selected helpers through secure in-app conversations after an offer is accepted.",
+      "Start a secure in-app conversation with an applicant directly from their offer.",
   },
   {
     icon: Wallet,

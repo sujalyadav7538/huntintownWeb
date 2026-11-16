@@ -24,7 +24,7 @@ const questions = [
   },
   {
     question: "Where do I find my conversations?",
-    answer: "Open Chat. My Posts contains conversations on requirements you published; My Chats contains conversations where you are the helper. Chat becomes available after an offer is accepted.",
+    answer: "Open Chat. My Posts contains conversations on requirements you published; My Chats contains conversations where you are the helper. A conversation appears after the requirement owner starts a chat from an applicant's offer.",
     to: "/messaging",
     label: "Open messages",
   },

@@ -1,4 +1,4 @@
-import { Star, Shield, CheckCircle2, UserCheck } from "lucide-react";
+import { Star, Shield, MessageCircle, UserCheck } from "lucide-react";
 import { UserMetric } from "@/src/shared/types";
 
 interface UserStatsProps {
@@ -37,27 +37,8 @@ const UserStats = ({
    * =========================================================
    */
 
-  const responsesSubmitted = metric?.helperMetrics?.responsesSubmitted ?? 0;
-
-  const responsesAccepted = metric?.helperMetrics?.responsesAccepted ?? 0;
-
-  const completedResponses = metric?.helperMetrics?.completedResponses ?? 0;
-
-  /*
-   * Acceptance rate
-   */
-  const acceptanceRate =
-    responsesSubmitted > 0
-      ? Math.round((responsesAccepted / responsesSubmitted) * 100)
-      : 0;
-
-  /*
-   * Completion rate
-   */
-  const completionRate =
-    responsesAccepted > 0
-      ? Math.round((completedResponses / responsesAccepted) * 100)
-      : 0;
+  const conversationsStarted =
+    metric?.activityMetrics?.conversationsStarted ?? 0;
 
   /*
    * =========================================================
@@ -128,14 +109,11 @@ const UserStats = ({
           : "0 Reviews",
     },
     {
-      label: "Completed",
-      value: completedResponses.toString(),
-      icon: CheckCircle2,
-      iconClass: "text-emerald-400 fill-emerald-400/10",
-      desc:
-        responsesSubmitted > 0
-          ? `${acceptanceRate}% acceptance`
-          : "0% acceptance",
+      label: "Conversations",
+      value: conversationsStarted.toString(),
+      icon: MessageCircle,
+      iconClass: "text-emerald-400",
+      desc: "Started or joined",
     },
     {
       label: "Profile",

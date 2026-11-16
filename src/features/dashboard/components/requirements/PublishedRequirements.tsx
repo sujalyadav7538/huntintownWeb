@@ -6,7 +6,7 @@ import { apiFetch } from "@/src/shared/lib/api";
 import useDebounce from "@/src/shared/hooks/useDebounce";
 import ExploreSearch from "@/src/features/explore/components/ExploreSearch";
 import type { DashboardPost, PostStatus } from "../types";
-import ReceivedOffersModal from "./ReceivedOffersModal";
+import ReceivedOffersView from "./ReceivedOffersView";
 import RateHelpersModal from "./RateHelpersModal";
 import RequirementCard from "./RequirementCard";
 import { EmptyState, ErrorState, LoadingState } from "./RequirementUI";
@@ -128,7 +128,7 @@ export default function PublishedRequirements({
     if (ratingScreen.value) {
       detail = <RateHelpersModal postId={selectedPost._id} postTitle={selectedPost.title} onClose={ratingScreen.close} />;
     } else detail = (
-      <ReceivedOffersModal
+      <ReceivedOffersView
         post={selectedPost}
         onClose={postScreen.close}
         onInitiateChat={onInitiateChat}
@@ -137,9 +137,10 @@ export default function PublishedRequirements({
     );
   }
 
+  if (requestedPostId) return detail;
+
   return (
     <section className="min-w-0">
-      {detail}
       <AnimatedContent variant="fade" duration={0.3} className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">

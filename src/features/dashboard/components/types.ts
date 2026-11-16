@@ -24,22 +24,6 @@ export interface DashboardUser {
   location?: { coordinates?: [number, number] } | string;
 }
 
-export interface DashboardResponse {
-  _id: string;
-  postId: string;
-  message: string;
-  answers: { question: string; answer: string }[];
-  status: ResponseStatus;
-  createdAt: string;
-  acceptedAt?: string;
-  completedAt?: string;
-  cancelledAt?: string;
-  respondedBy: DashboardUser & { email?: string };
-  trustScore?: number;
-  averageRating?: number;
-  conversationId?: string;
-}
-
 export interface SubmittedResponse {
   _id: string;
   postId: DashboardPost & { author: DashboardUser };

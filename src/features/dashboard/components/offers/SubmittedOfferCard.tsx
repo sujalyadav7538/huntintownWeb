@@ -68,12 +68,12 @@ export default function SubmittedOfferCard({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
-          {item.status === "accepted" && item.conversationId && (
+          {item.conversationId && (
             <button
               type="button"
               onClick={onChat}
               aria-label={`Chat about ${post.title}`}
-              title="Open chat"
+              title="Open conversation"
               className="theme-divider flex h-8 w-8 items-center justify-center rounded-md border text-[#FF6B6B] hover:bg-[#FF3F3F]/10"
             >
               <MessageCircle className="h-4 w-4" />
@@ -102,9 +102,7 @@ export default function SubmittedOfferCard({
           {categoryLabel}
         </span>
         <span>{post.budget || "Negotiable"}</span>
-        <span>
-          Your offer: <StatusBadge status={item.status} />
-        </span>
+        <span>{item.conversationId ? "Chat started" : "Offer submitted"}</span>
       </div>
     </article>
   );

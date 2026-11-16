@@ -98,6 +98,8 @@ export interface UserMetric {
   helperMetrics: {
     responsesSubmitted: number;
     responsesAccepted: number;
+    responsesContacted: number;
+    contactScore: number;
     acceptanceScore: number;
     completedResponses: number;
     cancelledResponses: number;
@@ -111,6 +113,8 @@ export interface UserMetric {
     completionScore: number;
     responsesReceived: number;
     responsesAccepted: number;
+    responsesContacted: number;
+    contactScore: number;
     acceptanceScore: number;
     score?: number;
   };

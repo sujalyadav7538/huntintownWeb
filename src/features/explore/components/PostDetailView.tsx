@@ -45,7 +45,12 @@ const STATUS_COLORS: Record<string, string> = {
 interface PostDetailProps {
   post: Post;
   hasApplied?: boolean;
+  viewOnly?: boolean;
+  responseLimit?: number;
+  onStartChat?: (responseId: string) => Promise<void>;
+  startingResponseId?: string | null;
   onBack: () => void;
+  backLabel?: string;
   onViewProfile?: (author: Post["author"]) => void;
   onResponseSubmit?: (postId: string) => void;
 }
@@ -53,7 +58,12 @@ interface PostDetailProps {
 export default function PostDetail({
   post,
   hasApplied: previouslyApplied = false,
+  viewOnly = false,
+  responseLimit,
+  onStartChat,
+  startingResponseId,
   onBack,
+  backLabel = "Requirements",
   onViewProfile,
   onResponseSubmit,
 }: PostDetailProps) {
@@ -61,11 +71,16 @@ export default function PostDetail({
   const navigate = useNavigate();
   const [isApplicationOpen, setIsApplicationOpen] = useState(false);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-  const [hasApplied, setHasApplied] = useState(previouslyApplied);
+  const [hasApplied, setHasApplied] = useState(viewOnly || previouslyApplied);
   const [activityError, setActivityError] = useState("");
   const [activityLoading, setActivityLoading] = useState(isAuthenticated);
 
   useEffect(() => {
+    if (viewOnly) {
+      setHasApplied(true);
+      setActivityLoading(false);
+      return;
+    }
     if (!isAuthenticated) return;
     let cancelled = false;
     setActivityLoading(true);
@@ -89,7 +104,7 @@ export default function PostDetail({
         if (!cancelled) setActivityLoading(false);
       });
     return () => { cancelled = true; };
-  }, [isAuthenticated, post.id, post._id, previouslyApplied]);
+  }, [isAuthenticated, post.id, post._id, previouslyApplied, viewOnly]);
 
   const expiryLabel = post?.expiresAt
     ? getPostExpiryLabel(post.expiresAt)
@@ -135,7 +150,7 @@ export default function PostDetail({
   };
 
   const handleResponseOpen = () => {
-    if (hasApplied || activityLoading || activityError) return;
+    if (viewOnly || hasApplied || activityLoading || activityError) return;
 
     if (isAuthenticated) {
       setIsApplicationOpen(true);
@@ -154,6 +169,7 @@ export default function PostDetail({
             <LeftPanelDesktop
               post={post}
               onBack={onBack}
+              backLabel={backLabel}
               onViewProfile={onViewProfile}
               onApply={handleResponseOpen}
               expired={expired}
@@ -168,6 +184,7 @@ export default function PostDetail({
             <LeftPanelMobile
               post={post}
               onBack={onBack}
+              backLabel={backLabel}
               onViewProfile={onViewProfile}
               onApply={handleResponseOpen}
               expired={expired}
@@ -176,6 +193,10 @@ export default function PostDetail({
               isUrgent={isUrgent}
               accent={accent}
               expiryLabel={expiryLabel}
+              viewOnly={viewOnly}
+              responseLimit={responseLimit}
+              onStartChat={onStartChat}
+              startingResponseId={startingResponseId}
             />
 
             {/* Right - Desktop Responses */}
@@ -186,23 +207,29 @@ export default function PostDetail({
                 applicationUnavailable={activityLoading || Boolean(activityError)}
                 onViewProfile={onViewProfile}
                 onApply={handleResponseOpen}
+                responseLimit={responseLimit}
+                onStartChat={onStartChat}
+                startingResponseId={startingResponseId}
+                showApplyAction={!viewOnly}
               />
             </aside>
           </div>
         </div>
 
       </div>
-      <footer className="shrink-0 border-t border-white/10 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] theme-page-shell sm:px-6 lg:hidden">
-        <button
-          type="button"
-          onClick={handleResponseOpen}
-          disabled={expired || hasApplied || activityLoading || Boolean(activityError)}
-          className="theme-btn-accent flex h-11 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 sm:ml-auto sm:max-w-sm"
-        >
-          {hasApplied ? <BadgeCheck className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {hasApplied ? "Applied" : expired ? "Requirement Expired" : "Apply for Requirement"}
-        </button>
-      </footer>
+      {!viewOnly && (
+        <footer className="shrink-0 border-t border-white/10 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] theme-page-shell sm:px-6 lg:hidden">
+          <button
+            type="button"
+            onClick={handleResponseOpen}
+            disabled={expired || hasApplied || activityLoading || Boolean(activityError)}
+            className="theme-btn-accent flex h-11 w-full items-center justify-center gap-2 rounded-lg text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 sm:ml-auto sm:max-w-sm"
+          >
+            {hasApplied ? <BadgeCheck className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {hasApplied ? "Applied" : expired ? "Requirement Expired" : "Apply for Requirement"}
+          </button>
+        </footer>
+      )}
       <ApplyRequirementModal
         isOpen={isApplicationOpen}
         post={post}
@@ -215,6 +242,7 @@ export default function PostDetail({
 interface LeftPanelProps {
   post: Post;
   onBack: () => void;
+  backLabel: string;
   onViewProfile?: (user: User) => void;
   onApply: () => void;
   expired: boolean;
@@ -223,11 +251,16 @@ interface LeftPanelProps {
   isUrgent: boolean;
   accent: string;
   expiryLabel?: string;
+  viewOnly?: boolean;
+  responseLimit?: number;
+  onStartChat?: (responseId: string) => Promise<void>;
+  startingResponseId?: string | null;
 }
 
 function LeftPanelDesktop({
   post,
   onBack,
+  backLabel,
   onViewProfile,
   expired,
   isUrgent,
@@ -251,7 +284,7 @@ function LeftPanelDesktop({
           className="group inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 transition-colors hover:-translate-x-0.5 hover:text-zinc-200"
         >
           <ArrowLeft className="h-3.5 w-3.5 transition-transform" />
-          Requirements
+          {backLabel}
         </button>
       </div>
 
@@ -427,6 +460,7 @@ function LeftPanelDesktop({
 function LeftPanelMobile({
   post,
   onBack,
+  backLabel,
   onViewProfile,
   onApply,
   expired,
@@ -435,6 +469,10 @@ function LeftPanelMobile({
   isUrgent,
   accent,
   expiryLabel,
+  viewOnly = false,
+  responseLimit,
+  onStartChat,
+  startingResponseId,
 }: LeftPanelProps) {
   const postedDate = post?.createdAt
     ? new Date(post.createdAt).toLocaleDateString("en-IN", {
@@ -453,7 +491,7 @@ function LeftPanelMobile({
           className="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 transition-colors hover:text-zinc-200"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Requirements
+          {backLabel}
         </button>
 
       </div>
@@ -626,6 +664,10 @@ function LeftPanelMobile({
             applicationUnavailable={applicationUnavailable}
             onViewProfile={onViewProfile}
             onApply={onApply}
+            responseLimit={responseLimit}
+            onStartChat={onStartChat}
+            startingResponseId={startingResponseId}
+            showApplyAction={!viewOnly}
           />
         </div>
       </section>

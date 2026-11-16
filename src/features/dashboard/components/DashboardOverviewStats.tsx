@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Archive, CheckCheck, CircleCheck, FileText, Inbox, Send } from "lucide-react";
+import { Archive, CircleCheck, FileText, Inbox, MessageCircle, Send } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
 import type { UserMetric } from "@/src/shared/types";
 import type { DashboardPost, SubmittedResponse } from "./types";
@@ -31,14 +31,14 @@ export default function DashboardOverviewStats({ posts, submitted, revision }: D
 
   const activeCount = posts.filter((post) => ["live", "in_progress"].includes(post.status)).length;
   const receivedCount = posts.reduce((total, post) => total + (post.responsesCount || 0), 0);
-  const acceptedCount = (metric?.hunterMetrics?.responsesAccepted ?? 0) + (metric?.helperMetrics?.responsesAccepted ?? 0);
+  const conversationsStarted = metric?.activityMetrics?.conversationsStarted ?? 0;
   const completedCount = metric?.hunterMetrics?.postsCompleted ?? posts.filter((post) => post.status === "completed").length;
   const stats = [
     { label: "Requirements created", value: posts.length, icon: FileText, tint: "text-[#FF6B6B] bg-[#FF3F3F]/10" },
     { label: "Active requirements", value: activeCount, icon: Archive, tint: "text-sky-300 bg-sky-400/10" },
     { label: "Offers received", value: receivedCount, icon: Inbox, tint: "text-amber-300 bg-amber-400/10" },
     { label: "Offers submitted", value: submitted.length, icon: Send, tint: "text-cyan-300 bg-cyan-400/10" },
-    { label: "Offers accepted", value: acceptedCount, icon: CheckCheck, tint: "text-emerald-300 bg-emerald-400/10" },
+    { label: "Conversations started", value: conversationsStarted, icon: MessageCircle, tint: "text-emerald-300 bg-emerald-400/10" },
     { label: "Requirements completed", value: completedCount, icon: CircleCheck, tint: "text-lime-300 bg-lime-400/10" },
   ];
 

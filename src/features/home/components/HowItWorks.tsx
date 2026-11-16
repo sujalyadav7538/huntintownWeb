@@ -1,7 +1,6 @@
 import {
   FileText,
   Handshake,
-  CheckCircle2,
   MessageCircle,
   Star,
 } from "lucide-react";
@@ -32,21 +31,21 @@ const STEPS = [
     ],
   },
   {
-    icon: CheckCircle2,
-    title: "Choose a Helper",
+    icon: MessageCircle,
+    title: "Start a Conversation",
     accent: "home-icon-sky",
     bullets: [
-      "Compare trust scores, badges and ratings",
-      "Review helper profiles before accepting",
+      "Review each helper's profile and offer",
+      "Start a private chat with the people you want to contact",
     ],
   },
   {
     icon: MessageCircle,
-    title: "Chat Securely",
+    title: "Coordinate Securely",
     accent: "home-icon-emerald",
     bullets: [
-      "A private chat opens after accepting an offer",
-      "Discuss the work directly with your helper",
+      "Open a conversation from an individual offer",
+      "Discuss the work directly with each helper",
     ],
   },
   {

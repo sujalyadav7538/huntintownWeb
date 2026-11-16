@@ -8,7 +8,8 @@ import { apiFetchJSON } from "@/src/shared/lib/api";
 type ResponseFilter = "trust" | "earliest" | "latest";
 
 interface ResponseData {
-  id: string;
+  id?: string;
+  _id?: string;
   postId: string;
   respondedBy: User;
   message: string;
@@ -31,6 +32,10 @@ interface ResponsesPanelProps {
   applicationUnavailable?: boolean;
   onViewProfile?: (author: User) => void;
   onApply?: () => void;
+  responseLimit?: number;
+  showApplyAction?: boolean;
+  onStartChat?: (responseId: string) => Promise<void>;
+  startingResponseId?: string | null;
 }
 
 export default function ResponsesPanel({
@@ -39,6 +44,10 @@ export default function ResponsesPanel({
   applicationUnavailable = false,
   onViewProfile,
   onApply,
+  responseLimit = 50,
+  showApplyAction = true,
+  onStartChat,
+  startingResponseId,
 }: ResponsesPanelProps) {
   const expired = isPostExpired(post.expiresAt);
   const [responses, setResponses] = useState<ResponseData[]>([]);
@@ -63,8 +72,8 @@ export default function ResponsesPanel({
         setResponsesError("");
 
         const params = new URLSearchParams({
-          sort: filter,
-          limit: "50",
+          sort: filter === "trust" ? "trustScoreDesc" : filter,
+          limit: String(responseLimit),
         });
 
         const data = await apiFetchJSON<{ responses?: ResponseData[] }>(
@@ -90,7 +99,7 @@ export default function ResponsesPanel({
     return () => {
       cancelled = true;
     };
-  }, [postId, filter, retryCount]);
+  }, [postId, filter, responseLimit, retryCount]);
 
   return (
     <aside className="flex h-full min-h-0 flex-col">
@@ -199,29 +208,36 @@ export default function ResponsesPanel({
           <div className="space-y-2.5">
             {responses.map((response) => (
               <ResponseItem
-                key={response.id}
+                key={response.id ?? response._id}
                 response={response}
                 onViewProfile={onViewProfile}
+                onStartChat={onStartChat}
+                startingChat={
+                  Boolean(response._id ?? response.id) &&
+                  startingResponseId === (response._id ?? response.id)
+                }
               />
             ))}
           </div>
         )}
       </div>
 
-      <div className="hidden shrink-0 border-t border-white/[0.07] pt-3 lg:block">
-        <button
-          type="button"
-          onClick={onApply}
-          disabled={expired || hasApplied || applicationUnavailable}
-          className="h-10 w-full cursor-pointer rounded-full theme-btn-accent text-[11px] font-bold transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {hasApplied
-            ? "Applied"
-            : expired
-              ? "Requirement Expired"
-              : "Apply for Requirement"}
-        </button>
-      </div>
+      {showApplyAction && (
+        <div className="hidden shrink-0 border-t border-white/[0.07] pt-3 lg:block">
+          <button
+            type="button"
+            onClick={onApply}
+            disabled={expired || hasApplied || applicationUnavailable}
+            className="h-10 w-full cursor-pointer rounded-full theme-btn-accent text-[11px] font-bold transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {hasApplied
+              ? "Applied"
+              : expired
+                ? "Requirement Expired"
+                : "Apply for Requirement"}
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

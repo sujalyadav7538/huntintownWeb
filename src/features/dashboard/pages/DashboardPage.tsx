@@ -9,7 +9,6 @@ import DashboardHeader from "@/src/features/dashboard/components/DashboardHeader
 import DashboardStats from "@/src/features/dashboard/components/DashboardStats";
 import PublishedListingItem from "@/src/features/dashboard/components/PublishedListingItem";
 import ProposalsSidebar from "@/src/features/dashboard/components/ProposalsSidebar";
-import OffersReceivedModal from "@/src/features/dashboard/components/OffersReceivedModal";
 import DashboardOverviewStats from "@/src/features/dashboard/components/DashboardOverviewStats";
 import PublishedRequirements from "@/src/features/dashboard/components/requirements/PublishedRequirements";
 import SubmittedOffers from "@/src/features/dashboard/components/offers/SubmittedOffers";
@@ -79,11 +78,19 @@ export default function DashboardPage({
 
   return (
     <div className="theme-page-shell mx-auto w-full max-w-7xl space-y-7 px-1 py-5 sm:space-y-8 sm:py-7">
-      <AnimatedContent variant="fade" duration={0.3} className="hidden md:block">{stats}</AnimatedContent>
+      <AnimatedContent
+        variant="fade"
+        duration={0.3}
+        className={`${publishedDetail || submittedDetail ? "hidden" : "hidden md:block"}`}
+      >
+        {stats}
+      </AnimatedContent>
       <nav
         role="tablist"
         aria-label="Dashboard sections"
-        className="theme-divider flex max-w-full overflow-x-auto border-b scrollbar-hide md:hidden"
+        className={`theme-divider flex max-w-full overflow-x-auto border-b scrollbar-hide ${
+          publishedDetail || submittedDetail ? "hidden" : "md:hidden"
+        }`}
       >
         <DashboardTab
           active={selectedView === "published"}
@@ -96,14 +103,32 @@ export default function DashboardPage({
           onClick={() => selectView("submitted")}
         />
       </nav>
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-7 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <div
+        className={`grid min-w-0 items-start gap-7 ${
+          publishedDetail || submittedDetail
+            ? "grid-cols-1"
+            : "grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"
+        }`}
+      >
         <div
-          className={`min-w-0 ${publishedDetail || (!submittedDetail && selectedView === "published") ? "block" : "hidden md:block"}`}
+          className={`min-w-0 ${
+            submittedDetail
+              ? "hidden"
+              : publishedDetail || selectedView === "published"
+                ? "block"
+                : "hidden md:block"
+          }`}
         >
           {published}
         </div>
         <div
-          className={`min-w-0 ${submittedDetail || (!publishedDetail && selectedView === "submitted") ? "block" : "hidden md:block"}`}
+          className={`min-w-0 ${
+            publishedDetail
+              ? "hidden"
+              : submittedDetail || selectedView === "submitted"
+                ? "block"
+                : "hidden md:block"
+          }`}
         >
           {submittedOffers}
         </div>

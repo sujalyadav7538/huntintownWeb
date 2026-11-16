@@ -1,6 +1,5 @@
 import {
   Activity,
-  BadgeCheck,
   BarChart3,
   CheckCircle2,
   Clock3,
@@ -95,8 +94,7 @@ export default function ProfileAnalytics({ metric, defaultExpanded = false }: Pr
   const avgRating = metric?.reviewMetrics?.averageRating ?? 0;
 
   const responsesSubmitted = metric?.helperMetrics?.responsesSubmitted ?? 0;
-  const responsesAccepted = metric?.helperMetrics?.responsesAccepted ?? 0;
-  const completedResponses = metric?.helperMetrics?.completedResponses ?? 0;
+  const responsesContacted = metric?.helperMetrics?.responsesContacted ?? 0;
 
   const postsCreated = metric?.hunterMetrics?.postsCreated ?? 0;
   const postsCompleted = metric?.hunterMetrics?.postsCompleted ?? 0;
@@ -116,10 +114,7 @@ export default function ProfileAnalytics({ metric, defaultExpanded = false }: Pr
     return null;
   }
 
-  const acceptanceRate =
-    responsesSubmitted > 0 ? (responsesAccepted / responsesSubmitted) * 100 : 0;
-  const completionRate =
-    responsesAccepted > 0 ? (completedResponses / responsesAccepted) * 100 : 0;
+  const contactRate = metric?.helperMetrics?.contactScore ?? 0;
   const postCompletionRate =
     postsCreated > 0 ? (postsCompleted / postsCreated) * 100 : 0;
 
@@ -175,8 +170,7 @@ export default function ProfileAnalytics({ metric, defaultExpanded = false }: Pr
 
           <div className="space-y-4">
             <ProgressRow label="Profile Completion" value={profileCompletion} tone="#3b82f6" />
-            <ProgressRow label="Helper Acceptance Rate" value={acceptanceRate} tone="#f59e0b" />
-            <ProgressRow label="Helper Completion Rate" value={completionRate} tone="#10b981" />
+            <ProgressRow label="Helper Chat Rate" value={contactRate} tone="#10b981" />
             <ProgressRow label="Post Completion Rate" value={postCompletionRate} tone="#ef4444" />
           </div>
         </div>
@@ -189,8 +183,7 @@ export default function ProfileAnalytics({ metric, defaultExpanded = false }: Pr
 
           <div className="grid grid-cols-2 gap-3">
             <StatCard icon={MessageSquare} label="Responses Sent" value={String(responsesSubmitted)} tone="blue" />
-            <StatCard icon={CheckCircle2} label="Responses Accepted" value={String(responsesAccepted)} tone="green" />
-            <StatCard icon={BadgeCheck} label="Responses Completed" value={String(completedResponses)} tone="green" />
+            <StatCard icon={MessageSquare} label="Responses Contacted" value={String(responsesContacted)} tone="green" />
             <StatCard icon={MessageSquare} label="Responses Received" value={String(responsesReceived)} tone="amber" />
             <StatCard icon={BarChart3} label="Posts Created" value={String(postsCreated)} tone="red" />
             <StatCard icon={CheckCircle2} label="Posts Completed" value={String(postsCompleted)} tone="green" />

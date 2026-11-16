@@ -5,6 +5,8 @@ import { RefreshCw } from "lucide-react";
 import { apiFetch } from "@/src/shared/lib/api";
 import useDebounce from "@/src/shared/hooks/useDebounce";
 import ExploreSearch from "@/src/features/explore/components/ExploreSearch";
+import PostDetailView from "@/src/features/explore/components/PostDetailView";
+import { normalizePost } from "@/src/store/postsSlice";
 import type { DashboardConversation, SubmittedResponse } from "../types";
 import {
   EmptyState,
@@ -18,8 +20,6 @@ const PAGE_SIZE = 8;
 const RESPONSE_FILTERS = [
   "all",
   "pending",
-  "accepted",
-  "rejected",
   // "completed",
   // "cancelled",
 ] as const;
@@ -150,18 +150,35 @@ export default function SubmittedOffers({
         </div>
       );
     }
-    detail = (
-      <SubmittedOfferModal
-        item={selected}
-        onClose={close}
-        onChat={() => onInitiateChat(selected.postId._id, selected.conversationId, "chats")}
-      />
-    );
+    if (ratingScreen.value) {
+      detail = (
+        <SubmittedOfferModal
+          item={selected}
+          onClose={close}
+          onChat={() => onInitiateChat(selected.postId._id, selected.conversationId, "chats")}
+        />
+      );
+    } else {
+      return (
+        <div className="h-[calc(100vh-12rem)] min-h-[520px]">
+          <PostDetailView
+            key={selected.postId._id}
+            post={normalizePost(selected.postId)}
+            hasApplied
+            viewOnly
+            responseLimit={10}
+            onBack={close}
+            backLabel="Submitted offers"
+          />
+        </div>
+      );
+    }
   }
+
+  if (requestedId) return detail;
 
   return (
     <section className="min-w-0">
-      {detail}
       <AnimatedContent variant="fade" duration={0.3} className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">

@@ -1,20 +1,33 @@
 import { useState } from "react";
-import { BadgeCheck, ChevronDown, ChevronUp, Star } from "lucide-react";
+import {
+  BadgeCheck,
+  ChevronDown,
+  ChevronUp,
+  LoaderCircle,
+  MessageCircle,
+  Star,
+} from "lucide-react";
 import UserAvatar from "@/src/shared/components/UserAvatar";
 
 interface ResponseItemProps {
   response: any;
   onViewProfile?: (user: any) => void;
+  onStartChat?: (responseId: string) => Promise<void>;
+  startingChat?: boolean;
 }
 
 export default function ResponseItem({
   response,
   onViewProfile,
+  onStartChat,
+  startingChat = false,
 }: ResponseItemProps) {
   const [expanded, setExpanded] = useState(false);
+  const [chatError, setChatError] = useState("");
 
   const user = response?.respondedBy;
   const answers = response?.answers ?? [];
+  const responseId = response?._id ?? response?.id;
 
   const rating = user?.averageRating ?? user?.rating ?? null;
 
@@ -51,12 +64,39 @@ export default function ResponseItem({
               )}
             </button>
 
-            {rating != null && (
-              <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[8px] text-zinc-500">
-                <Star className="h-2.5 w-2.5 fill-yellow-500 text-yellow-500" />
-                {Number(rating).toFixed(1)}
-              </span>
-            )}
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              {rating != null && (
+                <span className="flex items-center gap-0.5 text-[8px] text-zinc-500">
+                  <Star className="h-2.5 w-2.5 fill-yellow-500 text-yellow-500" />
+                  {Number(rating).toFixed(1)}
+                </span>
+              )}
+              {onStartChat && responseId && (
+                <button
+                  type="button"
+                  aria-label={`Start or open chat with ${user?.name || "this applicant"}`}
+                  title="Start or open chat"
+                  disabled={startingChat}
+                  onClick={() => {
+                    setChatError("");
+                    void onStartChat(responseId).catch((error: unknown) => {
+                      setChatError(
+                        error instanceof Error
+                          ? error.message
+                          : "Could not open this conversation.",
+                      );
+                    });
+                  }}
+                  className="flex h-7 w-7 items-center justify-center rounded-md border border-white/[0.08] text-zinc-500 transition hover:border-[#FF3F3F]/40 hover:text-[#FF6B6B] disabled:opacity-50"
+                >
+                  {startingChat ? (
+                    <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <MessageCircle className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
           <p className="truncate text-[8px] text-zinc-600">
@@ -93,6 +133,11 @@ export default function ResponseItem({
           )}
         </button>
       </div>
+      {chatError && (
+        <p role="alert" className="mt-2 text-[9px] text-red-400">
+          {chatError}
+        </p>
+      )}
 
       {/* Expanded */}
       {expanded && (
