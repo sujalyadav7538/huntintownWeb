@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Eye, MessageCircle, MoreHorizontal, Search } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { getCategoryPresentation } from "@/src/shared/lib/postConstants";
 import type { SubmittedResponse } from "../types";
 import { StatusBadge } from "../requirements/RequirementUI";
@@ -35,6 +35,12 @@ export default function SubmittedOfferCard({
 
   return (
     <article className="theme-card group relative min-w-0 overflow-hidden rounded-lg border p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#FF3F3F]/40 hover:shadow-md focus-within:border-[#FF3F3F]/40">
+      <button
+        type="button"
+        onClick={onExplore}
+        aria-label={`View ${post.title}`}
+        className="absolute inset-0 cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#FF3F3F]"
+      />
       <span
         aria-hidden="true"
         className="absolute inset-x-4 top-0 h-px opacity-60"
@@ -61,33 +67,24 @@ export default function SubmittedOfferCard({
               type="button"
               onClick={() => setDescriptionExpanded((expanded) => !expanded)}
               aria-expanded={descriptionExpanded}
-              className="mt-1 text-[11px] font-semibold text-[#FF6B6B] hover:underline"
+              className="relative z-10 mt-1 text-[11px] font-semibold text-[#FF6B6B] hover:underline"
             >
               {descriptionExpanded ? "Show less" : "Know more"}
             </button>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="relative z-10 flex shrink-0 items-center gap-1.5">
           {item.conversationId && (
             <button
               type="button"
               onClick={onChat}
               aria-label={`Chat about ${post.title}`}
               title="Open conversation"
-              className="theme-divider flex h-8 w-8 items-center justify-center rounded-md border text-[#FF6B6B] hover:bg-[#FF3F3F]/10"
+              className="flex h-5 w-5 items-center justify-center bg-transparent text-[#FF6B6B] hover:text-[#FF3F3F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF3F3F]"
             >
               <MessageCircle className="h-4 w-4" />
             </button>
           )}
-          <button
-            type="button"
-            onClick={onExplore}
-            aria-label={`Explore ${post.title}`}
-            title="Explore requirement"
-            className="theme-divider theme-icon-muted flex h-8 w-8 list-none items-center justify-center rounded-md border transition hover:bg-white/5 [&::-webkit-details-marker]:hidden"
-          >
-            <Eye className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
       <div className="theme-divider theme-text-muted mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 border-t pt-2.5 text-[11px]">

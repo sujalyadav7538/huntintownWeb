@@ -64,13 +64,10 @@ export default function App() {
   }, [location.pathname]);
 
   useLayoutEffect(() => {
-    if (
-      !location.hash &&
-      (location.pathname === "/help" || location.pathname === "/contact")
-    ) {
+    if (!location.hash) {
       mainRef.current?.scrollTo({ top: 0, left: 0, behavior: "instant" });
     }
-  }, [location.pathname, location.hash, location.key]);
+  }, [location.pathname, location.search, location.hash, location.key]);
 
   const activeTab = useMemo(
     () => getActiveTabFromPath(location.pathname),

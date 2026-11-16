@@ -120,28 +120,48 @@ export default function PublishedRequirements({
     if (error || !selectedPost) {
       return (
         <div>
-          <button type="button" onClick={close} className="theme-text-primary mb-4">Back to dashboard</button>
-          <ErrorState message={error || "This requirement is no longer available."} retry={() => void loadPosts()} />
+          <button
+            type="button"
+            onClick={close}
+            className="theme-text-primary mb-4"
+          >
+            Back to dashboard
+          </button>
+          <ErrorState
+            message={error || "This requirement is no longer available."}
+            retry={() => void loadPosts()}
+          />
         </div>
       );
     }
     if (ratingScreen.value) {
-      detail = <RateHelpersModal postId={selectedPost._id} postTitle={selectedPost.title} onClose={ratingScreen.close} />;
-    } else detail = (
-      <ReceivedOffersView
-        post={selectedPost}
-        onClose={postScreen.close}
-        onInitiateChat={onInitiateChat}
-        onChanged={refreshRequirements}
-      />
-    );
+      detail = (
+        <RateHelpersModal
+          postId={selectedPost._id}
+          postTitle={selectedPost.title}
+          onClose={ratingScreen.close}
+        />
+      );
+    } else
+      detail = (
+        <ReceivedOffersView
+          post={selectedPost}
+          onClose={postScreen.close}
+          onInitiateChat={onInitiateChat}
+          onChanged={refreshRequirements}
+        />
+      );
   }
 
   if (requestedPostId) return detail;
 
   return (
     <section className="min-w-0">
-      <AnimatedContent variant="fade" duration={0.3} className="mb-3 flex flex-wrap items-end justify-between gap-3">
+      <AnimatedContent
+        variant="fade"
+        duration={0.3}
+        className="mb-3 flex flex-wrap items-end justify-between gap-3"
+      >
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#FF3F3F]">
             Your listings

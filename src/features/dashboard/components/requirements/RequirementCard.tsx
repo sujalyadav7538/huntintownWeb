@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   CheckCircle2,
   MoreHorizontal,
-  Eye,
   Star,
   Trash2,
   Users,
@@ -90,6 +89,12 @@ export default function RequirementCard({
 
   return (
     <article className="theme-card group relative min-w-0 overflow-hidden rounded-lg border p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#FF3F3F]/40 hover:shadow-md focus-within:border-[#FF3F3F]/40">
+      <button
+        type="button"
+        onClick={onExplore}
+        aria-label={`View requirement and offers for ${post.title}`}
+        className="absolute inset-0 cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#FF3F3F]"
+      />
       <span
         aria-hidden="true"
         className="absolute inset-x-4 top-0 h-px opacity-60"
@@ -118,22 +123,13 @@ export default function RequirementCard({
               type="button"
               onClick={() => setDescriptionExpanded((expanded) => !expanded)}
               aria-expanded={descriptionExpanded}
-              className="mt-1 text-[11px] font-semibold text-[#FF6B6B] hover:underline"
+              className="relative z-10 mt-1 text-[11px] font-semibold text-[#FF6B6B] hover:underline"
             >
               {descriptionExpanded ? "Show less" : "Know more"}
             </button>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            onClick={onExplore}
-            aria-label={`View offers for ${post.title}`}
-            title="View requirement and offers"
-            className="theme-divider theme-icon-muted flex h-8 w-8 list-none items-center justify-center rounded-md border transition hover:border-[#FF3F3F]/40 hover:bg-[#FF3F3F]/10 hover:text-[#FF3F3F] [&::-webkit-details-marker]:hidden"
-          >
-            <Eye className="h-3.5 w-3.5" />
-          </button>
+        <div className="relative z-10 flex shrink-0 items-center gap-1.5">
           <details
             ref={actionsRef}
             className="relative"
@@ -209,7 +205,7 @@ export default function RequirementCard({
           type="button"
           onClick={onExplore}
           aria-label={`View ${post.responsesCount} ${post.responsesCount === 1 ? "offer" : "offers"} for ${post.title}`}
-          className="ml-auto inline-flex items-center gap-1 rounded px-1 py-1 transition hover:text-[#FF3F3F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF3F3F]"
+          className="relative z-10 ml-auto inline-flex items-center gap-1 rounded px-1 py-1 transition hover:text-[#FF3F3F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF3F3F]"
         >
           <Users className="h-3.5 w-3.5" />
           {post.responsesCount} {post.responsesCount === 1 ? "offer" : "offers"}

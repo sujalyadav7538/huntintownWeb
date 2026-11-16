@@ -163,7 +163,11 @@ export default function PostDetail({
     <div className="relative flex h-full min-h-0 w-full flex-col theme-page-shell">
       {activityError && <p role="alert" className="px-4 py-2 text-sm text-red-400">{activityError}</p>}
       <div className="min-h-0 flex-1 overflow-hidden">
-        <div className="mx-auto h-full w-full max-w-7xl px-4 sm:px-6">
+        <div
+          className={`mx-auto h-full w-full max-w-7xl ${
+            viewOnly ? "px-1 sm:px-6" : "px-4 sm:px-6"
+          }`}
+        >
           <div className="grid h-full min-h-0 lg:grid-cols-[minmax(0,1fr)_360px]">
             {/* Left - Desktop */}
             <LeftPanelDesktop
